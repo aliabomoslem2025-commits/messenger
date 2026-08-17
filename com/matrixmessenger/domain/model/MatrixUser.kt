@@ -3,6 +3,12 @@ package com.matrixmessenger.domain.model
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
+enum class PresenceStatus {
+    ONLINE,
+    AWAY,
+    OFFLINE
+}
+
 @Parcelize
 data class MatrixUser(
     val userId: String,
@@ -10,7 +16,7 @@ data class MatrixUser(
     val avatarUrl: String?,
     val isOnline: Boolean,
     val lastSeen: Long?,
-    val presenceStatus: String?
+    val presenceStatus: PresenceStatus?
 ) : Parcelable
 
 @Parcelize

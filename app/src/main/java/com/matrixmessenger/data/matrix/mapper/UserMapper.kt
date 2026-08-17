@@ -1,7 +1,9 @@
 package com.matrixmessenger.data.matrix.mapper
 
 import com.matrixmessenger.domain.model.MatrixUser
+import com.matrixmessenger.domain.model.PresenceStatus
 import org.matrix.android.sdk.api.session.user.model.User
+import org.matrix.android.sdk.api.session.presence.model.PresenceState
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -9,13 +11,20 @@ import javax.inject.Singleton
 class UserMapper @Inject constructor() {
 
     fun mapToMatrixUser(user: User, isOnline: Boolean = false, lastSeen: Long? = null): MatrixUser {
+        val presenceStatus = when (user.currentPresence) {
+            PresenceState.ONLINE -> PresenceStatus.ONLINE
+            PresenceState.UNAVAILABLE -> PresenceStatus.AWAY
+            PresenceState.OFFLINE -> PresenceStatus.OFFLINE
+            else -> PresenceStatus.OFFLINE
+        }
+        
         return MatrixUser(
             userId = user.userId,
             displayName = user.displayName,
             avatarUrl = user.avatarUrl,
-            isOnline = isOnline,
-            lastSeen = lastSeen,
-            presenceStatus = null // TODO: Extract from presence info
+            isOnline = user.currentPresence == PresenceState.ONLINE,
+            lastSeen = lastSeen ?: user.lastActiveAgo,
+            presenceStatus = presenceStatus
         )
     }
 
@@ -32,7 +41,7 @@ class UserMapper @Inject constructor() {
             avatarUrl = avatarUrl,
             isOnline = isOnline,
             lastSeen = lastSeen,
-            presenceStatus = null
+            presenceStatus = if (isOnline) PresenceStatus.ONLINE else PresenceStatus.OFFLINE
         )
     }
 }
