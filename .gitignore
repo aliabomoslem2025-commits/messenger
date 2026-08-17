@@ -1,94 +1,29 @@
 ```
-# Gradle
-.gradle/
-build/
-target/
-
-# Android
-*.apk
-*.aar
-*.jar
-*.so
-*.dex
-local.properties
-captures/
-.externalNativeBuild
-.intermediates
-.kotlin
-.predef
-outputs/
-.release
-.debug
-
-# Java
+# Kotlin/Android build artifacts
 *.class
 *.jar
 *.war
-*.ear
-*.nar
-*.hprof
+*.aar
 
-# Kotlin
-*.kotlin_metadata
+# Gradle
+.gradle/
+build/
+app/build/
 
-# Dependencies
-.libs.versions.toml.lock
-
-# IDE
-.vscode/
+# IDE files
 .idea/
 *.iml
 *.ipr
 *.iws
-.classpath
-.project
-.settings/
 
 # Temp files
 *.tmp
-*.temp
-*.log
 *.swp
 *~
-.DS_Store
-Thumbs.db
 
-# Environment
-.env
-.env.local
-.env.*
-!.env.example
+# Logs
+*.log
 
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Python (if any Python components)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-*.so
-*.egg-info/
-.eggs/
-.mypy_cache/
-.pytest_cache/
-.tox/
-.hypothesis/
-
-# Node (if any Node components)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-node_modules/
-dist/
-build/
+# Local configuration
+local.properties
 ```
