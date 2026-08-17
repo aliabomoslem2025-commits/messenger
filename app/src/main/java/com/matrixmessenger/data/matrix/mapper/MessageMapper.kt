@@ -60,6 +60,17 @@ class MessageMapper @Inject constructor() {
         // Extract reactions
         val reactions = extractReactions(event)
 
+        // Check forward info
+        val forwardInfo = extractForwardInfo(content)
+
+        // Extract poll data if present
+        val pollData = extractPollData(content)
+
+        // Extract redaction reason if redacted
+        val redactionReason = if (root.type == EventType.REDACTION) {
+            root.redactsEvent?.content?.reason
+        } else null
+
         return MatrixMessage(
             eventId = event.eventId,
             roomId = event.roomId ?: "",
@@ -73,8 +84,8 @@ class MessageMapper @Inject constructor() {
             status = status,
             isOwn = isOwn,
             isEdited = event.isEdited(),
-            isForwarded = false, // TODO: Check forward info
-            forwardedFromName = null,
+            isForwarded = forwardInfo != null,
+            forwardedFromName = forwardInfo?.forwardedFromName,
             replyToEventId = replyData?.eventId,
             replyToMessage = replyData,
             mediaUrl = extractMediaUrl(content),
@@ -91,10 +102,10 @@ class MessageMapper @Inject constructor() {
             latitude = extractLatitude(content),
             longitude = extractLongitude(content),
             locationDescription = text,
-            pollData = null, // TODO: Implement poll support
+            pollData = pollData,
             isRedacted = root.type == EventType.REDACTION,
-            redactionReason = null, // TODO: Extract redaction reason
-            selfDestructAfterMs = null // TODO: Implement self-destruct
+            redactionReason = redactionReason,
+            selfDestructAfterMs = null // Self-destruct not yet supported in Matrix
         )
     }
 
@@ -161,5 +172,52 @@ class MessageMapper @Inject constructor() {
             ?.split(",")
             ?.lastOrNull()
             ?.toDoubleOrNull()
+    }
+
+    private data class ForwardInfo(
+        val forwardedFromName: String?
+    )
+
+    private fun extractForwardInfo(content: Any?): ForwardInfo? {
+        val messageContent = content as? MessageContent ?: return null
+        val relatesTo = messageContent.relatesTo ?: return null
+        
+        // Check if it's a forward (m.forward relation type)
+        if (relatesTo.type != "m.forward") return null
+        
+        // Extract forwarded from info
+        val forwardedFromDisplayName = relatesTo.otherProperties?.get("forwarded_from_display_name") as? String
+        
+        return ForwardInfo(
+            forwardedFromName = forwardedFromDisplayName
+        )
+    }
+
+    private fun extractPollData(content: Any?): com.matrixmessenger.domain.model.PollData? {
+        val messageContent = content as? MessageContent ?: return null
+        
+        // Check if this is a poll event type
+        if (messageContent.msgType != "m.poll.start") return null
+        
+        // Extract poll information from the content
+        val question = messageContent.body
+        val pollInfo = messageContent.otherFields?.get("poll") as? Map<*, *> ?: return null
+        val answersList = pollInfo["answers"] as? List<Map<*, *>> ?: return null
+        
+        val answers = answersList.mapNotNull { answer ->
+            val id = answer["id"] as? String ?: return@mapNotNull null
+            val text = answer["text"] as? String ?: return@mapNotNull null
+            com.matrixmessenger.domain.model.PollAnswer(id = id, text = text)
+        }
+        
+        val allowMultiple = pollInfo["allow_multiple"] as? Boolean ?: false
+        
+        return com.matrixmessenger.domain.model.PollData(
+            question = question,
+            answers = answers,
+            allowMultiple = allowMultiple,
+            totalVotes = 0, // Will be populated from aggregations
+            userVotes = emptyList()
+        )
     }
 }
