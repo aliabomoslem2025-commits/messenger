@@ -7,25 +7,21 @@
 *.dll
 *.so
 *.a
+*.exe
 
 # Dependencies
 __pycache__/
 .mypy_cache/
 .pytest_cache/
-.gradle/
-node_modules/
-venv/
-.venv/
-
-# Build directories
-build/
-dist/
-target/
+.coverage
+coverage/
+htmlcov/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
+*.swo
 
 # Environment
 .env
@@ -36,36 +32,20 @@ target/
 .vscode/
 .idea/
 
-# System files
+# Build directories (common for Java/Kotlin projects)
+build/
+target/
+.gradle/
+dist/
+
+# Python virtual environments
+.venv/
+venv/
+
+# Node.js dependencies
+node_modules/
+
+# OS generated files
 .DS_Store
 Thumbs.db
-
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# Compressed files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
 ```

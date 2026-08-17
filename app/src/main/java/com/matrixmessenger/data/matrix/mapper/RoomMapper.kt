@@ -32,8 +32,8 @@ class RoomMapper @Inject constructor() {
             lastMessageTimestamp = summary.latestPreviewableEvent?.root?.originServerTs ?: 0L,
             unreadCount = summary.notificationCount,
             mentionCount = summary.highlightCount,
-            isPinned = false, // TODO: Check pinned state
-            isMuted = false, // TODO: Check mute state
+            isPinned = summary.isPinned,
+            isMuted = summary.isUserMentionOnly || summary.isMuted,
             isEncrypted = summary.isEncrypted,
             isDirect = isDirect,
             directUserId = directUserId,

@@ -50,3 +50,11 @@ class SwitchCameraUseCase @Inject constructor(
         return callRepository.switchCamera(callId, useFront)
     }
 }
+
+class ToggleSpeakerUseCase @Inject constructor(
+    private val callRepository: CallRepository
+) {
+    suspend operator fun invoke(callId: String, speakerOn: Boolean): Result<Unit> {
+        return callRepository.toggleSpeaker(callId, speakerOn)
+    }
+}

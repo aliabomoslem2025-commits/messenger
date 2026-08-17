@@ -182,7 +182,7 @@ fun CallScreen(
                         CallControlButton(
                             icon = if (state.mediaState.isSpeakerOn) "Speaker On" else "Speaker Off",
                             isActive = state.mediaState.isSpeakerOn,
-                            onClick = { /* TODO: Implement speaker toggle */ }
+                            onClick = { onEvent(CallEvent.ToggleSpeaker) }
                         )
                     }
                 }
