@@ -1,20 +1,11 @@
-# Project-wide Gradle settings.
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}
-dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-    repositories {
-        google()
-        mavenCentral()
-        maven { url = uri("https://jitpack.io") }
-        maven { url = uri("https://packages.matrix.org/maven/") }
-    }
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+plugins {
+    id("com.android.application") version "8.2.0" apply false
+    id("org.jetbrains.kotlin.android") version "1.9.20" apply false
+    id("com.google.dagger.hilt.android") version "2.48.1" apply false
+    id("com.google.devtools.ksp") version "1.9.20-1.0.14" apply false
 }
 
-rootProject.name = "MatrixMessenger"
-include(":app")
+tasks.register("clean", Delete::class) {
+    delete(rootProject.layout.buildDirectory)
+}
