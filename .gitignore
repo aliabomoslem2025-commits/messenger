@@ -1,51 +1,33 @@
 ```
-# Compiled and build artifacts
-*.class
-*.o
-*.obj
-*.out
-*.dll
-*.so
-*.a
-*.exe
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.properties
 
 # Dependencies
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-.coverage
-coverage/
-htmlcov/
+.libs.versions.toml.lock
 
-# Logs and temp files
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Logs
 *.log
-*.tmp
-*.swp
-*.swo
 
 # Environment
 .env
 .env.local
-*.env.*
+*.env*
 
-# Editors
-.vscode/
-.idea/
-
-# Build directories (common for Java/Kotlin projects)
-build/
-target/
-.gradle/
-dist/
-
-# Python virtual environments
-.venv/
-venv/
-
-# Node.js dependencies
-node_modules/
-
-# OS generated files
+# OS
 .DS_Store
 Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*~
 ```
