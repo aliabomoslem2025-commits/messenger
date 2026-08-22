@@ -31,3 +31,13 @@ Thumbs.db
 *.swp
 *~
 ```
+# Android build outputs
+/build/
+/app/build/
+
+# APK files
+*.apk
+*.aab
+
+# Release outputs
+app/release/
