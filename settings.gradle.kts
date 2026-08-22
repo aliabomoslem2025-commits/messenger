@@ -1,9 +1,16 @@
 pluginManagement {
     repositories {
-        google()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
         gradlePluginPortal()
-        maven { url = uri("https://maven.myket.ir") }
+        maven("https://maven.myket.ir")
+        maven("https://jitpack.io")
     }
 }
 
@@ -12,13 +19,11 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://maven.myket.ir") }
-        maven { url = uri("https://jitpack.io") }
-        maven { url = uri("https://packages.matrix.org/maven/") }
-        maven { url = uri("https://repo.repsy.io/mvn/chachako/r8") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+        maven("https://maven.myket.ir")
+        maven("https://jitpack.io")
     }
 }
+
 
 rootProject.name = "MatrixMessenger"
 include(":app")

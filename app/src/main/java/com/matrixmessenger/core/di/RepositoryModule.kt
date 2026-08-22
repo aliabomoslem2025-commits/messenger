@@ -1,11 +1,13 @@
 package com.matrixmessenger.core.di
 
 import com.matrixmessenger.data.repository.AuthRepositoryImpl
+import com.matrixmessenger.data.repository.MatrixRepositoryImpl
 import com.matrixmessenger.data.repository.MediaRepositoryImpl
 import com.matrixmessenger.data.repository.MessageRepositoryImpl
 import com.matrixmessenger.data.repository.RoomRepositoryImpl
 import com.matrixmessenger.data.repository.UserRepositoryImpl
 import com.matrixmessenger.domain.repository.AuthRepository
+import com.matrixmessenger.domain.repository.MatrixRepository
 import com.matrixmessenger.domain.repository.MediaRepository
 import com.matrixmessenger.domain.repository.MessageRepository
 import com.matrixmessenger.domain.repository.RoomRepository
@@ -19,6 +21,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindMatrixRepository(
+        matrixRepositoryImpl: MatrixRepositoryImpl
+    ): MatrixRepository
 
     @Binds
     @Singleton

@@ -1,8 +1,8 @@
 package com.matrixmessenger.feature.search.domain.model
 
-import com.matrixmessenger.core.model.MatrixRoom
-import com.matrixmessenger.core.model.MatrixUser
-import com.matrixmessenger.core.model.MatrixMessage
+import com.matrixmessenger.domain.model.MatrixRoom
+import com.matrixmessenger.domain.model.MatrixUser
+import com.matrixmessenger.domain.model.MatrixMessage
 
 /**
  * Unified search result model that can represent different types of results.

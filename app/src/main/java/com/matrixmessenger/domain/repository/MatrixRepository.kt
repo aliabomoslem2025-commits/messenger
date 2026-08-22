@@ -12,6 +12,7 @@ interface MatrixRepository {
     suspend fun logout(): Result<Unit>
     suspend fun getAuthState(): AuthData?
     fun observeAuthState(): Flow<AuthData?>
+    suspend fun getCurrentUserId(): String?
     
     // Account
     suspend fun getMyUserProfile(): Result<UserProfile>
@@ -22,8 +23,8 @@ interface MatrixRepository {
     suspend fun deleteAccount(password: String): Result<Unit>
     
     // Rooms
-    fun observeRooms(): Flow<List<Room>>
-    suspend fun getRoom(roomId: String): Result<Room>
+    fun observeRooms(): Flow<List<MatrixRoom>>
+    suspend fun getRoom(roomId: String): Result<MatrixRoom>
     suspend fun createRoom(
         name: String?,
         topic: String?,
@@ -42,9 +43,12 @@ interface MatrixRepository {
     suspend fun updateRoomAvatar(roomId: String, avatarFile: File): Result<String>
     suspend fun removeRoomAvatar(roomId: String): Result<Unit>
     suspend fun getRoomMembers(roomId: String): Result<List<RoomMember>>
+    fun observeRoomMembers(roomId: String): Flow<List<RoomMember>>
     
     // Messages
-    fun observeMessages(roomId: String, limit: Int = 50): Flow<List<Message>>
+    fun observeMessages(roomId: String, limit: Int = 50): Flow<List<MatrixMessage>>
+    suspend fun loadMoreMessages(roomId: String, limit: Int = 20): Result<Unit>
+    suspend fun sendTextMessage(roomId: String, text: String, replyToId: String? = null): Result<String>
     suspend fun sendMessage(
         roomId: String,
         body: String,
@@ -67,7 +71,15 @@ interface MatrixRepository {
     suspend fun sendAudioMessage(
         roomId: String,
         audioFile: File,
+        durationMs: Long,
         caption: String? = null
+    ): Result<String>
+    suspend fun sendVideoNote(
+        roomId: String,
+        videoFile: File,
+        durationMs: Long,
+        width: Int,
+        height: Int
     ): Result<String>
     suspend fun sendFileMessage(
         roomId: String,
@@ -86,10 +98,12 @@ interface MatrixRepository {
     suspend fun removeReaction(roomId: String, eventId: String, key: String): Result<Unit>
     suspend fun markRoomAsRead(roomId: String): Result<Unit>
     suspend fun markRoomAsUnread(roomId: String): Result<Unit>
+    suspend fun resendMessage(roomId: String, localId: String): Result<Unit>
+    suspend fun cancelSend(roomId: String, localId: String): Result<Unit>
     
     // Search
     suspend fun searchUsers(query: String, limit: Int = 20): Result<List<MatrixUser>>
-    suspend fun searchMessages(roomId: String, query: String, limit: Int = 20): Result<List<Message>>
+    suspend fun searchMessages(roomId: String, query: String, limit: Int = 20): Result<List<MatrixMessage>>
     suspend fun getPublicRooms(server: String? = null, filter: String? = null, limit: Int = 20): Result<List<PublicRoom>>
     
     // Typing & Presence

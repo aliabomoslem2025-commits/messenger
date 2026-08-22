@@ -14,21 +14,24 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ViewModelScoped
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
-@InstallIn(ViewModelComponent::class)
+@InstallIn(SingletonComponent::class)
 abstract class FeatureBindingsModule {
 
     // Call Feature Bindings
     @Binds
+    @Singleton
     abstract fun bindCallRepository(
         callRepositoryImpl: CallRepositoryImpl
     ): CallRepository
 
     // Search Feature Bindings
     @Binds
+    @Singleton
     abstract fun bindSearchRepository(
         searchRepositoryImpl: SearchRepositoryImpl
     ): SearchRepository
@@ -37,16 +40,6 @@ abstract class FeatureBindingsModule {
 @Module
 @InstallIn(ViewModelComponent::class)
 object FeatureProvidesModule {
-
-    @Provides
-    @ViewModelScoped
-    fun provideWebRtcManager(
-        @ApplicationContext context: Context
-    ): WebRtcManager {
-        return WebRtcManager(context).apply {
-            initialize()
-        }
-    }
 
     @Provides
     @ViewModelScoped

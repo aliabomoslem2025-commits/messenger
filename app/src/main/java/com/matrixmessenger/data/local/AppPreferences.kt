@@ -11,6 +11,7 @@ import com.matrixmessenger.domain.model.PresenceState
 import com.matrixmessenger.domain.repository.AuthData
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import org.json.JSONObject
 import timber.log.Timber
@@ -70,6 +71,12 @@ class AppPreferences @Inject constructor(
             authData.refreshToken?.let { preferences[REFRESH_TOKEN] = it }
         }
         Timber.d("Auth data saved for user: ${authData.userId}")
+    }
+    
+    suspend fun saveHomeserverUrl(url: String) {
+        dataStore.edit { preferences ->
+            preferences[HOMESERVER_URL] = url
+        }
     }
     
     suspend fun clearAuthData() {

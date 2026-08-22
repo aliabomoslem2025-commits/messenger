@@ -1,6 +1,7 @@
 package com.matrixmessenger.core.webrtc
 
 import android.content.Context
+import android.media.AudioManager
 import org.webrtc.*
 
 /**
@@ -12,16 +13,15 @@ class WebRtcManager(private val context: Context) {
     private var peerConnectionFactory: PeerConnectionFactory? = null
     private var peerConnection: PeerConnection? = null
     private var localVideoSource: VideoSource? = null
-    private var localVideoTrack: LocalVideoTrack? = null
-    private var localAudioTrack: LocalAudioTrack? = null
+    private var localVideoTrack: VideoTrack? = null
+    private var localAudioTrack: AudioTrack? = null
     private var videoCapturer: VideoCapturer? = null
-    private var audioRecord: AudioRecord? = null // Simplified, actual impl needs AudioRecord
     
-    private val rtcConfig = RTCConfiguration(listOf()).apply {
+    private val rtcConfig = PeerConnection.RTCConfiguration(listOf()).apply {
         iceServers = listOf(
-            IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
+            PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
         )
-        sdpSemantics = SdpSemantics.UNIFIED_PLAN
+        sdpSemantics = PeerConnection.SdpSemantics.UNIFIED_PLAN
     }
     
     /**
@@ -59,7 +59,7 @@ class WebRtcManager(private val context: Context) {
     /**
      * Set up local audio track.
      */
-    fun createLocalAudioTrack(): LocalAudioTrack? {
+    fun createLocalAudioTrack(): AudioTrack? {
         val factory = peerConnectionFactory ?: return null
         val audioSource = factory.createAudioSource(MediaConstraints())
         val track = factory.createAudioTrack("audio", audioSource)
@@ -73,18 +73,20 @@ class WebRtcManager(private val context: Context) {
     fun createLocalVideoTrack(
         surfaceTextureHelper: SurfaceTextureHelper,
         videoView: org.webrtc.SurfaceViewRenderer
-    ): LocalVideoTrack? {
+    ): VideoTrack? {
         val factory = peerConnectionFactory ?: return null
         
         videoCapturer = createCameraCapturer()
         val source = factory.createVideoSource(videoCapturer is CameraVideoCapturer)
         localVideoSource = source
         
-        videoCapturer?.initialize(surfaceTextureHelper, context) { capturer ->
-            videoCapturer = capturer
-        }
+        videoCapturer?.initialize(surfaceTextureHelper, context, object : CapturerObserver {
+            override fun onCapturerStarted(success: Boolean) {}
+            override fun onCapturerStopped() {}
+            override fun onFrameCaptured(frame: VideoFrame?) {}
+        })
         
-        val eglBase = org.webrtc.EglBase.createEglBase()
+        val eglBase = EglBase.create()
         videoView.init(eglBase.eglBaseContext, null)
         videoView.setMirror(true)
         
@@ -104,7 +106,7 @@ class WebRtcManager(private val context: Context) {
         } ?: cameraEnumerator.deviceNames.firstOrNull()
             ?: throw IllegalStateException("No camera found")
         
-        return Camera2Enumerator(context).createCapturer(frontCamera, null)
+        return cameraEnumerator.createCapturer(frontCamera, null)
     }
     
     fun startCapture(width: Int, height: Int, fps: Int) {
@@ -135,12 +137,23 @@ class WebRtcManager(private val context: Context) {
     fun switchCamera() {
         (videoCapturer as? CameraVideoCapturer)?.switchCamera(null)
     }
+
+    /**
+     * Toggle the speaker state.
+     */
+    fun toggleSpeaker(speakerOn: Boolean) {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+        audioManager?.let {
+            it.isSpeakerphoneOn = speakerOn
+            it.mode = if (speakerOn) AudioManager.MODE_IN_COMMUNICATION else AudioManager.MODE_NORMAL
+        }
+    }
     
     /**
      * Add remote track to a renderer.
      */
     fun addRemoteTrack(track: MediaStreamTrack, renderer: org.webrtc.SurfaceViewRenderer?) {
-        if (track.kind == "video" && renderer != null) {
+        if (track.kind() == "video" && renderer != null) {
             (track as? VideoTrack)?.addSink(renderer)
         }
     }

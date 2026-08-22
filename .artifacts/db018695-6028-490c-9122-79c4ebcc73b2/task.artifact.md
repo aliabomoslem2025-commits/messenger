@@ -1,0 +1,20 @@
+- [x] Dependencies and Configuration
+    - [x] Add `androidx-camera-video` to `libs.versions.toml`
+    - [x] Add dependency to `app/build.gradle.kts`
+    - [x] Configure `FileProvider` in `AndroidManifest.xml`
+    - [x] Create `res/xml/file_paths.xml`
+- [x] Hardware Layer
+    - [x] Implement `VideoNoteRecorder.kt`
+- [x] Data Layer
+    - [x] Add `sendVideoNote` to `MatrixClientManager.kt`
+    - [x] Update `MatrixRepository.kt` and `MatrixRepositoryImpl.kt`
+- [x] Presentation Layer
+    - [x] Integrate recorder in `ChatViewModel.kt`
+    - [x] Handle video lifecycle and state transitions
+- [x] UI Layer
+    - [x] Add circular preview to `ChatScreen.kt`
+    - [x] Implement `VideoNoteBubble.kt`
+    - [x] Update `MessageContent.kt`
+- [ ] Verification
+    - [ ] Manual test of recording and sending
+    - [ ] Verify circular playback

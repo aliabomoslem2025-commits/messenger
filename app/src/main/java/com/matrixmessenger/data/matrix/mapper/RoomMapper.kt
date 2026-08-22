@@ -1,47 +1,49 @@
 package com.matrixmessenger.data.matrix.mapper
 
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
+import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import com.matrixmessenger.domain.model.MatrixRoom
-import com.matrixmessenger.domain.model.RoomType
+import com.matrixmessenger.domain.model.MembershipState
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class RoomMapper @Inject constructor() {
 
-    fun mapToMatrixRoom(summary: RoomSummary): MatrixRoom {
-        val isDirect = summary.isDirect
-        val directUserId = if (isDirect) {
-            summary.otherUserId
-        } else null
-
-        val roomType = when {
-            summary.isDirect -> RoomType.DIRECT
-            summary.name == "Saved Messages" -> RoomType.SAVED_MESSAGES
-            else -> RoomType.GROUP
-        }
-
+    fun map(
+        summary: RoomSummary, 
+        isEncrypted: Boolean,
+        notificationState: RoomNotificationState? = null
+    ): MatrixRoom {
         return MatrixRoom(
             roomId = summary.roomId,
-            displayName = summary.displayName ?: summary.roomId,
-            avatarUrl = summary.avatarUrl,
+            name = summary.displayName,
             topic = summary.topic,
-            roomType = roomType,
-            memberCount = summary.joinedMemberCount,
-            lastMessage = null, // Will be populated by message mapper
-            lastMessageTimestamp = summary.latestPreviewableEvent?.root?.originServerTs ?: 0L,
+            avatarUrl = summary.avatarUrl,
+            alias = summary.canonicalAlias,
+            isDirect = summary.isDirect,
+            isEncrypted = isEncrypted,
+            isPinned = summary.hasTag(RoomTag.ROOM_TAG_FAVOURITE),
+            isMuted = notificationState == RoomNotificationState.MUTE,
+            membership = summary.membership.toDomain(),
             unreadCount = summary.notificationCount,
-            mentionCount = summary.highlightCount,
-            isPinned = summary.isPinned,
-            isMuted = summary.isUserMentionOnly || summary.isMuted,
-            isEncrypted = summary.isEncrypted,
-            isDirect = isDirect,
-            directUserId = directUserId,
-            isOnline = false, // Presence info from user mapper
-            lastSeen = null,
-            typingUsers = emptyList(), // Will be populated from flow
-            draft = null, // Will be populated from draft service
-            hasNewMessages = summary.notificationCount > 0
+            lastMessage = null, // Set by repository
+            timestamp = summary.latestPreviewableEvent?.root?.originServerTs?.let { Date(it) },
+            memberCount = summary.joinedMembersCount ?: 0,
+            inviter = null,
+            canonicalAlias = summary.canonicalAlias
         )
+    }
+
+    private fun Membership.toDomain(): MembershipState = when (this) {
+        Membership.INVITE -> MembershipState.INVITE
+        Membership.JOIN -> MembershipState.JOIN
+        Membership.LEAVE -> MembershipState.LEAVE
+        Membership.BAN -> MembershipState.BAN
+        Membership.KNOCK -> MembershipState.KNOCK
+        else -> MembershipState.LEAVE
     }
 }

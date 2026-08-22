@@ -20,8 +20,8 @@ fun <T> Flow<Result<T>>.mapSuccess(): Flow<T> = this.map { result ->
  * Provides loading state emissions before and after the flow
  */
 fun <T> Flow<T>.withLoading(): Flow<UiState<T>> = this
-    .onStart { emit(UiState.Loading) }
     .map<T, UiState<T>> { UiState.Success(it) }
+    .onStart { emit(UiState.Loading) }
     .catch { emit(UiState.Error(it)) }
 
 /**

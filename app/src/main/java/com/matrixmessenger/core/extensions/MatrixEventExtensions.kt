@@ -1,8 +1,10 @@
 package com.matrixmessenger.core.extensions
 
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
-import org.matrix.android.sdk.api.session.room.model.message.RoomMessageContent
+import com.matrixmessenger.BuildConfig
 import timber.log.Timber
 
 /**
@@ -14,7 +16,7 @@ import timber.log.Timber
  */
 fun MessageContent?.getFormattedBody(): String {
     return when (this) {
-        is RoomMessageContent -> {
+        is MessageContentWithFormattedBody -> {
             this.formattedBody ?: this.body ?: ""
         }
         else -> {
@@ -27,69 +29,58 @@ fun MessageContent?.getFormattedBody(): String {
  * Check if message content is text type
  */
 fun MessageContent?.isTextType(): Boolean {
-    return this is RoomMessageContent && 
-           (this.msgType == MessageType.MSGTYPE_TEXT || 
-            this.msgType == MessageType.MSGTYPE_EMOTE || 
-            this.msgType == MessageType.MSGTYPE_NOTICE)
+    return (this?.msgType == MessageType.MSGTYPE_TEXT || 
+            this?.msgType == MessageType.MSGTYPE_EMOTE || 
+            this?.msgType == MessageType.MSGTYPE_NOTICE)
 }
 
 /**
  * Check if message content is image type
  */
 fun MessageContent?.isImageType(): Boolean {
-    return this is RoomMessageContent && this.msgType == MessageType.MSGTYPE_IMAGE
+    return this?.msgType == MessageType.MSGTYPE_IMAGE
 }
 
 /**
  * Check if message content is video type
  */
 fun MessageContent?.isVideoType(): Boolean {
-    return this is RoomMessageContent && this.msgType == MessageType.MSGTYPE_VIDEO
+    return this?.msgType == MessageType.MSGTYPE_VIDEO
 }
 
 /**
  * Check if message content is file type
  */
 fun MessageContent?.isFileType(): Boolean {
-    return this is RoomMessageContent && this.msgType == MessageType.MSGTYPE_FILE
+    return this?.msgType == MessageType.MSGTYPE_FILE
 }
 
 /**
  * Check if message content is audio type
  */
 fun MessageContent?.isAudioType(): Boolean {
-    return this is RoomMessageContent && this.msgType == MessageType.MSGTYPE_AUDIO
+    return this?.msgType == MessageType.MSGTYPE_AUDIO
 }
 
 /**
  * Check if message content is location type
  */
 fun MessageContent?.isLocationType(): Boolean {
-    return this is RoomMessageContent && this.msgType == MessageType.MSGTYPE_LOCATION
+    return this?.msgType == MessageType.MSGTYPE_LOCATION
 }
 
 /**
  * Get media URL from message content
  */
 fun MessageContent?.getMediaUrl(): String? {
-    return when (this) {
-        is RoomMessageContent -> {
-            this.url
-        }
-        else -> null
-    }
+    return (this as? MessageWithAttachmentContent)?.url
 }
 
 /**
  * Get thumbnail URL from message content
  */
 fun MessageContent?.getThumbnailUrl(): String? {
-    return when (this) {
-        is RoomMessageContent -> {
-            (this as? org.matrix.android.sdk.api.session.room.model.message.ImageInfo)?.thumbnailUrl
-        }
-        else -> null
-    }
+    return (this as? org.matrix.android.sdk.api.session.room.model.message.MessageImageContent)?.info?.thumbnailUrl
 }
 
 /**

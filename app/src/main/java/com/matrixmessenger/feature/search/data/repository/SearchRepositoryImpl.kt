@@ -1,114 +1,110 @@
 package com.matrixmessenger.feature.search.data.repository
 
+import com.matrixmessenger.data.matrix.MatrixClientManager
+import com.matrixmessenger.data.matrix.mapper.MessageMapper
+import com.matrixmessenger.data.matrix.mapper.RoomMapper
+import com.matrixmessenger.data.matrix.mapper.UserMapper
 import com.matrixmessenger.feature.search.domain.model.*
 import com.matrixmessenger.feature.search.domain.repository.SearchRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * Implementation of SearchRepository.
- * Integrates with Matrix SDK for server-side search and local database for cached results.
- */
 @Singleton
-class SearchRepositoryImpl @Inject constructor() : SearchRepository {
+class SearchRepositoryImpl @Inject constructor(
+    private val matrixClientManager: MatrixClientManager,
+    private val messageMapper: MessageMapper,
+    private val roomMapper: RoomMapper,
+    private val userMapper: UserMapper
+) : SearchRepository {
 
-    private val _searchResults = MutableStateFlow(SearchResults(query = ""))
-    
-    override fun search(query: String, filter: SearchFilter): Flow<SearchResults> {
-        // In production, this would:
-        // 1. Query Matrix server for full-text search (if enabled)
-        // 2. Query local Room database for cached messages/users/rooms
-        // 3. Merge and sort results by relevance score
-        // 4. Return as Flow for reactive UI updates
+    override fun search(query: String, filter: SearchFilter): Flow<SearchResults> = flow {
+        if (query.isBlank()) {
+            emit(SearchResults(query = query))
+            return@flow
+        }
         
-        return performSearch(query, filter)
-    }
-
-    override fun searchMessagesInRoom(roomId: String, query: String): Flow<SearchResults> {
-        // Search only within a specific room's message history
-        return performRoomSearch(roomId, query)
-    }
-
-    override fun searchUsers(query: String): Flow<List<UserResult>> {
-        val results = MutableStateFlow<List<UserResult>>(emptyList())
-        // Would query Matrix directory or local user cache
-        return results
-    }
-
-    override fun searchRooms(query: String): Flow<List<RoomResult>> {
-        val results = MutableStateFlow<List<RoomResult>>(emptyList())
-        // Would query joined rooms and public room directory
-        return results
-    }
-    
-    private fun performSearch(query: String, filter: SearchFilter): Flow<SearchResults> {
-        val resultsFlow = MutableStateFlow(SearchResults(query = query, isLoading = true))
+        emit(SearchResults(query = query, isLoading = true))
         
-        // Simulate async search operation
-        // In production: Use CoroutineDispatchers.IO for database/network operations
-        kotlinx.coroutines.GlobalScope.launchWhenStarted {
-            // Simulate network/database delay
-            delay(300)
+        val users = searchUsersInternal(query)
+        
+        emit(SearchResults(
+            query = query,
+            users = users,
+            isLoading = false
+        ))
+    }
+
+    override fun searchMessagesInRoom(roomId: String, query: String): Flow<SearchResults> = flow {
+        if (query.isBlank()) {
+            emit(SearchResults(query = query))
+            return@flow
+        }
+        
+        emit(SearchResults(query = query, isLoading = true))
+        
+        val results = matrixClientManager.searchMessages(query, roomId).getOrNull() ?: emptyList()
+        val currentUserId = matrixClientManager.getCurrentUserId() ?: ""
+        
+        val roomResult = matrixClientManager.getRoom(roomId)
+        val matrixRoom = if (roomResult != null) {
+             val isEncrypted = matrixClientManager.isRoomEncrypted(roomId)
+             roomMapper.map(roomResult.roomSummary()!!, isEncrypted)
+        } else {
+            null
+        }
+
+        val messages = results.mapNotNull { event ->
+            if (matrixRoom == null) return@mapNotNull null
             
-            if (query.isBlank()) {
-                resultsFlow.value = SearchResults(query = query, isLoading = false)
-                return@launchWhenStarted
-            }
+            val sender = userMapper.mapToMatrixUser(
+                userId = event.senderId ?: "",
+                displayName = event.senderId,
+                avatarUrl = null
+            )
             
-            // Mock results - Replace with actual Matrix SDK calls
-            val mockUsers = listOf<UserResult>()
-            val mockRooms = listOf<RoomResult>()
-            val mockMessages = listOf<MessageResult>()
-            
-            resultsFlow.value = SearchResults(
-                query = query,
-                users = when (filter) {
-                    SearchFilter.ALL, SearchFilter.PEOPLE -> mockUsers
-                    else -> emptyList()
-                },
-                rooms = when (filter) {
-                    SearchFilter.ALL, SearchFilter.GROUPS, SearchFilter.CHANNELS -> mockRooms
-                    else -> emptyList()
-                },
-                messages = when (filter) {
-                    SearchFilter.ALL, SearchFilter.MESSAGES -> mockMessages
-                    else -> emptyList()
-                },
-                isLoading = false
+            MessageResult(
+                score = 1.0f,
+                message = messageMapper.mapToMatrixMessage(event.toTimelineEvent(), currentUserId),
+                room = matrixRoom,
+                sender = sender,
+                highlightedText = (event.content?.get("body") as? String) ?: ""
             )
         }
         
-        return resultsFlow.asStateFlow()
+        emit(SearchResults(
+            query = query,
+            messages = messages,
+            isLoading = false
+        ))
+    }
+
+    override fun searchUsers(query: String): Flow<List<UserResult>> = flow {
+        emit(searchUsersInternal(query))
+    }
+
+    override fun searchRooms(query: String): Flow<List<RoomResult>> = flow {
+        emit(emptyList())
     }
     
-    private fun performRoomSearch(roomId: String, query: String): Flow<SearchResults> {
-        val resultsFlow = MutableStateFlow(SearchResults(query = query, isLoading = true))
-        
-        kotlinx.coroutines.GlobalScope.launchWhenStarted {
-            delay(200)
-            
-            if (query.isBlank()) {
-                resultsFlow.value = SearchResults(query = query, isLoading = false)
-                return@launchWhenStarted
-            }
-            
-            // Mock room-specific message search
-            resultsFlow.value = SearchResults(
-                query = query,
-                messages = emptyList(),
-                isLoading = false
+    private suspend fun searchUsersInternal(query: String): List<UserResult> {
+        val results = matrixClientManager.searchUsers(query).getOrNull() ?: emptyList()
+        return results.map { user ->
+            UserResult(
+                score = 1.0f,
+                user = user
             )
         }
-        
-        return resultsFlow.asStateFlow()
+    }
+
+    private fun org.matrix.android.sdk.api.session.events.model.Event.toTimelineEvent(): org.matrix.android.sdk.api.session.room.timeline.TimelineEvent {
+        return org.matrix.android.sdk.api.session.room.timeline.TimelineEvent(
+            root = this,
+            localId = 0,
+            eventId = this.eventId ?: "",
+            displayIndex = 0,
+            senderInfo = org.matrix.android.sdk.api.session.room.sender.SenderInfo(userId = this.senderId ?: "", displayName = null, isUniqueDisplayName = true, avatarUrl = null)
+        )
     }
 }
-
-// Helper to launch coroutines in repository scope
-private inline fun kotlinx.coroutines.GlobalScope.launchWhenStarted(
-    crossinline block: suspend kotlinx.coroutines.CoroutineScope.() -> Unit
-) = this.launch(block = block)

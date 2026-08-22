@@ -60,6 +60,13 @@ interface CallRepository {
      * @param useFront True to use front camera, false for back.
      */
     suspend fun switchCamera(callId: String, useFront: Boolean): Result<Unit>
+
+    /**
+     * Toggle the speaker state.
+     * @param callId The active call ID.
+     * @param speakerOn True to turn speaker on, false for off.
+     */
+    suspend fun toggleSpeaker(callId: String, speakerOn: Boolean): Result<Unit>
     
     /**
      * Get the history of calls for the current user.

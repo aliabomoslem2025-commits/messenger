@@ -1,5 +1,9 @@
 package com.matrixmessenger.core.di
 
+import com.matrixmessenger.BuildConfig
+import com.matrixmessenger.core.network.ConnectivityObserver
+import com.matrixmessenger.core.network.NetworkConnectivityObserver
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,41 +17,49 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object NetworkModule {
+abstract class NetworkModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
-            } else {
-                HttpLoggingInterceptor.Level.NONE
+    abstract fun bindConnectivityObserver(
+        networkConnectivityObserver: NetworkConnectivityObserver
+    ): ConnectivityObserver
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
+            return HttpLoggingInterceptor().apply {
+                level = if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor.Level.BODY
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
             }
         }
-    }
 
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(
-        loggingInterceptor: HttpLoggingInterceptor
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .retryOnConnectionFailure(true)
-            .build()
-    }
+        @Provides
+        @Singleton
+        fun provideOkHttpClient(
+            loggingInterceptor: HttpLoggingInterceptor
+        ): OkHttpClient {
+            return OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build()
+        }
 
-    @Provides
-    @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://matrix.org/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        @Provides
+        @Singleton
+        fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+            return Retrofit.Builder()
+                .baseUrl("https://matrix.org/")
+                .client(okHttpClient)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        }
     }
 }

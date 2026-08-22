@@ -7,7 +7,9 @@ import com.matrixmessenger.feature.search.domain.model.SearchResults
 import com.matrixmessenger.feature.search.domain.usecase.SearchUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SearchUiState(

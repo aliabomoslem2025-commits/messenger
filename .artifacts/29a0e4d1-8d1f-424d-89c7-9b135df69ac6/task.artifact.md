@@ -1,0 +1,17 @@
+- [x] Fix `MessageMapper.kt` media info property names
+- [x] Fix `MatrixRepository.kt` (Add missing methods)
+- [x] Fix `MatrixRepositoryImpl.kt` (Fix overrides and error mapping)
+- [x] Fix Auth Use Cases (`GetCurrentSessionUseCase.kt`)
+- [x] Fix Media Use Cases (`DownloadMediaUseCase.kt`)
+- [x] Fix Message Use Cases (`SendMediaMessageUseCase.kt`, `SendTextMessageUseCase.kt`)
+- [x] Fix Room Use Cases (`CreateGroupUseCase.kt`)
+- [x] Fix VoIP Call feature
+    - [x] Update `CallRepository.kt` interface
+    - [x] Update `CallRepositoryImpl.kt` implementation
+    - [x] Fix `CallModels.kt` imports
+    - [x] Update `CallViewModel.kt` events
+- [x] Fix UI and Theme
+    - [x] `ChatScreen.kt` variable names and parameters
+    - [x] `MatrixMotion.kt` type inference
+- [x] Verify build
+- [x] Create walkthrough

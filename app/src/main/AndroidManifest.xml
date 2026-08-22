@@ -43,7 +43,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.MatrixMessenger"
+            android:theme="@style/Theme.App.Starting"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
             android:launchMode="singleTop">
@@ -61,18 +61,9 @@
             </intent-filter>
         </activity>
 
-        <!-- Firebase Messaging Service -->
-        <service
-            android:name=".di.util.MatrixFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
-
         <!-- Call Service -->
         <service
-            android:name=".di.util.CallService"
+            android:name=".feature.call.presentation.service.CallService"
             android:foregroundServiceType="camera|microphone"
             android:exported="false" />
 
@@ -84,7 +75,18 @@
             tools:node="merge">
             <meta-data
                 android:name="androidx.work.WorkManagerInitializer"
-                android:value="androidx.startup" />
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
         </provider>
 
     </application>

@@ -1,34 +1,54 @@
 package com.matrixmessenger.data.matrix
 
 import android.content.Context
+import com.matrixmessenger.core.coroutine.DispatcherProvider
+import com.matrixmessenger.data.local.AppPreferences
+import com.matrixmessenger.domain.model.MatrixUser
+import com.matrixmessenger.core.network.ConnectivityObserver
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.Matrix
-import org.matrix.android.sdk.api.MatrixConfiguration
-import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.data.LoginFlowResult
 import org.matrix.android.sdk.api.auth.registration.RegistrationResult
+import org.matrix.android.sdk.api.auth.registration.Stage
 import org.matrix.android.sdk.api.session.Session
-import org.matrix.android.sdk.api.session.SessionLifecycleObserver
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.Room
-import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
-import org.matrix.android.sdk.api.session.room.model.create.RoomPreset
+import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.send.UserDraft
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
+import org.matrix.android.sdk.api.session.room.timeline.hasBeenEdited
+import org.matrix.android.sdk.api.session.events.model.toContent
+import org.matrix.android.sdk.api.session.events.model.getRelationContent
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
+import org.matrix.android.sdk.api.session.room.model.relation.RelationService
+import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.search.SearchResult
+import org.matrix.android.sdk.api.session.search.EventAndSender
+import org.matrix.android.sdk.api.query.QueryStringValue
+import org.matrix.android.sdk.api.query.QueryStateEventValue
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.channels.awaitClose
+import java.util.Date
+import java.io.File
 import org.matrix.android.sdk.api.session.sync.SyncState
 import org.matrix.android.sdk.api.util.Optional
+import androidx.lifecycle.asFlow
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,11 +56,13 @@ import javax.inject.Singleton
 @Singleton
 class MatrixClientManager @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val sessionPreferences: SessionPreferences
+    private val matrix: Matrix,
+    private val appPreferences: AppPreferences,
+    private val dispatcherProvider: DispatcherProvider,
+    private val connectivityObserver: ConnectivityObserver
 ) {
-    private val managerScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var managerScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
 
-    private lateinit var matrix: Matrix
     private var currentSession: Session? = null
 
     private val _syncState = MutableStateFlow<SyncState>(SyncState.Idle)
@@ -57,27 +79,19 @@ class MatrixClientManager @Inject constructor(
     }
 
     fun initialize() {
-        matrix = Matrix.getInstance(context)
+        if (_sessionState.value !is SessionState.NoSession) return
         tryRestoreSession()
     }
 
     private fun tryRestoreSession() {
         managerScope.launch {
-            val sessionInfo = sessionPreferences.getSessionInfo()
-            if (sessionInfo != null) {
-                val homeServerConnectionConfig = HomeServerConnectionConfig.Builder()
-                    .withHomeServerUri(android.net.Uri.parse(sessionInfo.homeserverUrl))
-                    .build()
-                
-                val session = matrix.authenticationService()
-                    .restoreSession(homeServerConnectionConfig, sessionInfo.accessToken)
-                
-                if (session != null) {
-                    currentSession = session
-                    openSession(session)
-                } else {
-                    sessionPreferences.clearSession()
-                }
+            _sessionState.value = SessionState.Loading
+            val lastSession = matrix.authenticationService().getLastAuthenticatedSession()
+            if (lastSession != null) {
+                currentSession = lastSession
+                openSession(lastSession)
+            } else {
+                _sessionState.value = SessionState.NoSession
             }
         }
     }
@@ -85,7 +99,7 @@ class MatrixClientManager @Inject constructor(
     private fun openSession(session: Session) {
         session.open()
 
-        session.addListener(object : SessionLifecycleObserver {
+        session.addListener(object : Session.Listener {
             override fun onSessionStarted(session: Session) {
                 _sessionState.value = SessionState.Active(session.myUserId)
             }
@@ -95,13 +109,29 @@ class MatrixClientManager @Inject constructor(
             }
         })
 
-        session.syncService().startSync(isInBackground = false)
+        session.syncService().startSync(fromForeground = true)
 
         managerScope.launch {
-            session.syncService().getSyncStateFlow()
+            session.syncService().getSyncStateLive().asFlow()
                 .collect { state ->
                     _syncState.value = state
+                    if (state is SyncState.NoNetwork) {
+                        Timber.e("Sync paused: No network")
+                    }
                 }
+        }
+
+        managerScope.launch {
+            connectivityObserver.observe().collect { status ->
+                val activeSession = currentSession ?: return@collect
+                if (status == ConnectivityObserver.Status.Available) {
+                    val currentState = activeSession.syncService().getSyncState()
+                    if (currentState !is SyncState.Running) {
+                        Timber.d("Network available, restarting sync")
+                        activeSession.syncService().startSync(fromForeground = true)
+                    }
+                }
+            }
         }
 
         _sessionState.value = SessionState.Active(session.myUserId)
@@ -128,24 +158,16 @@ class MatrixClientManager @Inject constructor(
             val config = HomeServerConnectionConfig.Builder()
                 .withHomeServerUri(android.net.Uri.parse(homeserverUrl))
                 .build()
-            matrix.authenticationService().getLoginFlow(config)
             
-            val loginWizard = matrix.authenticationService().getLoginWizard()
-            val session = loginWizard.login(
-                login = login,
+            val session = matrix.authenticationService().directAuthentication(
+                homeServerConnectionConfig = config,
+                matrixId = login,
                 password = password,
-                deviceName = "Matrix Messenger Android"
+                initialDeviceName = "Matrix Messenger Android"
             )
             
             currentSession = session
-            
-            sessionPreferences.saveSessionInfo(
-                userId = session.myUserId,
-                deviceId = session.sessionParams.deviceId ?: "",
-                homeserverUrl = homeserverUrl,
-                accessToken = (session.sessionParams as? org.matrix.android.sdk.api.auth.SessionParams.Full)?.accessToken ?: ""
-            )
-            
+            appPreferences.saveHomeserverUrl(homeserverUrl)
             openSession(session)
             session
         }.onFailure {
@@ -161,10 +183,8 @@ class MatrixClientManager @Inject constructor(
                 .withHomeServerUri(android.net.Uri.parse(homeserverUrl))
                 .build()
             matrix.authenticationService().getLoginFlow(config)
-            
             val loginWizard = matrix.authenticationService().getLoginWizard()
             val session = loginWizard.loginWithToken(token)
-            
             currentSession = session
             openSession(session)
             session
@@ -188,7 +208,7 @@ class MatrixClientManager @Inject constructor(
             val result = registrationWizard.createAccount(
                 userName = username,
                 password = password,
-                initialDeviceName = "Matrix Messenger"
+                initialDeviceDisplayName = "Matrix Messenger"
             )
 
             when (result) {
@@ -207,10 +227,10 @@ class MatrixClientManager @Inject constructor(
                             .flowResult.missingStages.firstOrNull()
 
                         currentResult = when (nextStage) {
-                            is org.matrix.android.sdk.api.auth.registration.Stage.ReCaptcha -> {
+                            is Stage.ReCaptcha -> {
                                 registrationWizard.performReCaptcha(nextStage.publicKey)
                             }
-                            is org.matrix.android.sdk.api.auth.registration.Stage.Dummy -> {
+                            is Stage.Dummy -> {
                                 registrationWizard.dummy()
                             }
                             else -> break
@@ -240,9 +260,20 @@ class MatrixClientManager @Inject constructor(
             session.signOutService().signOut(true)
             session.close()
             currentSession = null
-            sessionPreferences.clearSession()
             _sessionState.value = SessionState.NoSession
+            clearAllTimelines()
+            dispose()
         }
+    }
+
+    fun dispose() {
+        managerScope.coroutineContext[Job]?.cancelChildren()
+    }
+
+    private fun clearAllTimelines() {
+        activeTimelines.values.forEach { it.dispose() }
+        activeTimelines.clear()
+        timelineObservers.clear()
     }
 
     fun getCurrentSession(): Session? = currentSession
@@ -254,7 +285,8 @@ class MatrixClientManager @Inject constructor(
     fun getRoomsFlow(): Flow<List<RoomSummary>> {
         val session = currentSession ?: return emptyFlow()
         return session.roomService().getRoomSummariesLive(
-            queryParams = org.matrix.android.sdk.api.session.room.RoomSortOrder.ACTIVITY
+            queryParams = org.matrix.android.sdk.api.session.room.roomSummaryQueryParams {  },
+            sortOrder = org.matrix.android.sdk.api.session.room.RoomSortOrder.NONE
         ).asFlow()
     }
 
@@ -269,7 +301,7 @@ class MatrixClientManager @Inject constructor(
                 isDirect = true
                 invitedUserIds.add(userId)
                 setDirectMessage()
-                preset = RoomPreset.TRUSTED_PRIVATE_CHAT
+                preset = CreateRoomPreset.PRESET_TRUSTED_PRIVATE_CHAT
             }
             session.roomService().createRoom(params)
         }
@@ -286,7 +318,7 @@ class MatrixClientManager @Inject constructor(
                 this.name = name
                 this.topic = topic
                 invitedUserIds.addAll(userIds)
-                preset = RoomPreset.PRIVATE_CHAT
+                preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
             }
             session.roomService().createRoom(params)
         }
@@ -300,14 +332,13 @@ class MatrixClientManager @Inject constructor(
                 reason = null,
                 viaServers = emptyList()
             )
-        }.mapCatching { roomId ->
-            roomId ?: throw Exception("Failed to join room")
+            roomIdOrAlias // Return the ID/Alias as a placeholder if SDK returns Unit
         }
     }
 
     suspend fun leaveRoom(roomId: String, reason: String? = null): Result<Unit> {
         return runCatching {
-            requireRoom(roomId).membershipService().leave(reason)
+            requireSession().roomService().leaveRoom(roomId, reason)
         }
     }
 
@@ -319,8 +350,12 @@ class MatrixClientManager @Inject constructor(
         formattedText: String? = null
     ): Result<Unit> {
         return runCatching {
-            requireRoom(roomId).sendService()
-                .sendTextMessage(text = text, autoMarkdown = true)
+            val room = requireRoom(roomId)
+            if (formattedText != null) {
+                room.sendService().sendFormattedTextMessage(text, formattedText)
+            } else {
+                room.sendService().sendTextMessage(text)
+            }
         }
     }
 
@@ -343,8 +378,8 @@ class MatrixClientManager @Inject constructor(
         originalEvent: TimelineEvent
     ): Result<Unit> {
         return runCatching {
-            requireRoom(roomId).sendService().replyToMessage(
-                eventReplied = originalEvent.root,
+            requireRoom(roomId).relationService().replyToMessage(
+                eventReplied = originalEvent,
                 replyText = replyText,
                 autoMarkdown = true
             )
@@ -361,7 +396,7 @@ class MatrixClientManager @Inject constructor(
             val attachment = ContentAttachmentData(
                 mimeType = mimeType,
                 type = ContentAttachmentData.Type.IMAGE,
-                uri = uri,
+                queryUri = uri,
                 name = getFileName(uri),
                 size = getFileSize(uri)
             )
@@ -382,7 +417,7 @@ class MatrixClientManager @Inject constructor(
             val attachment = ContentAttachmentData(
                 mimeType = "video/mp4",
                 type = ContentAttachmentData.Type.VIDEO,
-                uri = uri,
+                queryUri = uri,
                 name = getFileName(uri),
                 size = getFileSize(uri)
             )
@@ -390,6 +425,46 @@ class MatrixClientManager @Inject constructor(
                 attachment = attachment,
                 compressBeforeSending = false,
                 roomIds = emptySet()
+            )
+        }
+    }
+
+    suspend fun sendVideoNote(
+        roomId: String,
+        uri: android.net.Uri,
+        durationMs: Long,
+        width: Int,
+        height: Int
+    ): Result<Unit> {
+        return runCatching {
+            val contentUri = if (uri.scheme == "file") {
+                val file = java.io.File(uri.path!!)
+                androidx.core.content.FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    file
+                )
+            } else {
+                uri
+            }
+
+            val fileSize = getFileSize(contentUri)
+            val attachment = ContentAttachmentData(
+                mimeType = "video/mp4",
+                type = ContentAttachmentData.Type.VIDEO,
+                queryUri = contentUri,
+                name = "video_note.mp4",
+                size = fileSize,
+                duration = durationMs,
+                width = width.toLong(),
+                height = height.toLong()
+            )
+            
+            requireRoom(roomId).sendService().sendMedia(
+                attachment = attachment,
+                compressBeforeSending = false,
+                roomIds = emptySet(),
+                additionalContent = mapOf("org.matrix.msc2457.video_note" to emptyMap<String, Any>())
             )
         }
     }
@@ -403,10 +478,10 @@ class MatrixClientManager @Inject constructor(
         return runCatching {
             val fileSize = getFileSize(uri)
             val attachment = ContentAttachmentData(
-                mimeType = "audio/ogg",
+                mimeType = "audio/mp4",
                 type = ContentAttachmentData.Type.AUDIO,
-                uri = uri,
-                name = "voice_message.ogg",
+                queryUri = uri,
+                name = "voice_message.m4a",
                 size = fileSize,
                 duration = durationMs,
                 waveform = waveform
@@ -414,6 +489,27 @@ class MatrixClientManager @Inject constructor(
             requireRoom(roomId).sendService().sendMedia(
                 attachment = attachment,
                 compressBeforeSending = false,
+                roomIds = emptySet()
+            )
+        }
+    }
+
+    suspend fun sendImageMessage(
+        roomId: String,
+        imageFile: java.io.File,
+        caption: String? = null
+    ): Result<Unit> {
+        return runCatching {
+            val attachment = ContentAttachmentData(
+                mimeType = "image/jpeg",
+                type = ContentAttachmentData.Type.IMAGE,
+                queryUri = android.net.Uri.fromFile(imageFile),
+                name = imageFile.name,
+                size = imageFile.length()
+            )
+            requireRoom(roomId).sendService().sendMedia(
+                attachment = attachment,
+                compressBeforeSending = true,
                 roomIds = emptySet()
             )
         }
@@ -428,7 +524,7 @@ class MatrixClientManager @Inject constructor(
             val attachment = ContentAttachmentData(
                 mimeType = mimeType,
                 type = ContentAttachmentData.Type.FILE,
-                uri = uri,
+                queryUri = uri,
                 name = getFileName(uri),
                 size = getFileSize(uri)
             )
@@ -497,10 +593,14 @@ class MatrixClientManager @Inject constructor(
         newText: String
     ): Result<Unit> {
         return runCatching {
-            requireRoom(roomId).sendService().editTextMessage(
-                targetEventId = targetEventId,
-                msgType = org.matrix.android.sdk.api.session.events.model.content.MessageType.MSGTYPE_TEXT,
+            val room = requireRoom(roomId)
+            val event = room.timelineService().getTimelineEvent(targetEventId)
+                ?: throw Exception("Event not found")
+            room.relationService().editTextMessage(
+                targetEvent = event,
+                msgType = MessageType.MSGTYPE_TEXT,
                 newBodyText = newText,
+                newFormattedBodyText = null,
                 newBodyAutoMarkdown = true,
                 compatibilityBodyText = "* $newText"
             )
@@ -513,8 +613,11 @@ class MatrixClientManager @Inject constructor(
         reason: String? = null
     ): Result<Unit> {
         return runCatching {
-            requireRoom(roomId).sendService().redactEvent(
-                eventId = eventId,
+            val room = requireRoom(roomId)
+            val event = room.timelineService().getTimelineEvent(eventId)
+                ?: throw Exception("Event not found")
+            room.sendService().redactEvent(
+                event = event.root,
                 reason = reason
             )
         }
@@ -569,6 +672,37 @@ class MatrixClientManager @Inject constructor(
         }
     }
 
+    suspend fun resendMessage(roomId: String, localId: String): Result<Unit> {
+        return runCatching {
+            val room = requireRoom(roomId)
+            val event = room.timelineService().getTimelineEvent(localId) 
+                ?: throw Exception("Local echo not found")
+            
+            if (event.root.getClearType() == EventType.MESSAGE) {
+                val content = event.root.getClearContent()
+                val msgType = (content as? MessageContent)?.msgType
+                if (msgType == MessageType.MSGTYPE_TEXT || msgType == MessageType.MSGTYPE_EMOTE) {
+                    room.sendService().resendTextMessage(event)
+                } else {
+                    room.sendService().resendMediaMessage(event)
+                }
+            } else {
+                room.sendService().resendTextMessage(event)
+            }
+        }
+    }
+
+    suspend fun cancelSend(roomId: String, localId: String): Result<Unit> {
+        return runCatching {
+            val room = requireRoom(roomId)
+            val event = room.timelineService().getTimelineEvent(localId)
+            if (event != null) {
+                room.sendService().deleteFailedEcho(event)
+                room.sendService().cancelSend(localId)
+            }
+        }
+    }
+
     // ── Timeline ────────────────────────────────────────
 
     fun createTimeline(roomId: String, eventId: String? = null): Timeline? {
@@ -581,9 +715,50 @@ class MatrixClientManager @Inject constructor(
         }
     }
 
-    fun getTimelineEventFlow(roomId: String): Flow<List<TimelineEvent>> {
-        val room = getRoom(roomId) ?: return emptyFlow()
-        return room.flow().liveTimeline()
+    private val activeTimelines = mutableMapOf<String, Timeline>()
+    private val timelineObservers = mutableMapOf<String, Int>()
+
+    fun getTimelineEventFlow(roomId: String, limit: Int = 50): Flow<List<TimelineEvent>> = callbackFlow {
+        val room = getRoom(roomId)
+        if (room == null) {
+            trySend(emptyList())
+            close()
+            return@callbackFlow
+        }
+        
+        val timeline = activeTimelines.getOrPut(roomId) {
+            room.timelineService().createTimeline(null, TimelineSettings(limit)).apply { start() }
+        }
+        timelineObservers[roomId] = (timelineObservers[roomId] ?: 0) + 1
+        
+        val listener = object : Timeline.Listener {
+            override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
+                trySend(snapshot)
+            }
+        }
+        
+        timeline.addListener(listener)
+        trySend(timeline.getSnapshot())
+        
+        awaitClose {
+            timeline.removeListener(listener)
+            val observers = (timelineObservers[roomId] ?: 0) - 1
+            if (observers <= 0) {
+                timeline.dispose()
+                activeTimelines.remove(roomId)
+                timelineObservers.remove(roomId)
+            } else {
+                timelineObservers[roomId] = observers
+            }
+        }
+    }
+
+    suspend fun paginateTimeline(roomId: String, backward: Boolean = true, limit: Int = 20): Result<Unit> {
+        return runCatching {
+            val timeline = activeTimelines[roomId] ?: throw Exception("No active timeline for room $roomId")
+            val direction = if (backward) Timeline.Direction.BACKWARDS else Timeline.Direction.FORWARDS
+            timeline.paginate(direction, limit)
+        }
     }
 
     // ── Pinned Messages ─────────────────────────────────
@@ -592,13 +767,15 @@ class MatrixClientManager @Inject constructor(
         return runCatching {
             val room = requireRoom(roomId)
             val currentPinned = room.stateService()
-                .getStateEvent(EventType.STATE_ROOM_PINNED_EVENT, "")
-                ?.content?.get("pinned") as? List<String> ?: emptyList()
+                .getStateEvent(EventType.STATE_ROOM_PINNED_EVENT, QueryStringValue.Equals(""))
+                ?.content?.get("pinned") as? List<*> ?: emptyList<String>()
+            
+            val newPinned = (currentPinned.filterIsInstance<String>() + eventId).distinct()
 
             room.stateService().sendStateEvent(
                 eventType = EventType.STATE_ROOM_PINNED_EVENT,
                 stateKey = "",
-                body = mapOf("pinned" to (currentPinned + eventId)).toContent()
+                body = mapOf("pinned" to newPinned).toContent()
             )
         }
     }
@@ -607,14 +784,16 @@ class MatrixClientManager @Inject constructor(
         return runCatching {
             val room = requireRoom(roomId)
             val currentPinned = room.stateService()
-                .getStateEvent(EventType.STATE_ROOM_PINNED_EVENT, "")
-                ?.content?.get("pinned") as? List<String> ?: emptyList()
+                .getStateEvent(EventType.STATE_ROOM_PINNED_EVENT, QueryStringValue.Equals(""))
+                ?.content?.get("pinned") as? List<*> ?: emptyList<String>()
+
+            val newPinned = currentPinned.filterIsInstance<String>().filter { it != eventId }
 
             room.stateService().sendStateEvent(
                 eventType = EventType.STATE_ROOM_PINNED_EVENT,
                 stateKey = "",
                 body = mapOf(
-                    "pinned" to currentPinned.filter { it != eventId }
+                    "pinned" to newPinned
                 ).toContent()
             )
         }
@@ -636,15 +815,10 @@ class MatrixClientManager @Inject constructor(
 
     suspend fun updateRoomAvatar(roomId: String, uri: android.net.Uri): Result<Unit> {
         return runCatching {
-            val session = requireSession()
-            val response = session.fileService().uploadFromUri(
-                uri = uri,
-                fileName = "room_avatar.jpg",
-                mimeType = "image/jpeg",
-                progressCallback = null
-            )
-            requireRoom(roomId).stateService().updateAvatar(
-                avatarUri = android.net.Uri.parse(response)
+            val room = requireRoom(roomId)
+            room.stateService().updateAvatar(
+                avatarUri = uri,
+                fileName = "room_avatar.jpg"
             )
         }
     }
@@ -677,6 +851,12 @@ class MatrixClientManager @Inject constructor(
         }
     }
 
+    suspend fun unbanUser(roomId: String, userId: String): Result<Unit> {
+        return runCatching {
+            requireRoom(roomId).membershipService().unban(userId, null)
+        }
+    }
+
     // ── User Profile ────────────────────────────────────
 
     suspend fun updateDisplayName(displayName: String): Result<Unit> {
@@ -692,37 +872,30 @@ class MatrixClientManager @Inject constructor(
     suspend fun updateAvatar(uri: android.net.Uri): Result<Unit> {
         return runCatching {
             val session = requireSession()
-            val response = session.fileService().uploadFromUri(
-                uri = uri,
-                fileName = "avatar.jpg",
-                mimeType = "image/jpeg",
-                progressCallback = null
-            )
-            session.profileService().setAvatar(
+            session.profileService().updateAvatar(
                 userId = session.myUserId,
-                newAvatarUri = android.net.Uri.parse(response)
+                newAvatarUri = uri,
+                fileName = "avatar.jpg"
             )
         }
     }
 
-    suspend fun getUserProfile(userId: String): Result<com.matrixmessenger.domain.model.MatrixUser> {
+    suspend fun getUserProfile(userId: String): Result<MatrixUser> {
         return runCatching {
             val session = requireSession()
             val profile = session.profileService().getProfileAsUser(userId)
-            com.matrixmessenger.domain.model.MatrixUser(
+            MatrixUser(
                 userId = userId,
                 displayName = profile.displayName,
                 avatarUrl = profile.avatarUrl,
-                isOnline = false,
-                lastSeen = null,
-                presenceStatus = null
+                presence = com.matrixmessenger.domain.model.PresenceState.OFFLINE
             )
         }
     }
 
     // ── Search ──────────────────────────────────────────
 
-    suspend fun searchUsers(query: String): Result<List<com.matrixmessenger.domain.model.MatrixUser>> {
+    suspend fun searchUsers(query: String): Result<List<MatrixUser>> {
         return runCatching {
             val session = requireSession()
             val result = session.userService().searchUsersDirectory(
@@ -731,22 +904,49 @@ class MatrixClientManager @Inject constructor(
                 excludedUserIds = setOf(session.myUserId)
             )
             result.map { user ->
-                com.matrixmessenger.domain.model.MatrixUser(
+                MatrixUser(
                     userId = user.userId,
                     displayName = user.displayName,
                     avatarUrl = user.avatarUrl,
-                    isOnline = false,
-                    lastSeen = null,
-                    presenceStatus = null
+                    presence = com.matrixmessenger.domain.model.PresenceState.OFFLINE
                 )
             }
         }
     }
 
+    suspend fun searchMessages(
+        query: String,
+        roomId: String
+    ): Result<List<Event>> {
+        return runCatching {
+            val session = requireSession()
+            // Use Matrix search API
+            val result = session.searchService().search(
+                searchTerm = query,
+                roomId = roomId,
+                nextBatch = null,
+                orderByRecent = true,
+                limit = 50,
+                beforeLimit = 0,
+                afterLimit = 0,
+                includeProfile = true
+            )
+            result.results?.map { it.event } ?: emptyList()
+        }
+    }
+
     // ── Presence ────────────────────────────────────────
 
+    fun observePresence(userId: String): Flow<com.matrixmessenger.domain.model.PresenceState> {
+        return flow {
+            // Matrix SDK doesn't support live presence flow yet.
+            // Returning a placeholder flow for now.
+            emit(com.matrixmessenger.domain.model.PresenceState.UNKNOWN)
+        }
+    }
+
     suspend fun setPresence(
-        presence: org.matrix.android.sdk.api.session.presence.model.PresenceEnum
+        presence: PresenceEnum
     ): Result<Unit> {
         return runCatching {
             requireSession().presenceService().setMyPresence(
@@ -781,7 +981,7 @@ class MatrixClientManager @Inject constructor(
 
     suspend fun enableEncryption(roomId: String): Result<Unit> {
         return runCatching {
-            requireRoom(roomId).stateService().enableEncryption()
+            requireRoom(roomId).roomCryptoService().enableEncryption()
         }
     }
 
@@ -794,19 +994,19 @@ class MatrixClientManager @Inject constructor(
 
     fun getRoomSummaryFlow(roomId: String): Flow<Optional<RoomSummary>> {
         val room = getRoom(roomId) ?: return emptyFlow()
-        return room.flow().liveRoomSummary()
+        return room.getRoomSummaryLive().asFlow()
     }
 
     fun getTypingUsersFlow(roomId: String): Flow<List<String>> {
         val room = getRoom(roomId) ?: return emptyFlow()
-        return room.flow().liveRoomSummary().map { optional ->
-            optional.getOrNull()?.typingUsers ?: emptyList()
+        return room.getRoomSummaryLive().asFlow().map { optional ->
+            optional.getOrNull()?.typingUsers?.map { it.userId } ?: emptyList()
         }
     }
 
     fun getUnreadCountFlow(roomId: String): Flow<Int> {
         val room = getRoom(roomId) ?: return emptyFlow()
-        return room.flow().liveRoomSummary().map { optional ->
+        return room.getRoomSummaryLive().asFlow().map { optional ->
             optional.getOrNull()?.notificationCount ?: 0
         }
     }
@@ -836,10 +1036,20 @@ class MatrixClientManager @Inject constructor(
     }
 
     private fun getFileSize(uri: android.net.Uri): Long {
+        if (uri.scheme == "file") {
+            return uri.path?.let { java.io.File(it).length() } ?: 0L
+        }
         return context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-            val sizeIndex = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
-            cursor.moveToFirst()
-            cursor.getLong(sizeIndex)
+            try {
+                val sizeIndex = cursor.getColumnIndex(android.provider.OpenableColumns.SIZE)
+                if (sizeIndex != -1 && cursor.moveToFirst()) {
+                    cursor.getLong(sizeIndex)
+                } else {
+                    0L
+                }
+            } catch (e: Exception) {
+                0L
+            }
         } ?: 0L
     }
 }

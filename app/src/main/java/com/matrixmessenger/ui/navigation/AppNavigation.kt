@@ -10,16 +10,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.matrixmessenger.ui.screens.home.HomeScreen
-import com.matrixmessenger.ui.screens.home.HomeViewModel
+import com.matrixmessenger.feature.chatlist.presentation.HomeScreen
+import com.matrixmessenger.feature.chatlist.presentation.HomeViewModel
 import com.matrixmessenger.ui.screens.login.LoginScreen
 import com.matrixmessenger.ui.screens.login.LoginViewModel
-import com.matrixmessenger.ui.screens.chat.ChatScreen
-import com.matrixmessenger.ui.screens.chat.ChatViewModel
+import com.matrixmessenger.feature.chat.presentation.ChatScreen
+import com.matrixmessenger.feature.chat.presentation.ChatViewModel
 import com.matrixmessenger.ui.screens.profile.ProfileScreen
 import com.matrixmessenger.ui.screens.profile.ProfileViewModel
 import com.matrixmessenger.ui.screens.settings.SettingsScreen
 import com.matrixmessenger.ui.screens.settings.SettingsViewModel
+import com.matrixmessenger.feature.search.presentation.screen.SearchScreen
+import com.matrixmessenger.feature.search.presentation.viewModel.SearchViewModel
+import com.matrixmessenger.feature.call.presentation.screen.CallScreen
+import com.matrixmessenger.feature.call.presentation.viewModel.CallViewModel
+import com.matrixmessenger.feature.message.presentation.renderer.MessageRenderer
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")
@@ -29,10 +34,14 @@ sealed class Screen(val route: String) {
     }
     object Profile : Screen("profile")
     object Settings : Screen("settings")
+    object Search : Screen("search")
+    object Call : Screen("call/{roomId}") {
+        fun createRoute(roomId: String) = "call/$roomId"
+    }
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(messageRenderer: MessageRenderer) {
     val navController = rememberNavController()
     val loginViewModel: LoginViewModel = hiltViewModel()
     
@@ -60,7 +69,6 @@ fun AppNavigation() {
         }
         
         composable(Screen.Home.route) {
-            val homeViewModel: HomeViewModel = hiltViewModel()
             HomeScreen(
                 onRoomClick = { roomId ->
                     navController.navigate(Screen.Chat.createRoute(roomId))
@@ -68,13 +76,8 @@ fun AppNavigation() {
                 onProfileClick = {
                     navController.navigate(Screen.Profile.route)
                 },
-                onSettingsClick = {
-                    navController.navigate(Screen.Settings.route)
-                },
-                onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                onNewChatClick = {
+                    navController.navigate(Screen.Search.route)
                 }
             )
         }
@@ -85,17 +88,39 @@ fun AppNavigation() {
                 navArgument("roomId") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val roomId = backStackEntry.arguments?.getString("roomId") ?: return@composable
-            val chatViewModel: ChatViewModel = hiltViewModel()
+            val roomId = backStackEntry.arguments?.getString("roomId") ?: ""
             ChatScreen(
-                roomId = roomId,
                 onBackClick = { navController.popBackStack() },
-                onProfileClick = { userId -> /* Navigate to user profile */ }
+                onProfileClick = { /* Navigate to user profile */ },
+                onCallClick = {
+                    navController.navigate(Screen.Call.createRoute(roomId))
+                },
+                messageRenderer = messageRenderer
+            )
+        }
+
+        composable(Screen.Search.route) {
+            val searchViewModel: SearchViewModel = hiltViewModel()
+            val state by searchViewModel.uiState.collectAsState()
+            SearchScreen(
+                state = state,
+                onEvent = searchViewModel::onEvent,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.Call.route,
+            arguments = listOf(
+                navArgument("roomId") { type = NavType.StringType }
+            )
+        ) {
+            CallScreen(
+                onDismiss = { navController.popBackStack() }
             )
         }
         
         composable(Screen.Profile.route) {
-            val profileViewModel: ProfileViewModel = hiltViewModel()
             ProfileScreen(
                 onBackClick = { navController.popBackStack() },
                 onSettingsClick = {
@@ -105,7 +130,6 @@ fun AppNavigation() {
         }
         
         composable(Screen.Settings.route) {
-            val settingsViewModel: SettingsViewModel = hiltViewModel()
             SettingsScreen(
                 onBackClick = { navController.popBackStack() }
             )

@@ -34,6 +34,7 @@ sealed interface CallEvent {
     data object ToggleMicrophone : CallEvent
     data object ToggleCamera : CallEvent
     data object SwitchCamera : CallEvent
+    data object ToggleSpeaker : CallEvent
     data class CallStateChanged(val newState: CallState) : CallEvent
 }
 
@@ -45,7 +46,8 @@ class CallViewModel @Inject constructor(
     private val endCallUseCase: EndCallUseCase,
     private val toggleMicrophoneUseCase: ToggleMicrophoneUseCase,
     private val toggleCameraUseCase: ToggleCameraUseCase,
-    private val switchCameraUseCase: SwitchCameraUseCase
+    private val switchCameraUseCase: SwitchCameraUseCase,
+    private val toggleSpeakerUseCase: ToggleSpeakerUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CallUiState())
@@ -61,6 +63,7 @@ class CallViewModel @Inject constructor(
             is CallEvent.ToggleMicrophone -> toggleMicrophone()
             is CallEvent.ToggleCamera -> toggleCamera()
             is CallEvent.SwitchCamera -> switchCamera()
+            is CallEvent.ToggleSpeaker -> toggleSpeaker()
             is CallEvent.CallStateChanged -> updateCallState(event.newState)
         }
     }
@@ -180,6 +183,21 @@ class CallViewModel @Inject constructor(
             result.onSuccess {
                 _uiState.value = currentState.copy(
                     mediaState = currentState.mediaState.copy(isUsingFrontCamera = useFront)
+                )
+            }
+        }
+    }
+
+    private fun toggleSpeaker() {
+        viewModelScope.launch {
+            val callId = _uiState.value.callId ?: return@launch
+            val currentState = _uiState.value
+            val speakerOn = !currentState.mediaState.isSpeakerOn
+            
+            val result = toggleSpeakerUseCase(callId, speakerOn)
+            result.onSuccess {
+                _uiState.value = currentState.copy(
+                    mediaState = currentState.mediaState.copy(isSpeakerOn = speakerOn)
                 )
             }
         }

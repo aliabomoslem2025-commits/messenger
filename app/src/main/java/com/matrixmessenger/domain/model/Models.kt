@@ -63,10 +63,12 @@ data class MatrixRoom(
     val alias: String? = null,
     val isDirect: Boolean = false,
     val isEncrypted: Boolean = true,
+    val isPinned: Boolean = false,
+    val isMuted: Boolean = false,
     val membership: MembershipState = MembershipState.JOIN,
     val unreadCount: Int = 0,
     val lastMessage: MatrixMessage?,
-    val lastActivity: Long,
+    val timestamp: Date?,
     val memberCount: Int = 0,
     val inviter: MatrixUser? = null,
     val canonicalAlias: String? = null
@@ -119,10 +121,12 @@ data class MatrixMessage(
     val body: String,
     val formattedBody: String?,
     val messageType: MessageType = MessageType.TEXT,
-    val timestamp: Long,
+    val timestamp: Date,
     val isEdited: Boolean = false,
     val isDeleted: Boolean = false,
     val isRedacted: Boolean = false,
+    val redactionReason: String? = null,
+    val isForwarded: Boolean = false,
     val reactions: List<Reaction> = emptyList(),
     val replyToEventId: String? = null,
     val attachments: List<Attachment> = emptyList(),
@@ -175,6 +179,7 @@ enum class MessageType : Parcelable {
     FILE,
     LOCATION,
     STICKER,
+    VIDEO_NOTE,
     EMOTE,
     NOTICE,
     REDACTED,
@@ -271,3 +276,7 @@ data class CallState(
         REJECTED
     }
 }
+
+typealias Room = MatrixRoom
+typealias Message = MatrixMessage
+typealias User = MatrixUser

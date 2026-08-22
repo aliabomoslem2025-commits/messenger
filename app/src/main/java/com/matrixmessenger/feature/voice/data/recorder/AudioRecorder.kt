@@ -1,16 +1,16 @@
 package com.matrixmessenger.feature.voice.data.recorder
 
+import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
-import androidx.annotation.RequiresApi
 import java.io.File
 import java.io.IOException
+import timber.log.Timber
 
 /**
  * Handles audio recording using Android MediaRecorder.
- * Manages recording lifecycle, amplitude monitoring, and file output.
  */
-class AudioRecorder {
+class AudioRecorder(private val context: Context) {
     
     private var mediaRecorder: MediaRecorder? = null
     private var outputFile: File? = null
@@ -19,90 +19,70 @@ class AudioRecorder {
     val isRecording: Boolean
         get() = mediaRecorder != null
     
-    /**
-     * Prepare the recorder with a new output file.
-     */
     fun prepare(outputFile: File): Result<Unit> {
-        try {
+        return runCatching {
             this.outputFile = outputFile
             
             mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                createMediaRecorderV31()
+                MediaRecorder(context)
             } else {
-                createMediaRecorderLegacy()
+                @Suppress("DEPRECATION")
+                MediaRecorder()
             }
             
-            mediaRecorder?.setOutputFile(outputFile.absolutePath)
-            mediaRecorder?.prepare()
-            
-            return Result.success(Unit)
-        } catch (e: IOException) {
-            return Result.failure(e)
+            mediaRecorder?.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioEncodingBitRate(64000)
+                setAudioSamplingRate(44100)
+                setOutputFile(outputFile.absolutePath)
+                prepare()
+            }
+            Unit
+        }.onFailure {
+            Timber.e(it, "Failed to prepare MediaRecorder")
         }
     }
     
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun createMediaRecorderV31(): MediaRecorder {
-        return MediaRecorder.Builder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setAudioEncodingBitRate(64000)
-            setAudioSamplingRate(44100)
-        }.build()
-    }
-    
-    @Suppress("DEPRECATION")
-    private fun createMediaRecorderLegacy(): MediaRecorder {
-        return MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setAudioEncodingBitRate(64000)
-            setAudioSamplingRate(44100)
-        }
-    }
-    
-    /**
-     * Start recording.
-     */
     fun start(): Result<Unit> {
-        return try {
+        return runCatching {
             mediaRecorder?.start()
             startTime = System.currentTimeMillis()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+            Unit
+        }.onFailure {
+            Timber.e(it, "Failed to start MediaRecorder")
         }
     }
     
-    /**
-     * Stop recording and release resources.
-     * @return The path to the recorded file, or null if failed.
-     */
     fun stop(): String? {
         val path = outputFile?.absolutePath
+        val duration = System.currentTimeMillis() - startTime
         
         try {
+            if (duration < 500) {
+                // Too short, cancel instead
+                cancel()
+                return null
+            }
+            
             mediaRecorder?.apply {
                 stop()
                 reset()
                 release()
             }
-        } catch (e: RuntimeException) {
-            // Sometimes stop() throws if recording was very short
+        } catch (e: Exception) {
+            Timber.e(e, "Error stopping MediaRecorder")
             mediaRecorder?.reset()
             mediaRecorder?.release()
         } finally {
             mediaRecorder = null
+            startTime = 0
         }
         
         return path
     }
     
-    /**
-     * Cancel recording and delete the output file.
-     */
     fun cancel() {
         try {
             mediaRecorder?.apply {
@@ -111,17 +91,17 @@ class AudioRecorder {
                 release()
             }
         } catch (e: Exception) {
-            // Ignore errors during cancel
+            Timber.d("Recorder already stopped or error during cancel")
+            mediaRecorder?.reset()
+            mediaRecorder?.release()
         } finally {
             mediaRecorder = null
             outputFile?.delete()
             outputFile = null
+            startTime = 0
         }
     }
     
-    /**
-     * Get current recording duration in milliseconds.
-     */
     fun getDurationMillis(): Long {
         return if (startTime > 0) {
             System.currentTimeMillis() - startTime
@@ -130,10 +110,6 @@ class AudioRecorder {
         }
     }
     
-    /**
-     * Get current audio amplitude (0-32767).
-     * Useful for waveform visualization.
-     */
     fun getAmplitude(): Float {
         return try {
             mediaRecorder?.maxAmplitude?.toFloat() ?: 0f
@@ -142,9 +118,6 @@ class AudioRecorder {
         }
     }
     
-    /**
-     * Get normalized amplitude (0.0 - 1.0).
-     */
     fun getNormalizedAmplitude(): Float {
         return (getAmplitude() / 32767f).coerceIn(0f, 1f)
     }

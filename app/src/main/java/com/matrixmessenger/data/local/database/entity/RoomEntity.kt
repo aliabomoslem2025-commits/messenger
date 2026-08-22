@@ -5,14 +5,14 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "rooms")
 data class RoomEntity(
-    @PrimaryKey val roomId: String,
+    @PrimaryKey
+    val roomId: String,
     val displayName: String,
     val avatarUrl: String?,
     val topic: String?,
-    val roomType: String, // DIRECT, GROUP, CHANNEL, BOT, SAVED_MESSAGES
+    val roomType: String,
     val memberCount: Int,
     val lastMessageId: String?,
-    val lastMessageText: String?,
     val lastMessageTimestamp: Long,
     val unreadCount: Int,
     val mentionCount: Int,

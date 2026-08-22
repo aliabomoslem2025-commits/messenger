@@ -1,8 +1,6 @@
 package com.matrixmessenger
 
 import android.app.Application
-import androidx.work.Configuration
-import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.disk.DiskCache
@@ -14,6 +12,9 @@ import javax.inject.Inject
 @HiltAndroidApp
 class MatrixMessengerApp : Application(), ImageLoaderFactory {
 
+    @Inject
+    lateinit var matrixClientManager: com.matrixmessenger.data.matrix.MatrixClientManager
+
     override fun onCreate() {
         super.onCreate()
         
@@ -22,15 +23,9 @@ class MatrixMessengerApp : Application(), ImageLoaderFactory {
             Timber.plant(Timber.DebugTree())
         }
         
-        Timber.d("MatrixMessengerApp initialized")
+        matrixClientManager.initialize()
         
-        // Initialize WorkManager
-        WorkManager.initialize(
-            this,
-            Configuration.Builder()
-                .setMinimumLoggingLevel(android.util.Log.INFO)
-                .build()
-        )
+        Timber.d("MatrixMessengerApp initialized")
     }
 
     override fun newImageLoader(): ImageLoader {

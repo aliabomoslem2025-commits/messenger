@@ -54,27 +54,34 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
-            val state = _uiState.value
-            val result = matrixRepository.login(
-                username = state.username,
-                password = state.password,
-                homeserverUrl = state.homeserverUrl
-            )
+            try {
+                val state = _uiState.value
+                val result = matrixRepository.login(
+                    username = state.username,
+                    password = state.password,
+                    homeserverUrl = state.homeserverUrl
+                )
 
-            result.fold(
-                onSuccess = { authData ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isLoggedIn = true
-                    )
-                },
-                onFailure = { error ->
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = error.message ?: "Login failed"
-                    )
-                }
-            )
+                result.fold(
+                    onSuccess = { authData ->
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            isLoggedIn = true
+                        )
+                    },
+                    onFailure = { error ->
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = error.message ?: "Login failed"
+                        )
+                    }
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "An unexpected error occurred"
+                )
+            }
         }
     }
 

@@ -5,16 +5,17 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "messages")
 data class MessageEntity(
-    @PrimaryKey val eventId: String,
+    @PrimaryKey
+    val eventId: String,
     val roomId: String,
     val senderId: String,
     val senderDisplayName: String,
     val senderAvatarUrl: String?,
     val timestamp: Long,
-    val type: String, // TEXT, IMAGE, VIDEO, VOICE, FILE, etc.
+    val type: String,
     val text: String?,
     val formattedText: String?,
-    val status: String, // SENDING, SENT, DELIVERED, READ, FAILED
+    val status: String,
     val isOwn: Boolean,
     val isEdited: Boolean,
     val isForwarded: Boolean,
@@ -30,14 +31,14 @@ data class MessageEntity(
     val mediaWidth: Int?,
     val mediaHeight: Int?,
     val mediaDurationMs: Long?,
-    val voiceWaveform: String?, // JSON array of integers
+    val voiceWaveform: String?, // JSON encoded list of ints
     val thumbnailUrl: String?,
     val fileName: String?,
-    val reactions: String?, // JSON map
+    val reactions: String?, // JSON encoded map
     val latitude: Double?,
     val longitude: Double?,
     val locationDescription: String?,
-    val pollData: String?, // JSON
+    val pollData: String?, // JSON encoded
     val isRedacted: Boolean,
     val redactionReason: String?
 )

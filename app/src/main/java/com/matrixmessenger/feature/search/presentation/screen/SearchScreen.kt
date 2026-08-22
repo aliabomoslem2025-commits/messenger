@@ -14,9 +14,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.matrixmessenger.core.designsystem.MatrixColors
-import com.matrixmessenger.core.designsystem.MatrixDimens
-import com.matrixmessenger.core.designsystem.MatrixTypography
+import com.matrixmessenger.core.designsystem.tokens.MatrixColors
+import com.matrixmessenger.core.designsystem.tokens.MatrixTypography
+import com.matrixmessenger.core.designsystem.tokens.MatrixIcons
 import com.matrixmessenger.feature.search.domain.model.SearchFilter
 import com.matrixmessenger.feature.search.domain.model.SearchResult
 import com.matrixmessenger.feature.search.domain.model.SearchResults
@@ -33,7 +33,7 @@ fun SearchScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MatrixColors.Background.Primary)
+            .background(MatrixColors.BackgroundPrimary)
     ) {
         // Search Bar
         SearchBar(
@@ -91,7 +91,7 @@ private fun SearchBar(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        color = MatrixColors.Surface.Primary
+        color = MatrixColors.SurfacePrimary
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -99,7 +99,11 @@ private fun SearchBar(
         ) {
             // Back button
             IconButton(onClick = onNavigateBack) {
-                Text("←", color = MatrixColors.Text.Secondary)
+                Icon(
+                    imageVector = MatrixIcons.Back,
+                    contentDescription = "Back",
+                    tint = MatrixColors.TextSecondary
+                )
             }
             
             Spacer(modifier = Modifier.width(8.dp))
@@ -111,8 +115,8 @@ private fun SearchBar(
                 placeholder = {
                     Text(
                         "Search",
-                        color = MatrixColors.Text.Tertiary,
-                        style = MatrixTypography.Body.Medium
+                        color = MatrixColors.TextTertiary,
+                        style = MatrixTypography.BodyMedium
                     )
                 },
                 colors = TextFieldDefaults.colors(
@@ -122,14 +126,18 @@ private fun SearchBar(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent
                 ),
-                textStyle = MatrixTypography.Body.Medium.copy(color = MatrixColors.Text.Primary),
+                textStyle = MatrixTypography.BodyMedium.copy(color = MatrixColors.TextPrimary),
                 modifier = Modifier.weight(1f)
             )
             
             // Clear button
             if (query.isNotEmpty()) {
                 IconButton(onClick = onClear) {
-                    Text("✕", color = MatrixColors.Text.Secondary)
+                    Icon(
+                        imageVector = MatrixIcons.Close,
+                        contentDescription = "Clear",
+                        tint = MatrixColors.TextSecondary
+                    )
                 }
             }
         }
@@ -146,9 +154,9 @@ private fun FilterRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = modifier
     ) {
-        SearchFilter.values().forEach { filter ->
+        SearchFilter.entries.forEach { filter ->
             FilterChip(
-                label = filter.name.lowercase().capitalize(),
+                label = filter.name.lowercase().replaceFirstChar { it.uppercase() },
                 isSelected = filter == selectedFilter,
                 onClick = { onFilterSelected(filter) }
             )
@@ -164,15 +172,15 @@ private fun FilterChip(
 ) {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = if (isSelected) MatrixColors.Accent else MatrixColors.Surface.Secondary,
+        color = if (isSelected) MatrixColors.AccentPrimary else MatrixColors.SurfaceSecondary,
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
     ) {
         Text(
             text = label,
-            style = MatrixTypography.Label.Medium,
-            color = if (isSelected) Color.White else MatrixColors.Text.Secondary,
+            style = MatrixTypography.LabelMedium,
+            color = if (isSelected) Color.White else MatrixColors.TextSecondary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
@@ -193,10 +201,10 @@ private fun SearchResultsList(
             item {
                 SectionHeader(title = "People", count = results.users.size)
             }
-            items(results.users, key = { it.user.id }) { result ->
+            items(results.users, key = { it.user.userId }) { result ->
                 UserResultItem(
                     user = result.user,
-                    onClick = { onResultClick(result.user.id) }
+                    onClick = { onResultClick(result.user.userId) }
                 )
             }
         }
@@ -206,10 +214,10 @@ private fun SearchResultsList(
             item {
                 SectionHeader(title = "Groups & Channels", count = results.rooms.size)
             }
-            items(results.rooms, key = { it.room.id }) { result ->
+            items(results.rooms, key = { it.room.roomId }) { result ->
                 RoomResultItem(
                     room = result.room,
-                    onClick = { onResultClick(result.room.id) }
+                    onClick = { onResultClick(result.room.roomId) }
                 )
             }
         }
@@ -219,12 +227,12 @@ private fun SearchResultsList(
             item {
                 SectionHeader(title = "Messages", count = results.messages.size)
             }
-            items(results.messages, key = { it.message.id }) { result ->
+            items(results.messages, key = { it.message.eventId }) { result ->
                 MessageResultItem(
                     message = result.message,
                     sender = result.sender,
                     roomName = result.room.name ?: "Unknown Room",
-                    onClick = { onResultClick(result.message.id) }
+                    onClick = { onResultClick(result.message.eventId) }
                 )
             }
         }
@@ -235,14 +243,14 @@ private fun SearchResultsList(
 private fun SectionHeader(title: String, count: Int) {
     Text(
         text = "$title ($count)",
-        style = MatrixTypography.Label.Medium,
-        color = MatrixColors.Text.Tertiary,
+        style = MatrixTypography.LabelMedium,
+        color = MatrixColors.TextTertiary,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
     )
 }
 
 @Composable
-private fun UserResultItem(user: com.matrixmessenger.core.model.MatrixUser, onClick: () -> Unit) {
+private fun UserResultItem(user: com.matrixmessenger.domain.model.MatrixUser, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -255,15 +263,15 @@ private fun UserResultItem(user: com.matrixmessenger.core.model.MatrixUser, onCl
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(MatrixColors.Surface.Secondary)
+                .background(MatrixColors.SurfaceSecondary)
         )
         
         Spacer(modifier = Modifier.width(12.dp))
         
         Text(
-            text = user.displayName ?: user.id,
-            style = MatrixTypography.Body.Medium,
-            color = MatrixColors.Text.Primary,
+            text = user.displayName ?: user.userId,
+            style = MatrixTypography.BodyMedium,
+            color = MatrixColors.TextPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
@@ -272,7 +280,7 @@ private fun UserResultItem(user: com.matrixmessenger.core.model.MatrixUser, onCl
 }
 
 @Composable
-private fun RoomResultItem(room: com.matrixmessenger.core.model.MatrixRoom, onClick: () -> Unit) {
+private fun RoomResultItem(room: com.matrixmessenger.domain.model.MatrixRoom, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -285,7 +293,7 @@ private fun RoomResultItem(room: com.matrixmessenger.core.model.MatrixRoom, onCl
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(MatrixColors.Surface.Secondary)
+                .background(MatrixColors.SurfaceSecondary)
         )
         
         Spacer(modifier = Modifier.width(12.dp))
@@ -293,16 +301,16 @@ private fun RoomResultItem(room: com.matrixmessenger.core.model.MatrixRoom, onCl
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = room.name ?: room.alias ?: "Unknown Room",
-                style = MatrixTypography.Body.Medium,
-                color = MatrixColors.Text.Primary,
+                style = MatrixTypography.BodyMedium,
+                color = MatrixColors.TextPrimary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             room.topic?.let { topic ->
                 Text(
                     text = topic,
-                    style = MatrixTypography.Body.Small,
-                    color = MatrixColors.Text.Tertiary,
+                    style = MatrixTypography.BodySmall,
+                    color = MatrixColors.TextTertiary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -313,8 +321,8 @@ private fun RoomResultItem(room: com.matrixmessenger.core.model.MatrixRoom, onCl
 
 @Composable
 private fun MessageResultItem(
-    message: com.matrixmessenger.core.model.MatrixMessage,
-    sender: com.matrixmessenger.core.model.MatrixUser,
+    message: com.matrixmessenger.domain.model.MatrixMessage,
+    sender: com.matrixmessenger.domain.model.MatrixUser,
     roomName: String,
     onClick: () -> Unit
 ) {
@@ -326,8 +334,8 @@ private fun MessageResultItem(
     ) {
         Text(
             text = message.body,
-            style = MatrixTypography.Body.Medium,
-            color = MatrixColors.Text.Primary,
+            style = MatrixTypography.BodyMedium,
+            color = MatrixColors.TextPrimary,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
@@ -337,13 +345,13 @@ private fun MessageResultItem(
         Row {
             Text(
                 text = sender.displayName ?: "Unknown",
-                style = MatrixTypography.Label.Small,
-                color = MatrixColors.Text.Tertiary
+                style = MatrixTypography.LabelSmall,
+                color = MatrixColors.TextTertiary
             )
             Text(
                 text = " • $roomName",
-                style = MatrixTypography.Label.Small,
-                color = MatrixColors.Text.Tertiary
+                style = MatrixTypography.LabelSmall,
+                color = MatrixColors.TextTertiary
             )
         }
     }
@@ -356,7 +364,7 @@ private fun SearchLoadingState(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         CircularProgressIndicator(
-            color = MatrixColors.Accent
+            color = MatrixColors.AccentPrimary
         )
     }
 }
@@ -370,14 +378,14 @@ private fun SearchEmptyState(query: String, modifier: Modifier = Modifier) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "No results found",
-                style = MatrixTypography.Headline.Small,
-                color = MatrixColors.Text.Primary
+                style = MatrixTypography.HeadlineSmall,
+                color = MatrixColors.TextPrimary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "No matches for \"$query\"",
-                style = MatrixTypography.Body.Medium,
-                color = MatrixColors.Text.Tertiary
+                style = MatrixTypography.BodyMedium,
+                color = MatrixColors.TextTertiary
             )
         }
     }
@@ -392,14 +400,14 @@ private fun SearchErrorState(error: String, onRetry: () -> Unit, modifier: Modif
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "Search failed",
-                style = MatrixTypography.Headline.Small,
+                style = MatrixTypography.HeadlineSmall,
                 color = MatrixColors.Error
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = error,
-                style = MatrixTypography.Body.Medium,
-                color = MatrixColors.Text.Tertiary
+                style = MatrixTypography.BodyMedium,
+                color = MatrixColors.TextTertiary
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onRetry) {

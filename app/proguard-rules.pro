@@ -6,9 +6,16 @@
 -keep class org.matrix.** { *; }
 -dontwarn org.matrix.**
 
+# Moshi
+-keep class com.squareup.moshi.** { *; }
+-keepnames class com.squareup.moshi.** { *; }
+-keepclassmembers class * {
+    @com.squareup.moshi.FromJson <methods>;
+    @com.squareup.moshi.ToJson <methods>;
+}
+
 # Retrofit
--keepattributes Signature
--keepattributes *Annotation*
+-keepattributes Signature, InnerClasses, EnclosingMethod, *Annotation*
 -keep class retrofit2.** { *; }
 -keepclasseswithmembers,allowshrinking,allowobfuscation interface * {
     @retrofit2.http.* <methods>;
@@ -18,6 +25,19 @@
 -dontwarn okhttp3.**
 -dontwarn okio.**
 -keepnames class okhttp3.internal.publicsuffix.PublicSuffixDatabase
+
+# JNA Rules for Matrix SDK Crypto
+-dontwarn java.awt.**
+-keep class com.sun.jna.** { *; }
+-keepnames class com.sun.jna.** { *; }
+-keep class * implements com.sun.jna.** { *; }
+-keep class * extends com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.** {
+    public *;
+}
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
 
 # Kotlinx Serialization
 -keepattributes *Annotation*, InnerClasses

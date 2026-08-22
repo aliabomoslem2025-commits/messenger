@@ -1,6 +1,6 @@
 package com.matrixmessenger.feature.call.domain.model
 
-import com.matrixmessenger.core.model.MatrixUser
+import com.matrixmessenger.domain.model.MatrixUser
 
 /**
  * Represents the current state of a VoIP call.

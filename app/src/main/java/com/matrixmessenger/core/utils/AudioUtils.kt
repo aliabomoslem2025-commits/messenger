@@ -110,7 +110,7 @@ object AudioUtils {
         val width = bitmap.width.coerceAtMost(10)
         val height = bitmap.height.coerceAtMost(10)
         
-        var totalBrightness = 0
+        var totalBrightness = 0.0
         var pixelCount = 0
         
         for (x in 0 until width step 2) {
@@ -121,14 +121,14 @@ object AudioUtils {
                 val b = android.graphics.Color.blue(pixel)
                 
                 // Luminance formula
-                val brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255f
+                val brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
                 totalBrightness += brightness
                 pixelCount++
             }
         }
         
         return if (pixelCount > 0) {
-            (totalBrightness / pixelCount).coerceIn(0f, 1f)
+            (totalBrightness / pixelCount).toFloat().coerceIn(0f, 1f)
         } else {
             0f
         }
@@ -138,10 +138,12 @@ object AudioUtils {
      * Check if recording permissions are available
      */
     fun hasRecordingPermission(context: Context): Boolean {
-        return android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M
-            ? context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) 
-                == android.content.pm.PackageManager.PERMISSION_GRANTED
-            : true
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
     }
 
     /**

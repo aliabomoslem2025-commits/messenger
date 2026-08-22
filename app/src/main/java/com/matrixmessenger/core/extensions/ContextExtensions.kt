@@ -75,18 +75,6 @@ fun Context.isNetworkAvailable(): Boolean {
 }
 
 /**
- * Get session from context if available
- */
-fun Context.getActiveSession(): Session? {
-    return try {
-        val matrix = org.matrix.android.sdk.api.Matrix.getInstance(this)
-        matrix.getAllSessions().firstOrNull { it.sessionParams.userId.isNotEmpty() }
-    } catch (e: Exception) {
-        null
-    }
-}
-
-/**
  * Clear app cache
  */
 fun Context.clearCache() {
