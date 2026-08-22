@@ -41,3 +41,7 @@ Thumbs.db
 
 # Release outputs
 app/release/
+*.apk
+*.aab
+app/release/
+app/build/
