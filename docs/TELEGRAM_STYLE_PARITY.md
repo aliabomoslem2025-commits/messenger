@@ -87,6 +87,11 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - Reaction-pill scale feedback now uses Element's system animation-scale helper on all supported Android versions (rather than only checking the API-26 animator flag); haptic confirmation remains available when motion is disabled.
 
 
+### Menu and profile action feedback pass (not yet build-verified)
+
+- Generic message/context bottom-sheet actions and profile action rows now provide light keyboard-tap haptic feedback on activation. Their existing debounced click listeners, selection state, and Matrix action callbacks are retained.
+
+
 ### Still required before calling this Telegram parity
 
 - [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.

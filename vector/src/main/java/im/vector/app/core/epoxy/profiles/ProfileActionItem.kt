@@ -8,6 +8,8 @@
 package im.vector.app.core.epoxy.profiles
 
 import android.content.res.ColorStateList
+import android.view.HapticFeedbackConstants
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.isVisible
@@ -62,7 +64,12 @@ abstract class ProfileActionItem : VectorEpoxyModel<ProfileActionItem.Holder>(R.
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.view.onClick(listener)
+        holder.view.onClick(listener?.let { action ->
+            { clickedView: View ->
+                clickedView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                action(clickedView)
+            }
+        })
         if (listener == null) {
             holder.view.isClickable = false
         }

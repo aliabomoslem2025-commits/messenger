@@ -7,6 +7,7 @@
 package im.vector.app.core.epoxy.bottomsheet
 
 import android.content.res.ColorStateList
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -69,7 +70,10 @@ abstract class BottomSheetActionItem : VectorEpoxyModel<BottomSheetActionItem.Ho
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.view.onClick(listener)
+        holder.view.onClick { view ->
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            listener(view)
+        }
         holder.startSpace.isVisible = subMenuItem
         val tintColor = if (destructive) {
             ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorError)
