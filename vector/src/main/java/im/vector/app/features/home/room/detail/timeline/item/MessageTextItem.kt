@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.text.Spanned
 import android.text.method.MovementMethod
+import android.view.View
 import android.view.ViewStub
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.PrecomputedTextCompat
@@ -84,6 +85,11 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         val messageView: AppCompatTextView = if (useRichTextEditorStyle) holder.requireRichMessageView() else holder.requirePlainMessageView()
         messageView.isVisible = true
+        // Resolve paragraph direction from the message text, not from the app's
+        // global layout direction. This keeps Persian/Arabic text right-aligned
+        // while leaving navigation and the overall chat layout in LTR when needed.
+        messageView.textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
+        messageView.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
         if (useBigFont) {
             messageView.textSize = 44F
         } else {
