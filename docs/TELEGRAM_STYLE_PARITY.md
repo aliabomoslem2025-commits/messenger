@@ -42,6 +42,17 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - Added a brief scale bounce for reaction selection and reset the emoji scale when the view is rebound, retaining the existing Matrix reaction callbacks.
 - Updated the repository README to document the customized Element base and the independent Telegram-inspired direction.
 
+
+### Follow-up UI changes merged (still not build-verified)
+
+- Enabled grouped message bubbles by default for fresh installs; the existing preference remains available to users. Increased the grouped-bubble radius to 16dp and message timestamps to 11sp.
+- Refined reaction-chip padding and added selection/deselection bounce motion that respects Android's disabled animator setting.
+- Connected the existing timeline row animator and applied short message-action-list transitions; system reduced-motion settings disable those animations.
+- Tightened chat-header title typography and enlarged the shared send-action circle from 36dp to 40dp without changing text-message or voice-message send callbacks.
+- Added a dedicated chat canvas token: white in light mode, deep blue-gray (#0E1621) in dark mode, and pure black in black mode. It is scoped to the chat screen and expanded plain-text composer rather than changing unrelated screens.
+- Kept the Gradle Wrapper on 8.13, using the official distribution checksum, rather than accepting the imported upstream wrapper's 8.14.3 version.
+
+
 ### Still required before calling this Telegram parity
 
 - [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.
