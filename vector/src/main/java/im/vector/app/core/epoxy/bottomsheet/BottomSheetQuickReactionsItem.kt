@@ -9,7 +9,6 @@ package im.vector.app.core.epoxy.bottomsheet
 import android.graphics.Typeface
 import android.view.HapticFeedbackConstants
 import android.widget.TextView
-import androidx.core.content.ContextCompat
 import im.vector.app.core.utils.isAnimationEnabled
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
@@ -57,8 +56,10 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
             textView.scaleY = 1f
 
             textView.onClick {
+                // Haptics and reduced-motion settings are independent: preserve the
+                // touch acknowledgement even when the user disables animations.
+                textView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                 if (textView.context.isAnimationEnabled()) {
-                    textView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
                     textView.animate().cancel()
                     textView.scaleX = 0.88f
                     textView.scaleY = 0.88f
