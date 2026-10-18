@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.view
 
 import android.content.Context
+import android.text.TextDirectionHeuristics
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewStub
@@ -29,7 +30,7 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
     private lateinit var contentContainerView: View
     private lateinit var timeView: View
     private lateinit var contentOverlayView: View
-    private var localeLayoutDirection: Int = View.LAYOUT_DIRECTION_LOCALE
+    private var messageLayoutDirection: Int = View.LAYOUT_DIRECTION_LOCALE
 
     private val timeViewMeasuredWidthWithMargins: Int
         get() = timeView.measuredWidth + timeView.marginStart + timeView.marginEnd
@@ -44,12 +45,13 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
             textViewStub.setOnInflateListener(null)
             messageTextView = inflated.findViewById(R.id.messageTextView)
         }
-        localeLayoutDirection = DefaultLocaleProvider(resources).getLayoutDirectionFromCurrentLocale()
+        messageLayoutDirection = DefaultLocaleProvider(resources).getLayoutDirectionFromCurrentLocale()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         // Let the ConstraintLayouts measure children
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        updateMessageLayoutDirection()
         val messageTextView = this.messageTextView
         // Then if we have a text message layout, we can resize ourself so we can position the timeView without losing space.
         if (messageTextView != null) {
@@ -73,6 +75,22 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
         }
     }
 
+    /**
+     * The app layout direction and the paragraph direction are separate concerns.
+     * Use the first strong character in the actual message so Persian/Arabic
+     * paragraphs align to the right even when the app itself uses an LTR locale.
+     */
+    private fun updateMessageLayoutDirection() {
+        val text = messageTextView?.text
+        messageLayoutDirection = when {
+            text == null || text.isBlank() ->
+                DefaultLocaleProvider(resources).getLayoutDirectionFromCurrentLocale()
+            TextDirectionHeuristics.FIRSTSTRONG_LTR.isRtl(text, 0, text.length) ->
+                View.LAYOUT_DIRECTION_RTL
+            else -> View.LAYOUT_DIRECTION_LTR
+        }
+    }
+
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         // If we have a text message layout, we want to render it manually, so we don't call super.onLayout
         if (messageTextView != null) {
@@ -80,7 +98,7 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
             val parentRight: Int = right - left - paddingRight
             val parentTop: Int = paddingTop
             val parentBottom: Int = bottom - top - paddingBottom
-            if (localeLayoutDirection == LAYOUT_DIRECTION_RTL) {
+            if (messageLayoutDirection == LAYOUT_DIRECTION_RTL) {
                 val contentLeft = parentRight - contentContainerView.measuredWidth - contentContainerView.marginEnd
                 contentContainerView.layout(
                         contentLeft,
