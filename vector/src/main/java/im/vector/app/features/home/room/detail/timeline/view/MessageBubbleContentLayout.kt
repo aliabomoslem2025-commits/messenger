@@ -49,10 +49,22 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // Resolve the paragraph direction before measuring. This changes only the text view;
-        // the outer message bubble keeps Element's sender-based left/right placement.
+        // Resolve existing text before measuring. This changes only the text view; the outer
+        // bubble keeps Element's sender-based left/right placement.
         updateMessageLayoutDirection()
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+
+        // The TextView may be created by a ViewStub during the first super.onMeasure() call.
+        // In that case the message text was not available before measurement. Apply its
+        // resolved direction now and remeasure once so the first RTL message is measured
+        // with the same paragraph direction it will use when laid out.
+        val directionAfterFirstMeasure = messageLayoutDirection
+        updateMessageLayoutDirection()
+        if (messageTextView != null && messageLayoutDirection != directionAfterFirstMeasure) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            updateMessageLayoutDirection()
+        }
+
         val messageTextView = this.messageTextView
         // Then if we have a text message layout, we can resize ourself so we can position the timeView without losing space.
         if (messageTextView != null) {
