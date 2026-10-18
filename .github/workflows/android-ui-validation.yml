@@ -12,10 +12,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: android-ui-validation-${{ github.event.pull_request.number || github.ref }}-${{ matrix.target || 'all' }}
-  cancel-in-progress: true
-
 env:
   GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx5120m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError -XX:MaxMetaspaceSize=1g" -Dkotlin.daemon.jvm.options="-Xmx2560m" -Dkotlin.incremental=false'
 
@@ -24,6 +20,9 @@ jobs:
     name: Assemble ${{ matrix.target }} debug
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    concurrency:
+      group: android-ui-validation-${{ github.event.pull_request.number || github.ref }}-${{ matrix.target }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
