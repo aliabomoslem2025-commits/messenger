@@ -30,3 +30,24 @@
 ## Status
 
 This is the acceptance checklist and implementation plan; it does not claim the UI parity items are already implemented.
+
+## Implementation progress
+
+### Landed in the first UI pass (not yet build-verified)
+
+- Updated the existing light/dark message-bubble palette to use a neutral inbound surface and soft-green outbound surface.
+- Changed the message composer outline to a more pill-shaped radius while retaining the current theme-aware stroke.
+- Made the room-list rows more compact with 54dp avatars and single-line previews; room ordering, unread state, typing state, and Matrix room actions remain in the existing Element implementation.
+- Added short add/remove/move transitions for timeline and room-list items. Change cross-fades are disabled in the timeline animator to reduce flicker during receipt, reaction, and send-state updates.
+- Added a brief scale bounce for reaction selection and reset the emoji scale when the view is rebound, retaining the existing Matrix reaction callbacks.
+- Updated the repository README to document the customized Element base and the independent Telegram-inspired direction.
+
+### Still required before calling this Telegram parity
+
+- [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.
+- [ ] Audit and adapt the chat header, message bubble geometry and grouping, context actions, icon mapping, and sheet/menu transitions.
+- [ ] Verify reaction sync/error states, message send failure states, encrypted media, and voice-message recording/playback end to end.
+- [ ] Verify Persian/RTL and mixed Persian/Latin message content independently of the app's overall layout direction.
+- [ ] Run Gradle compilation, unit tests, lint, and targeted manual tests on a device/emulator.
+
+No Gradle build or device test has been run from the remote repository editing session. The items above are source changes only and should be treated as a first pass pending compilation and runtime validation.

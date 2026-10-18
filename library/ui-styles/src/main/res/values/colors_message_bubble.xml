@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Telegram-inspired neutral incoming and soft-green outgoing message surfaces.
+         Keep theme attributes intact so Matrix send state and theme selection remain unchanged. -->
+    <attr name="vctr_message_bubble_inbound" format="color" />
+    <color name="vctr_message_bubble_inbound_light">#F1F3F5</color>
+    <color name="vctr_message_bubble_inbound_dark">#2A3038</color>
+    <attr name="vctr_message_bubble_outbound" format="color" />
+    <color name="vctr_message_bubble_outbound_light">#DDF7C8</color>
+    <color name="vctr_message_bubble_outbound_dark">#1D4937</color>
+</resources>
