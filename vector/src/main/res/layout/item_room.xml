@@ -27,21 +27,21 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/roomAvatarImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
             android:importantForAccessibility="no"
             tools:src="@sample/room_round_avatars" />
 
         <ImageView
             android:id="@+id/roomAvatarCheckedImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
             android:contentDescription="@string/a11y_checked"
             android:scaleType="centerInside"
             android:src="@drawable/ic_material_done"
@@ -58,7 +58,7 @@
         android:src="@drawable/ic_warning_badge"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="45"
-        app:layout_constraintCircleRadius="30dp"
+        app:layout_constraintCircleRadius="29dp"
         tools:ignore="MissingConstraints" />
 
     <!-- Note: this is always gone now -->
@@ -68,7 +68,7 @@
         android:layout_height="24dp"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="28dp"
+        app:layout_constraintCircleRadius="27dp"
         tools:ignore="MissingConstraints"
         tools:visibility="gone" />
 
@@ -107,7 +107,7 @@
     <Space
         android:id="@+id/roomAvatarBottomSpace"
         android:layout_width="0dp"
-        android:layout_height="12dp"
+        android:layout_height="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/roomAvatarContainer"
         tools:layout_marginStart="20dp" />
@@ -117,8 +117,8 @@
         style="@style/Widget.Vector.TextView.Subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/layout_horizontal_margin"
-        android:layout_marginTop="12dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="8dp"
         android:duplicateParentState="true"
         android:ellipsize="end"
@@ -187,10 +187,10 @@
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="2dp"
         android:layout_marginEnd="8dp"
         android:ellipsize="end"
-        android:lines="2"
+        android:maxLines="1"
         android:textAlignment="viewStart"
         android:textColor="?vctr_content_secondary"
         app:layout_constraintEnd_toEndOf="parent"
@@ -203,10 +203,10 @@
         style="@style/Widget.Vector.TextView.Body"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
+        android:layout_marginTop="2dp"
         android:layout_marginEnd="8dp"
         android:ellipsize="end"
-        android:maxLines="2"
+        android:maxLines="1"
         android:textAlignment="viewStart"
         android:textColor="?colorPrimary"
         android:textStyle="bold"
