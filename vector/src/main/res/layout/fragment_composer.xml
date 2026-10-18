@@ -9,7 +9,7 @@
         android:id="@+id/composerLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="?android:colorBackground"
+        android:background="?vctr_chat_background"
         android:minHeight="56dp"
         android:transitionName="composer"
         android:visibility="gone"
