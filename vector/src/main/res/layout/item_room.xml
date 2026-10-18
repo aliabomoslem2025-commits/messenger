@@ -11,6 +11,19 @@
     android:foreground="?attr/selectableItemBackground"
     tools:viewBindingIgnore="true">
 
+    <!-- Full-row selection feedback, drawn beneath content and above the screen background. -->
+    <View
+        android:id="@+id/roomSelectionBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="?vctr_reaction_background_on"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <View
         android:id="@+id/roomUnreadIndicator"
         android:layout_width="4dp"

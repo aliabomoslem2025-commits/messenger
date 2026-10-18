@@ -7,7 +7,10 @@
 package im.vector.app.core.epoxy.bottomsheet
 
 import android.graphics.Typeface
+import android.view.HapticFeedbackConstants
 import android.widget.TextView
+import androidx.core.content.ContextCompat
+import im.vector.app.core.utils.isAnimationEnabled
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.EmojiCompatFontProvider
@@ -37,12 +40,38 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.textViews.forEachIndexed { index, textView ->
+            val isSelected = selecteds.getOrNull(index) == true
+
             textView.typeface = fontProvider.typeface ?: Typeface.DEFAULT
-            textView.text = texts[index]
-            textView.alpha = if (selecteds[index]) 0.2f else 1f
+            textView.text = texts.getOrNull(index).orEmpty()
+            textView.contentDescription = texts.getOrNull(index).orEmpty()
+            textView.isSelected = isSelected
+            textView.isActivated = isSelected
+            // A selected quick reaction should be highlighted, not faded almost invisible.
+            // The background selector supplies a soft accent fill and a normal pressed ripple.
+            textView.alpha = 1f
+
+            // RecyclerView/ Epoxy may reuse a view while it is still scaled from a previous bind.
+            textView.animate().cancel()
+            textView.scaleX = 1f
+            textView.scaleY = 1f
 
             textView.onClick {
-                listener?.didSelect(texts[index], !selecteds[index])
+                if (textView.context.isAnimationEnabled()) {
+                    textView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                    textView.animate().cancel()
+                    textView.scaleX = 0.88f
+                    textView.scaleY = 0.88f
+                    textView.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(140L)
+                            .start()
+                } else {
+                    textView.scaleX = 1f
+                    textView.scaleY = 1f
+                }
+                listener?.didSelect(textView.text.toString(), !isSelected)
             }
         }
     }

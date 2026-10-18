@@ -148,6 +148,11 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     }
 
     private fun renderSelection(holder: Holder, isSelected: Boolean) {
+        // Show selection across the entire row as well as on the avatar so multi-select
+        // remains obvious without changing click/long-click dispatch to Matrix actions.
+        holder.rootView.isSelected = isSelected
+        holder.selectionBackground.isVisible = isSelected
+
         if (isSelected) {
             holder.avatarCheckedImageView.visibility = View.VISIBLE
             val backgroundColor = ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorPrimary)
@@ -160,6 +165,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     }
 
     class Holder : VectorEpoxyHolder() {
+        val selectionBackground by bind<View>(R.id.roomSelectionBackground)
         val titleView by bind<TextView>(R.id.roomNameView)
         val unreadCounterBadgeView by bind<UnreadCounterBadgeView>(R.id.roomUnreadCounterBadgeView)
         val unreadIndentIndicator by bind<View>(R.id.roomUnreadIndicator)
