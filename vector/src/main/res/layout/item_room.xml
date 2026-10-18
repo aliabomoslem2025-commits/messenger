@@ -83,7 +83,7 @@
         android:visibility="gone"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="28dp"
+        app:layout_constraintCircleRadius="27dp"
         tools:ignore="MissingConstraints"
         tools:visibility="visible" />
 
