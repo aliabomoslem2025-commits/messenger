@@ -8,8 +8,8 @@ package im.vector.app.features.reactions.widget
 
 import android.animation.ValueAnimator
 import android.content.Context
-import android.os.Build
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.OvershootInterpolator
