@@ -128,6 +128,7 @@ import im.vector.app.features.home.room.detail.composer.boolean
 import im.vector.app.features.home.room.detail.composer.voice.VoiceRecorderFragment
 import im.vector.app.features.home.room.detail.error.RoomNotFound
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.animation.TimelineItemAnimator
 import im.vector.app.features.home.room.detail.timeline.action.EventSharedAction
 import im.vector.app.features.home.room.detail.timeline.action.MessageActionsBottomSheet
 import im.vector.app.features.home.room.detail.timeline.action.MessageSharedActionViewModel
@@ -1042,7 +1043,13 @@ class TimelineFragment :
         scrollOnNewMessageCallback = ScrollOnNewMessageCallback(layoutManager, timelineEventController)
         scrollOnHighlightedEventCallback = ScrollOnHighlightedEventCallback(views.timelineRecyclerView, layoutManager, timelineEventController)
         views.timelineRecyclerView.layoutManager = layoutManager
-        views.timelineRecyclerView.itemAnimator = null
+        // Preserve jump-to-message and sync behavior while animating inserted/removed rows.
+        // Respect Android's system animation setting for reduced-motion/accessibility users.
+        views.timelineRecyclerView.itemAnimator = if (requireContext().isAnimationEnabled()) {
+            TimelineItemAnimator()
+        } else {
+            null
+        }
         views.timelineRecyclerView.setHasFixedSize(true)
         modelBuildListener = OnModelBuildFinishedListener {
             it.dispatchTo(stateRestorer)
