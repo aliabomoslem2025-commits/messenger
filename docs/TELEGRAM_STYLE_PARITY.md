@@ -73,6 +73,13 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - The branch's Android UI validation workflow should be checked on the latest commit before merging.
 
 
+### Chat header and selection clarity pass (not yet build-verified)
+
+- Direct-message headers now show a localized Matrix presence label under the room title when presence data is available, while non-direct rooms and unavailable presence keep the subtitle hidden.
+- The small presence icon is excluded from accessibility traversal because the same presence state is presented as readable subtitle text; this avoids announcing the state twice.
+- The selected room-row overlay uses constraints on all four edges so it follows the measured row height instead of relying on `match_parent` inside a wrapping ConstraintLayout.
+
+
 ### Still required before calling this Telegram parity
 
 - [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.

@@ -23,6 +23,7 @@
         android:id="@+id/roomToolbarPresenceImageView"
         android:layout_width="11dp"
         android:layout_height="12dp"
+        android:importantForAccessibility="no"
         android:background="@drawable/background_circle"
         android:padding="2dp"
         android:visibility="gone"
@@ -90,7 +91,7 @@
         android:textAppearance="@style/TextAppearance.Vector.Widget.ActionBarTitle"
         android:textSize="16sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/roomToolbarAvatarImageView"
+        app:layout_constraintBottom_toTopOf="@id/roomToolbarSubtitleView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toEndOf="@id/roomToolbarTitleShield"
@@ -98,5 +99,24 @@
         app:layout_constraintVertical_chainStyle="packed"
         app:layout_goneMarginStart="7dp"
         tools:text="@sample/rooms.json/data/name" />
+
+    <!-- Direct-message presence is shown below the title, matching familiar messenger headers. -->
+    <TextView
+        android:id="@+id/roomToolbarSubtitleView"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?vctr_content_secondary"
+        android:textSize="12sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/roomToolbarAvatarImageView"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@id/roomToolbarTitleView"
+        app:layout_constraintTop_toBottomOf="@id/roomToolbarTitleView"
+        tools:text="Online"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

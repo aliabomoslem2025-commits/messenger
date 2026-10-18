@@ -14,8 +14,8 @@
     <!-- Full-row selection feedback, drawn beneath content and above the screen background. -->
     <View
         android:id="@+id/roomSelectionBackground"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:background="?vctr_reaction_background_on"
         android:importantForAccessibility="no"
         android:visibility="gone"
