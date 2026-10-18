@@ -132,12 +132,18 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     private fun renderForDefaultDisplayMode(holder: Holder) {
         holder.subtitleView.text = lastFormattedEvent.charSequence
         holder.lastEventTimeView.text = lastEventTime
+        holder.lastEventTimeView.isVisible = lastEventTime.isNotBlank()
         holder.typingView.setTextOrHide(typingMessage)
         holder.subtitleView.isInvisible = holder.typingView.isVisible
     }
 
     private fun renderForFilteredDisplayMode(holder: Holder) {
+        // A holder can be recycled across display modes; clear default-list-only views
+        // to avoid showing an old timestamp or typing indicator in a filtered result.
         holder.subtitleView.text = subtitle
+        holder.subtitleView.isVisible = true
+        holder.lastEventTimeView.isVisible = false
+        holder.typingView.isVisible = false
     }
 
     override fun unbind(holder: Holder) {

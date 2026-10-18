@@ -80,6 +80,13 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - The selected room-row overlay uses constraints on all four edges so it follows the measured row height instead of relying on `match_parent` inside a wrapping ConstraintLayout.
 
 
+### RecyclerView reuse and motion-preference audit (not yet build-verified)
+
+- The dedicated room-list screen now disables row animations when Android's system animator scale is zero, matching the home room list and timeline.
+- Room-list rows explicitly hide typing and timestamp views in filtered mode and restore timestamp visibility when returning to the normal list, preventing stale recycled-row content.
+- Reaction-pill scale feedback now uses Element's system animation-scale helper on all supported Android versions (rather than only checking the API-26 animator flag); haptic confirmation remains available when motion is disabled.
+
+
 ### Still required before calling this Telegram parity
 
 - [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.

@@ -6,10 +6,8 @@
  */
 package im.vector.app.features.reactions.widget
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
 import android.view.View
@@ -21,6 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.EmojiSpanify
 import im.vector.app.R
 import im.vector.app.core.utils.TextUtils
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.databinding.ReactionButtonBinding
 import javax.inject.Inject
 
@@ -118,7 +117,7 @@ class ReactionButton @JvmOverloads constructor(
         views.reactionText.animate().cancel()
 
         // Respect Android's disabled animator setting, including accessibility/reduced-motion use.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ValueAnimator.areAnimatorsEnabled()) {
+        if (!context.isAnimationEnabled()) {
             scaleX = 1f
             scaleY = 1f
             views.reactionText.scaleX = 1f

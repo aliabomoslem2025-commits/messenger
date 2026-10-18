@@ -28,6 +28,7 @@ import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.StateView
@@ -280,7 +281,11 @@ class RoomListFragment :
         val layoutManager = LinearLayoutManager(requireContext())
         stateRestorer = LayoutManagerStateRestorer(layoutManager).register()
         views.roomListView.layoutManager = layoutManager
-        views.roomListView.itemAnimator = RoomListAnimator()
+        views.roomListView.itemAnimator = if (requireContext().isAnimationEnabled()) {
+            RoomListAnimator()
+        } else {
+            null
+        }
         layoutManager.recycleChildrenOnDetach = true
 
         modelBuildListener = OnModelBuildFinishedListener { it.dispatchTo(stateRestorer) }
