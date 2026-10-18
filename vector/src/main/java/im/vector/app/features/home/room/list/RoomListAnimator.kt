@@ -9,14 +9,16 @@ package im.vector.app.features.home.room.list
 
 import androidx.recyclerview.widget.DefaultItemAnimator
 
-private const val ANIM_DURATION_IN_MILLIS = 200L
+private const val ADD_DURATION_MS = 180L
+private const val REMOVE_DURATION_MS = 140L
+private const val MOVE_DURATION_MS = 180L
 
 class RoomListAnimator : DefaultItemAnimator() {
 
     init {
-        addDuration = ANIM_DURATION_IN_MILLIS
-        removeDuration = ANIM_DURATION_IN_MILLIS
-        moveDuration = 0
-        changeDuration = 0
+        addDuration = ADD_DURATION_MS
+        removeDuration = REMOVE_DURATION_MS
+        moveDuration = MOVE_DURATION_MS
+        changeDuration = 120L
     }
 }
