@@ -15,8 +15,8 @@ import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
-import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.databinding.BottomSheetGenericListBinding
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import javax.inject.Inject
