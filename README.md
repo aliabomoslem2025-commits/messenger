@@ -1,3 +1,15 @@
+# Messenger2 — Telegram-inspired Matrix Messenger
+
+This repository builds on [Element Classic Android](https://github.com/element-hq/element-android) and keeps its Matrix session, encrypted timeline, sync, media, and event-sending architecture as the functional base.
+
+The UI direction is Telegram-inspired: compact chat rows, pill-shaped composition controls, neutral incoming message surfaces, soft-green outgoing bubbles, and restrained message/list transitions. The current work is an incremental UI adaptation, not a claim of complete visual parity. Matrix behavior and accessibility must remain functional as the interface evolves.
+
+**UI implementation checklist:** [Telegram-style parity plan](docs/TELEGRAM_STYLE_PARITY.md).
+
+**Licensing note:** This codebase contains Element Android under the license notices shipped with that project. Telegram Android is used as a visual/interaction reference only; its source files and assets are not copied here. Review upstream notices before redistributing modified builds.
+
+---
+
 [![Latest build](https://github.com/element-hq/element-android/actions/workflows/build.yml/badge.svg?query=branch%3Adevelop)](https://github.com/element-hq/element-android/actions/workflows/build.yml?query=branch%3Adevelop)
 [![Weblate](https://translate.element.io/widgets/element-android/-/svg-badge.svg)](https://translate.element.io/engage/element-android/?utm_source=widget)
 [![Element Android Matrix room #element-android:matrix.org](https://img.shields.io/matrix/element-android:matrix.org.svg?label=%23element-android:matrix.org&logo=matrix&server_fqdn=matrix.org)](https://matrix.to/#/#element-android:matrix.org)
