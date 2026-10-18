@@ -6,7 +6,9 @@
  */
 package im.vector.app.features.reactions.widget
 
+import android.animation.ValueAnimator
 import android.content.Context
+import android.os.Build
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
@@ -104,9 +106,25 @@ class ReactionButton @JvmOverloads constructor(
             reactedListener?.onUnReacted(this)
         }
 
+        animateReactionSelection()
+    }
+
+    private fun animateReactionSelection() {
         animate().cancel()
-        scaleX = 0.94f
-        scaleY = 0.94f
+        views.reactionText.animate().cancel()
+
+        // Respect Android's disabled animator setting, including accessibility/reduced-motion use.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !ValueAnimator.areAnimatorsEnabled()) {
+            scaleX = 1f
+            scaleY = 1f
+            views.reactionText.scaleX = 1f
+            views.reactionText.scaleY = 1f
+            return
+        }
+
+        val buttonStartScale = if (isChecked) 0.94f else 0.97f
+        scaleX = buttonStartScale
+        scaleY = buttonStartScale
         animate()
                 .scaleX(1f)
                 .scaleY(1f)
@@ -114,20 +132,16 @@ class ReactionButton @JvmOverloads constructor(
                 .setInterpolator(OvershootInterpolator(1.2f))
                 .start()
 
-        views.reactionText.animate().cancel()
-        if (isChecked) {
-            views.reactionText.scaleX = REACTION_TEXT_BOUNCE_SCALE
-            views.reactionText.scaleY = REACTION_TEXT_BOUNCE_SCALE
-            views.reactionText.animate()
-                    .scaleX(1f)
-                    .scaleY(1f)
-                    .setDuration(REACTION_BOUNCE_DURATION_MS)
-                    .setInterpolator(OvershootInterpolator(1.5f))
-                    .start()
-        } else {
-            views.reactionText.scaleX = 1f
-            views.reactionText.scaleY = 1f
-        }
+        // Selection gets the stronger emoji pop; unselecting still gets a softer response.
+        val emojiStartScale = if (isChecked) REACTION_TEXT_BOUNCE_SCALE else 0.86f
+        views.reactionText.scaleX = emojiStartScale
+        views.reactionText.scaleY = emojiStartScale
+        views.reactionText.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(REACTION_BOUNCE_DURATION_MS)
+                .setInterpolator(OvershootInterpolator(1.5f))
+                .start()
     }
 
     override fun onLongClick(v: View?): Boolean {
