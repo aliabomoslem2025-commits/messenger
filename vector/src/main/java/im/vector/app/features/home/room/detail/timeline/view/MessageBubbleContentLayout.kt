@@ -49,9 +49,10 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        // Let the ConstraintLayouts measure children
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        // Resolve the paragraph direction before measuring. This changes only the text view;
+        // the outer message bubble keeps Element's sender-based left/right placement.
         updateMessageLayoutDirection()
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         val messageTextView = this.messageTextView
         // Then if we have a text message layout, we can resize ourself so we can position the timeView without losing space.
         if (messageTextView != null) {
@@ -81,13 +82,30 @@ class MessageBubbleContentLayout @JvmOverloads constructor(context: Context, att
      * paragraphs align to the right even when the app itself uses an LTR locale.
      */
     private fun updateMessageLayoutDirection() {
-        val text = messageTextView?.text
-        messageLayoutDirection = when {
+        val textView = messageTextView
+        val text = textView?.text
+        val resolvedDirection = when {
             text == null || text.isBlank() ->
                 DefaultLocaleProvider(resources).getLayoutDirectionFromCurrentLocale()
             TextDirectionHeuristics.FIRSTSTRONG_LTR.isRtl(text, 0, text.length) ->
                 View.LAYOUT_DIRECTION_RTL
             else -> View.LAYOUT_DIRECTION_LTR
+        }
+        messageLayoutDirection = resolvedDirection
+
+        // textAlignment="viewStart" follows this view's layout direction. Updating
+        // the actual TextView (including EditorStyledTextView) lets RTL paragraphs
+        // align right inside a bubble when the app locale itself is LTR.
+        textView?.let {
+            if (it.layoutDirection != resolvedDirection) {
+                it.layoutDirection = resolvedDirection
+            }
+            if (it.textDirection != View.TEXT_DIRECTION_FIRST_STRONG) {
+                it.textDirection = View.TEXT_DIRECTION_FIRST_STRONG
+            }
+            if (it.textAlignment != View.TEXT_ALIGNMENT_VIEW_START) {
+                it.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
+            }
         }
     }
 
