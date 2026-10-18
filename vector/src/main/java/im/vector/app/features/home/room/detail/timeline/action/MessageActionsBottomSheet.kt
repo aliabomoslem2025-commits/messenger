@@ -15,6 +15,7 @@ import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.core.platform.VectorBaseBottomSheetDialogFragment
 import im.vector.app.databinding.BottomSheetGenericListBinding
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
@@ -43,7 +44,15 @@ class MessageActionsBottomSheet :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         sharedActionViewModel = activityViewModelProvider.get(MessageSharedActionViewModel::class.java)
-        views.bottomSheetRecyclerView.configureWith(messageActionsEpoxyController, hasFixedSize = false, disableItemAnimation = true)
+        val animationsEnabled = requireContext().isAnimationEnabled()
+        views.bottomSheetRecyclerView.configureWith(
+                messageActionsEpoxyController,
+                hasFixedSize = false,
+                disableItemAnimation = !animationsEnabled
+        )
+        if (animationsEnabled) {
+            views.bottomSheetRecyclerView.itemAnimator = MessageActionsAnimator()
+        }
         messageActionsEpoxyController.listener = this
     }
 
@@ -66,9 +75,8 @@ class MessageActionsBottomSheet :
 
     override fun didSelectMenuAction(eventAction: EventSharedAction) {
         if (eventAction is EventSharedAction.ReportContent) {
-            // Toggle report menu
-            // Enable item animation
-            if (views.bottomSheetRecyclerView.itemAnimator == null) {
+            // Keep the report submenu animation, but respect the system's reduced-motion setting.
+            if (requireContext().isAnimationEnabled() && views.bottomSheetRecyclerView.itemAnimator == null) {
                 views.bottomSheetRecyclerView.itemAnimator = MessageActionsAnimator()
             }
             viewModel.handle(MessageActionsAction.ToggleReportMenu)
