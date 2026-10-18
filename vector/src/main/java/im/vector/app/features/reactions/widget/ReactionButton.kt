@@ -11,6 +11,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
@@ -96,6 +97,9 @@ class ReactionButton @JvmOverloads constructor(
         }
 
         isChecked = !isChecked
+        isSelected = isChecked
+        isActivated = isChecked
+        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         background = if (isChecked) onDrawable else offDrawable
 
         // Keep the existing Matrix reaction callback while adding a short
@@ -157,6 +161,8 @@ class ReactionButton @JvmOverloads constructor(
      */
     fun setChecked(status: Boolean?) {
         isChecked = status == true
+        isSelected = isChecked
+        isActivated = isChecked
         background = if (isChecked) onDrawable else offDrawable
 
         // Epoxy can rebind/reuse reaction buttons: never keep an old animation scale.
