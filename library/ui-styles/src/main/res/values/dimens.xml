@@ -54,7 +54,7 @@
     <dimen name="chat_bubble_margin_start">28dp</dimen>
     <dimen name="chat_bubble_margin_end">6dp</dimen>
     <dimen name="chat_bubble_fixed_size">350sp</dimen>
-    <dimen name="chat_bubble_corner_radius">8dp</dimen>
+    <dimen name="chat_bubble_corner_radius">14dp</dimen>
 
     <!--  Onboarding   -->
     <item name="ftue_auth_gutter_start_percent" format="float" type="dimen">0.05</item>
