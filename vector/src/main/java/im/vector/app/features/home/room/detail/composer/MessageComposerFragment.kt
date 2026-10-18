@@ -50,6 +50,7 @@ import im.vector.app.core.utils.ExpandingBottomSheetBehavior
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedDialog
 import im.vector.app.core.utils.registerForPermissionsResult
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.databinding.FragmentComposerBinding
 import im.vector.app.features.VectorFeatures
 import im.vector.app.features.analytics.errors.ErrorTracker
@@ -488,12 +489,25 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     private fun handleSendButtonVisibilityChanged(event: MessageComposerViewEvents.AnimateSendButtonVisibility) {
+        val sendButton = composer.sendButton
+        sendButton.animate().cancel()
+
         if (event.isVisible) {
-            composer.sendButton.alpha = 0f
-            composer.sendButton.isVisible = true
-            composer.sendButton.animate().alpha(1f).setDuration(150).start()
+            sendButton.isVisible = true
+            if (requireContext().isAnimationEnabled()) {
+                sendButton.alpha = 0f
+                sendButton.animate()
+                        .alpha(1f)
+                        .setDuration(150L)
+                        .start()
+            } else {
+                // Reduced-motion mode must not leave the send action transparent.
+                sendButton.alpha = 1f
+            }
         } else {
-            composer.sendButton.isInvisible = true
+            // Cancel an in-flight fade before hiding, then restore the reusable view's alpha.
+            sendButton.alpha = 1f
+            sendButton.isInvisible = true
         }
     }
 

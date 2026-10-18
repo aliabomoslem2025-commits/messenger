@@ -65,6 +65,14 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - These changes were committed on `telegram-ui-rtl-reaction-polish`; no device-level test has been run from this editing session.
 
 
+### Additional room-list, quick-reaction, and motion-accessibility pass (not yet build-verified)
+
+- Multi-select now highlights the whole room row as well as the avatar, while preserving the existing room click and Matrix selection callbacks.
+- Quick reactions in the message-action sheet now have a visible selected chip state, adequate minimum touch-area sizing, emoji content descriptions, tap haptic feedback, and a short selection scale response when system animations are enabled. The selected chip is no longer reduced to 20% opacity.
+- The composer send-button fade now follows the system animation setting and resets alpha when hidden, preventing a recycled/invisible send button from retaining a transparent state.
+- The branch's Android UI validation workflow should be checked on the latest commit before merging.
+
+
 ### Still required before calling this Telegram parity
 
 - [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.
