@@ -59,7 +59,10 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - Keep reaction selected/activated view states in sync with the current checked state, add system-mediated light haptic feedback on tap, and retain existing Matrix reaction callbacks and selection animation.
 - Use the messenger green accent (`#0DBD8B`) for selected-reaction surfaces across light, dark, and black themes.
 - Replace square internal corners between adjacent same-sender bubbles with a 4dp soft radius while preserving the existing 16dp outer corner and RTL-aware grouping logic.
-- These changes were committed on `telegram-ui-rtl-reaction-polish`; they have not been verified by an Android compile or device test.
+- Reduced the room-list row's vertical padding to target Telegram's compact ~70dp row rhythm, and inset dividers to begin at the title/content column rather than under the avatar.
+- Unified the rich-text send-circle's rendered size with the plain composer at 40dp.
+- Added a pinned-action Android CI workflow on the repository default branch to assemble both GPlay and F-Droid debug variants for pull requests. Its result is the compile-validation gate; it does not replace device-level UI and Matrix-flow tests.
+- These changes were committed on `telegram-ui-rtl-reaction-polish`; no device-level test has been run from this editing session.
 
 
 ### Still required before calling this Telegram parity
