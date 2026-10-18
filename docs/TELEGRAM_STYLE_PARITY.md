@@ -53,6 +53,15 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - Kept the Gradle Wrapper on 8.13, using the official distribution checksum, rather than accepting the imported upstream wrapper's 8.14.3 version.
 
 
+### Current incremental PR: RTL and reaction polish (not build-verified)
+
+- Resolve the actual message text view's paragraph direction from the first strong character before measuring it. This is intended to improve Persian/Arabic alignment in an LTR app while keeping the outer message bubble's sender-based placement.
+- Keep reaction selected/activated view states in sync with the current checked state, add system-mediated light haptic feedback on tap, and retain existing Matrix reaction callbacks and selection animation.
+- Use the messenger green accent (`#0DBD8B`) for selected-reaction surfaces across light, dark, and black themes.
+- Replace square internal corners between adjacent same-sender bubbles with a 4dp soft radius while preserving the existing 16dp outer corner and RTL-aware grouping logic.
+- These changes were committed on `telegram-ui-rtl-reaction-polish`; they have not been verified by an Android compile or device test.
+
+
 ### Still required before calling this Telegram parity
 
 - [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.
