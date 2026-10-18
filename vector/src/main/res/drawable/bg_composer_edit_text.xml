@@ -8,6 +8,7 @@
         android:width="1dp"
         android:color="?vctr_content_quinary" />
 
-    <corners android:radius="8dp" />
+    <!-- Pill-like text field, keeping the existing theme-aware outline. -->
+    <corners android:radius="22dp" />
 
 </shape>
