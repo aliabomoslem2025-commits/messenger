@@ -36,6 +36,12 @@
     <color name="android_status_bar_background_dark">@color/element_background_dark</color>
     <color name="android_navigation_bar_background_dark">@color/element_system_dark</color>
 
+    <!-- Chat canvas has dedicated Telegram-inspired light/dark tones without changing other app screens. -->
+    <attr name="vctr_chat_background" format="color" />
+    <color name="vctr_chat_background_light">#FFFFFF</color>
+    <color name="vctr_chat_background_dark">#0E1621</color>
+    <color name="vctr_chat_background_black">@android:color/black</color>
+
     <!-- Used for toolbar background -->
     <attr name="vctr_toolbar_background" format="color" />
 
