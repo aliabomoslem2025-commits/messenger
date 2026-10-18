@@ -10,6 +10,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
@@ -19,6 +20,9 @@ import im.vector.app.R
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.databinding.ReactionButtonBinding
 import javax.inject.Inject
+
+private const val REACTION_BOUNCE_DURATION_MS = 180L
+private const val REACTION_TEXT_BOUNCE_SCALE = 0.72f
 
 /**
  * An animated reaction button.
@@ -88,17 +92,41 @@ class ReactionButton @JvmOverloads constructor(
         if (!isEnabled) {
             return
         }
+
         isChecked = !isChecked
-        // icon!!.setImageDrawable(if (isChecked) likeDrawable else unLikeDrawable)
         background = if (isChecked) onDrawable else offDrawable
 
+        // Keep the existing Matrix reaction callback while adding a short
+        // selection bounce. The emoji always returns to its resting scale.
         if (isChecked) {
             reactedListener?.onReacted(this)
-            views.reactionText.animate().cancel()
-            views.reactionText.scaleX = 0f
-            views.reactionText.scaleY = 0f
         } else {
             reactedListener?.onUnReacted(this)
+        }
+
+        animate().cancel()
+        scaleX = 0.94f
+        scaleY = 0.94f
+        animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(REACTION_BOUNCE_DURATION_MS)
+                .setInterpolator(OvershootInterpolator(1.2f))
+                .start()
+
+        views.reactionText.animate().cancel()
+        if (isChecked) {
+            views.reactionText.scaleX = REACTION_TEXT_BOUNCE_SCALE
+            views.reactionText.scaleY = REACTION_TEXT_BOUNCE_SCALE
+            views.reactionText.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .setDuration(REACTION_BOUNCE_DURATION_MS)
+                    .setInterpolator(OvershootInterpolator(1.5f))
+                    .start()
+        } else {
+            views.reactionText.scaleX = 1f
+            views.reactionText.scaleY = 1f
         }
     }
 
@@ -114,13 +142,16 @@ class ReactionButton @JvmOverloads constructor(
      * @param status
      */
     fun setChecked(status: Boolean?) {
-        if (status!!) {
-            isChecked = true
-            background = onDrawable
-        } else {
-            isChecked = false
-            background = offDrawable
-        }
+        isChecked = status == true
+        background = if (isChecked) onDrawable else offDrawable
+
+        // Epoxy can rebind/reuse reaction buttons: never keep an old animation scale.
+        animate().cancel()
+        views.reactionText.animate().cancel()
+        scaleX = 1f
+        scaleY = 1f
+        views.reactionText.scaleX = 1f
+        views.reactionText.scaleY = 1f
     }
 
     interface ReactedListener {
