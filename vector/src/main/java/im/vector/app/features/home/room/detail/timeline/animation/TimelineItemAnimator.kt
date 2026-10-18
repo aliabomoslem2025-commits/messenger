@@ -9,14 +9,25 @@ package im.vector.app.features.home.room.detail.timeline.animation
 
 import androidx.recyclerview.widget.DefaultItemAnimator
 
-private const val ANIM_DURATION_IN_MILLIS = 100L
+private const val ADD_DURATION_MS = 170L
+private const val REMOVE_DURATION_MS = 130L
+private const val MOVE_DURATION_MS = 170L
+private const val CHANGE_DURATION_MS = 120L
 
+/**
+ * Subtle timeline transitions inspired by modern messenger interfaces.
+ *
+ * Keep change animations disabled: timeline rows are frequently rebound for
+ * receipts, send state, and reactions, and cross-fades can otherwise make
+ * already-visible messages flicker. Add/remove/move transitions remain enabled.
+ */
 class TimelineItemAnimator : DefaultItemAnimator() {
 
     init {
-        addDuration = ANIM_DURATION_IN_MILLIS
-        removeDuration = 0
-        moveDuration = 0
-        changeDuration = 0
+        addDuration = ADD_DURATION_MS
+        removeDuration = REMOVE_DURATION_MS
+        moveDuration = MOVE_DURATION_MS
+        changeDuration = CHANGE_DURATION_MS
+        supportsChangeAnimations = false
     }
 }
