@@ -31,7 +31,7 @@
     <color name="black_54">#8A000000</color>
 
     <!-- For Android status bar and navigation bar -->
-    <color name="android_status_bar_background_light">@color/element_system_light</color>
+    <color name="android_status_bar_background_light">@color/telegram_statusbar_blue</color>
     <color name="android_navigation_bar_background_light">@color/element_system_light</color>
     <color name="android_status_bar_background_dark">@color/element_background_dark</color>
     <color name="android_navigation_bar_background_dark">@color/element_system_dark</color>
@@ -56,6 +56,7 @@
     <color name="telegram_brand_green">#0DBD8B</color>
     <!-- Telegram's Android accent blue; keep the product logo's green as a separate token. -->
     <color name="telegram_accent_blue">#3390EC</color>
+    <color name="telegram_statusbar_blue">#466C8E</color>
     <color name="telegram_tab_ripple">#1A3390EC</color>
 
     <!-- Used for toolbar background -->

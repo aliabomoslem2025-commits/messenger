@@ -41,8 +41,8 @@ class MessageBubbleView @JvmOverloads constructor(
 
     private var isIncoming: Boolean = false
 
-    private val horizontalStubPadding = DimensionConverter(resources).dpToPx(12)
-    private val verticalStubPadding = DimensionConverter(resources).dpToPx(8)
+    private val horizontalStubPadding = DimensionConverter(resources).dpToPx(10)
+    private val verticalStubPadding = DimensionConverter(resources).dpToPx(6)
 
     private lateinit var views: ViewMessageBubbleBinding
     private lateinit var bubbleDrawable: MaterialShapeDrawable
