@@ -96,7 +96,7 @@ class HomeRoomsHeadersController @Inject constructor(
                 host.unsubscribeAdapterObserver()
                 host.subscribeAdapterObserver()
 
-                val colorSurface = MaterialColors.getColor(view, im.vector.lib.ui.styles.R.attr.vctr_toolbar_background)
+                val colorSurface = MaterialColors.getColor(view, im.vector.lib.ui.styles.R.attr.vctr_room_list_background)
                 view.setBackgroundColor(colorSurface)
             }
 
