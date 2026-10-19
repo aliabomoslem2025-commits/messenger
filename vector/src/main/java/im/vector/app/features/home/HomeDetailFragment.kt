@@ -406,7 +406,7 @@ class HomeDetailFragment :
             }
         }
         views.groupToolbarTitleView.setText(
-                if (tab is HomeTab.RoomList) R.string.all_chats else tab.titleRes
+                if (tab is HomeTab.RoomList) CommonStrings.all_chats else tab.titleRes
         )
         updateSelectedFragment(tab)
         invalidateOptionsMenu()
