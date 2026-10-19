@@ -359,7 +359,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
 
     private fun buildDisplayNameQuery(): QueryStringValue {
         return activeSearchQuery.takeIf { it.isNotBlank() }?.let {
-            QueryStringValue.Contains(it, QueryStringValue.Case.INSENSITIVE)
+            QueryStringValue.Contains(it, QueryStringValue.Case.NORMALIZED)
         } ?: QueryStringValue.NoCondition
     }
 
