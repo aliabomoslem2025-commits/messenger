@@ -54,7 +54,9 @@
     <color name="vctr_messenger_actionbar_background_dark">#17212B</color>
     <color name="vctr_messenger_actionbar_background_black">@android:color/black</color>
     <color name="telegram_brand_green">#0DBD8B</color>
-    <color name="telegram_tab_ripple">#1A0DBD8B</color>
+    <!-- Telegram's Android accent blue; keep the product logo's green as a separate token. -->
+    <color name="telegram_accent_blue">#3390EC</color>
+    <color name="telegram_tab_ripple">#1A3390EC</color>
 
     <!-- Used for toolbar background -->
     <attr name="vctr_toolbar_background" format="color" />
@@ -121,9 +123,9 @@
 
     <attr name="vctr_reaction_background_on" format="color" />
     <!-- Use the app accent (#0DBD8B) so selected reactions stay on-brand in every theme. -->
-    <color name="vctr_reaction_background_on_light">#200DBD8B</color>
-    <color name="vctr_reaction_background_on_dark">#400DBD8B</color>
-    <color name="vctr_reaction_background_on_black">#400DBD8B</color>
+    <color name="vctr_reaction_background_on_light">#203390EC</color>
+    <color name="vctr_reaction_background_on_dark">#403390EC</color>
+    <color name="vctr_reaction_background_on_black">#403390EC</color>
 
     <!-- (color from RiotWeb) -->
     <attr name="vctr_keys_backup_banner_accent_color" format="color" />

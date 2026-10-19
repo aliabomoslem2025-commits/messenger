@@ -66,11 +66,11 @@
         <item name= "vctr_text_primary" >@color/vctr_text_primary_dark</item>
 
         <!-- Material color -->
-        <item name="colorPrimary">@color/element_accent_dark</item>
-        <item name="colorPrimaryVariant">@color/element_accent_dark</item>
+        <item name="colorPrimary">@color/telegram_accent_blue</item>
+        <item name="colorPrimaryVariant">@color/telegram_accent_blue</item>
         <item name="colorOnPrimary">@android:color/white</item>
-        <item name="colorSecondary">@color/element_accent_dark</item>
-        <item name="colorSecondaryVariant">@color/element_accent_dark</item>
+        <item name="colorSecondary">@color/telegram_accent_blue</item>
+        <item name="colorSecondaryVariant">@color/telegram_accent_blue</item>
         <item name="colorOnSecondary">@android:color/white</item>
         <item name="colorError">@color/element_alert_dark</item>
         <item name="colorOnError">@color/palette_white</item>

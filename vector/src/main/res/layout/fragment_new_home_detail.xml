@@ -124,11 +124,11 @@
                 android:background="?vctr_room_list_background"
                 android:visibility="gone"
                 app:tabGravity="fill"
-                app:tabIndicatorColor="@color/telegram_brand_green"
+                app:tabIndicatorColor="@color/telegram_accent_blue"
                 app:tabIndicatorFullWidth="false"
                 app:tabMode="scrollable"
                 app:tabRippleColor="@color/telegram_tab_ripple"
-                app:tabSelectedTextColor="@color/telegram_brand_green"
+                app:tabSelectedTextColor="@color/telegram_accent_blue"
                 app:tabTextColor="?vctr_content_secondary" />
 
             <im.vector.app.core.ui.views.VerifyDeviceBanner
@@ -158,7 +158,7 @@
         android:contentDescription="@string/a11y_open_spaces"
         android:src="@drawable/ic_spaces"
         android:visibility="gone"
-        app:backgroundTint="@color/telegram_brand_green"
+        app:backgroundTint="@color/telegram_accent_blue"
         app:fabSize="mini"
         app:layout_constraintBottom_toTopOf="@id/newLayoutCreateChatButton"
         app:layout_constraintEnd_toEndOf="@id/newLayoutCreateChatButton"
@@ -199,7 +199,7 @@
         android:contentDescription="@string/a11y_create_message"
         android:src="@drawable/ic_new_chat"
         android:visibility="gone"
-        app:backgroundTint="@color/telegram_brand_green"
+        app:backgroundTint="@color/telegram_accent_blue"
         app:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

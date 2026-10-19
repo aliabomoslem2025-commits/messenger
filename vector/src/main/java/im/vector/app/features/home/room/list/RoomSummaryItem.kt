@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.list
 
+import android.graphics.Typeface
 import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.ImageView
@@ -107,8 +108,12 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
             itemLongClickListener?.onLongClick(it) ?: false
         }
         holder.titleView.text = matrixItem.getBestName()
+        // Telegram emphasizes unread conversations; read conversations use normal weight.
+        holder.titleView.setTypeface(
+                holder.titleView.typeface,
+                if (hasUnreadMessage) Typeface.BOLD else Typeface.NORMAL
+        )
         holder.unreadCounterBadgeView.render(UnreadCounterBadgeView.State.Count(unreadNotificationCount, showHighlighted))
-        holder.unreadIndentIndicator.isVisible = hasUnreadMessage
         holder.draftView.isVisible = hasDraft
         avatarRenderer.render(matrixItem, holder.avatarImageView)
         holder.roomAvatarDecorationImageView.render(encryptionTrustLevel)
@@ -174,7 +179,6 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         val selectionBackground by bind<View>(R.id.roomSelectionBackground)
         val titleView by bind<TextView>(R.id.roomNameView)
         val unreadCounterBadgeView by bind<UnreadCounterBadgeView>(R.id.roomUnreadCounterBadgeView)
-        val unreadIndentIndicator by bind<View>(R.id.roomUnreadIndicator)
         val subtitleView by bind<TextView>(R.id.subtitleView)
         val typingView by bind<TextView>(R.id.roomTypingView)
         val draftView by bind<ImageView>(R.id.roomDraftBadge)

@@ -25,17 +25,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <View
-        android:id="@+id/roomUnreadIndicator"
-        android:layout_width="4dp"
-        android:layout_height="0dp"
-        android:background="?vctr_unread_background"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
-
     <FrameLayout
         android:id="@+id/roomAvatarContainer"
         android:layout_width="wrap_content"
@@ -139,7 +128,6 @@
         android:maxLines="1"
         android:textColor="?vctr_content_primary"
         android:textSize="16sp"
-        android:textStyle="bold"
         app:layout_constrainedWidth="true"
         app:layout_constraintEnd_toStartOf="@id/roomDraftBadge"
         app:layout_constraintHorizontal_bias="0.0"
@@ -223,7 +211,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textAlignment="viewStart"
-        android:textColor="@color/telegram_brand_green"
+        android:textColor="@color/telegram_accent_blue"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/roomNameView"
