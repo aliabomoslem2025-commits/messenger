@@ -484,6 +484,7 @@ class HomeDetailFragment :
         views.bottomNavigationView.getOrCreateBadge(R.id.bottom_action_people).render(it.notificationCountPeople, it.notificationHighlightPeople)
         views.bottomNavigationView.getOrCreateBadge(R.id.bottom_action_rooms).render(it.notificationCountRooms, it.notificationHighlightRooms)
         views.bottomNavigationView.getOrCreateBadge(R.id.bottom_action_notification).render(it.notificationCountCatchup, it.notificationHighlightCatchup)
+        renderTelegramTabBadges(it)
         views.syncStateView.render(
                 it.syncState,
                 it.incrementalSyncRequestState,
@@ -492,6 +493,18 @@ class HomeDetailFragment :
         )
 
         hasUnreadRooms = it.hasUnreadMessages
+    }
+
+    private fun renderTelegramTabBadges(state: HomeDetailViewState) {
+        renderTelegramTabBadge(R.id.bottom_action_people, state.notificationCountPeople, state.notificationHighlightPeople)
+        renderTelegramTabBadge(R.id.bottom_action_rooms, state.notificationCountRooms, state.notificationHighlightRooms)
+        renderTelegramTabBadge(R.id.bottom_action_notification, state.notificationCountCatchup, state.notificationHighlightCatchup)
+    }
+
+    private fun renderTelegramTabBadge(menuId: Int, count: Int, highlight: Boolean) {
+        val position = telegramHomeTabMenuIds.indexOf(menuId)
+        if (position < 0) return
+        views.telegramHomeTabs.getTabAt(position)?.orCreateBadge?.render(count, highlight)
     }
 
     private fun BadgeDrawable.render(count: Int, highlight: Boolean) {

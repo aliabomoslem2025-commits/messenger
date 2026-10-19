@@ -32,6 +32,7 @@ import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
+import com.google.android.material.color.MaterialColors
 import com.google.android.material.shape.MaterialShapeDrawable
 import im.vector.app.R
 import im.vector.app.core.extensions.setTextIfDifferent
@@ -115,7 +116,13 @@ internal class RichTextComposerLayout @JvmOverloads constructor(
             strokeColor = ColorStateList.valueOf(lineColor)
             @Suppress("DEPRECATION")
             strokeWidth = 1 * resources.displayMetrics.scaledDensity
-            fillColor = ColorStateList.valueOf(Color.TRANSPARENT)
+            fillColor = ColorStateList.valueOf(
+                    MaterialColors.getColor(
+                            context,
+                            im.vector.lib.ui.styles.R.attr.vctr_room_list_background,
+                            Color.WHITE
+                    )
+            )
             val cornerSize = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.rich_text_composer_corner_radius_single_line)
             setCornerSize(cornerSize.toFloat())
         }
