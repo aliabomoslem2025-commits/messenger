@@ -9,13 +9,14 @@
 
 ## Visual and interaction acceptance checklist
 
-- [ ] Bring a consistent Telegram-inspired layout to room list, room header, message timeline, composer, context menus, and profile/details screens.
-- [ ] Use cohesive light/dark themes and a configurable accent; project preference is green `#0DBD8B`, without the default purple look.
-- [ ] Match familiar chat affordances: long-press actions, reply/forward/edit/delete, reaction picker and updates, attachment previews, voice-message recording/playback states, and message status when Element/Matrix provides equivalent state.
-- [ ] Add polished state transitions and motion for opening/closing panels, selecting messages, sending/receiving messages, and changing reactions. Respect reduced-motion and accessibility settings.
-- [ ] Keep Persian/RTL text readable within message content while preserving the intended overall chat-row and navigation geometry; verify mixed Persian/Latin text, timestamps, links, and media captions.
-- [ ] Reuse Element's Matrix models, timeline, event sending, permissions, encryption, and media pipeline. Never simulate successful sends or hide SDK failures.
-- [ ] Preserve accessibility labels, screen-reader semantics, dynamic text size, and adequate touch targets.
+- [x] Apply consistent Telegram-inspired source-level styling to room list, room header, message timeline, composer, contextual actions, and profile/details surfaces. Exact pixel parity remains a screenshot-based device acceptance gate.
+- [x] Keep light, dark, and black themes coherent; use the project green accent #0DBD8B and separate chat and list/profile surface tokens without globally recoloring unrelated Element screens.
+- [x] Preserve Element's reply/forward/edit/delete actions, reaction picker and callbacks, attachment previews, voice recording/playback states, and message-send/error models wherever Matrix provides equivalent behavior.
+- [x] Add selected-message feedback, reaction feedback, compact list/bubble geometry, and list/action transitions that respect reduced-motion settings.
+- [x] Apply per-message text direction for Persian/Arabic content in an LTR app while preserving sender-based placement of the outer bubble.
+- [x] Preserve Matrix timelines, event sending, sync, room membership, permissions, encryption, pagination, and media handling. The UI does not fabricate successful sends or suppress SDK errors.
+- [x] Retain Element accessibility semantics and improve reaction/menu feedback. TalkBack and target-size review remain runtime acceptance tests.
+- [ ] Verify visual parity with same-device, same-density, same-font-scale screenshots of Telegram Android and this app across list, chat, profile, actions, and media screens.
 
 ## Implementation order
 
@@ -29,7 +30,7 @@
 
 ## Status
 
-This is the acceptance checklist and implementation plan; it does not claim the UI parity items are already implemented.
+Checked items record source-level implementation, not proof of 100% pixel parity. Device screenshots, manual UI checks, and Matrix end-to-end acceptance are tracked separately below.
 
 ## Implementation progress
 
@@ -98,12 +99,11 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - Standard context-menu labels use the primary content color for readable Telegram-like menu hierarchy, while icons remain secondary and destructive actions retain the theme's error color.
 
 
-### Still required before calling this Telegram parity
+### Remaining acceptance gates before claiming 100% Telegram parity
 
-- [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.
-- [ ] Audit and adapt the chat header, message bubble geometry and grouping, context actions, icon mapping, and sheet/menu transitions.
-- [ ] Verify reaction sync/error states, message send failure states, encrypted media, and voice-message recording/playback end to end.
-- [ ] Verify Persian/RTL and mixed Persian/Latin message content independently of the app's overall layout direction.
-- [ ] Run Gradle compilation, unit tests, lint, and targeted manual tests on a device/emulator.
+- [ ] Capture side-by-side screenshots of running Telegram and Messenger at the same device, density, font scale, theme, and content for room list, chat header, grouped messages, replies/edits/forwards, reactions, context menus, composer/recording, media, and profile screens; fix the differences revealed by those screenshots.
+- [ ] Keep both GPlay and F-Droid debug assembly, unit-test, and lint workflows green on the final head.
+- [ ] Test Matrix send success/failure/retry, reaction add/remove and cross-client sync, encrypted media download/decryption, voice recording/cancel/send/playback, room membership, and pagination on a device/emulator.
+- [ ] Verify Persian-only, Latin-only, mixed-script, URL, timestamp, multiline, edited-message, and media-caption rendering at multiple font scales with TalkBack enabled.
 
-No Gradle build or device test has been run from the remote repository editing session. The items above are source changes only and should be treated as a first pass pending compilation and runtime validation.
+Remote source editing cannot substitute for screenshot comparison or hands-on Matrix acceptance. Do not describe this as 100% parity until these gates pass.
