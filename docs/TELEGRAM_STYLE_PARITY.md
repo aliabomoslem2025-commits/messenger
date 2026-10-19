@@ -92,6 +92,12 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - Generic message/context bottom-sheet actions and profile action rows now provide light keyboard-tap haptic feedback on activation. Their existing debounced click listeners, selection state, and Matrix action callbacks are retained.
 
 
+### Final action-sheet visual audit (awaiting the current CI run)
+
+- Quick-reaction sheets now hide unused reaction slots when the configured reaction list has fewer than eight entries, preventing blank clickable chips after Epoxy view reuse.
+- Standard context-menu labels use the primary content color for readable Telegram-like menu hierarchy, while icons remain secondary and destructive actions retain the theme's error color.
+
+
 ### Still required before calling this Telegram parity
 
 - [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.

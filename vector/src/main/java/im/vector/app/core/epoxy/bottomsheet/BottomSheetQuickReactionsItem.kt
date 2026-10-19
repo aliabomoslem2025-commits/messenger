@@ -9,6 +9,7 @@ package im.vector.app.core.epoxy.bottomsheet
 import android.graphics.Typeface
 import android.view.HapticFeedbackConstants
 import android.widget.TextView
+import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.EmojiCompatFontProvider
@@ -39,21 +40,31 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.textViews.forEachIndexed { index, textView ->
+            val reaction = texts.getOrNull(index)
             val isSelected = selecteds.getOrNull(index) == true
 
+            textView.isVisible = reaction != null
+            textView.isEnabled = reaction != null
             textView.typeface = fontProvider.typeface ?: Typeface.DEFAULT
-            textView.text = texts.getOrNull(index).orEmpty()
-            textView.contentDescription = texts.getOrNull(index).orEmpty()
+            textView.text = reaction.orEmpty()
+            textView.contentDescription = reaction.orEmpty()
             textView.isSelected = isSelected
             textView.isActivated = isSelected
             // A selected quick reaction should be highlighted, not faded almost invisible.
             // The background selector supplies a soft accent fill and a normal pressed ripple.
             textView.alpha = 1f
 
-            // RecyclerView/ Epoxy may reuse a view while it is still scaled from a previous bind.
+            // RecyclerView/Epoxy may reuse a view while it is still scaled from a previous bind.
             textView.animate().cancel()
             textView.scaleX = 1f
             textView.scaleY = 1f
+
+            if (reaction == null) {
+                // Server/user preference sets may contain fewer than the eight reusable views.
+                // Hide unused slots and make sure an old listener cannot react to an empty chip.
+                textView.onClick(null)
+                return@forEachIndexed
+            }
 
             textView.onClick {
                 // Haptics and reduced-motion settings are independent: preserve the
@@ -72,7 +83,7 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
                     textView.scaleX = 1f
                     textView.scaleY = 1f
                 }
-                listener?.didSelect(textView.text.toString(), !isSelected)
+                listener?.didSelect(reaction, !isSelected)
             }
         }
     }

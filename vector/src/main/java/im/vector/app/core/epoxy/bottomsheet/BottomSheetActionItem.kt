@@ -80,6 +80,11 @@ abstract class BottomSheetActionItem : VectorEpoxyModel<BottomSheetActionItem.Ho
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
         }
+        val textColor = if (destructive) {
+            ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorError)
+        } else {
+            ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+        }
         holder.icon.isVisible = showIcon
         holder.icon.setImageResource(iconRes)
         ImageViewCompat.setImageTintList(holder.icon, ColorStateList.valueOf(tintColor))
@@ -88,7 +93,7 @@ abstract class BottomSheetActionItem : VectorEpoxyModel<BottomSheetActionItem.Ho
         } else {
             holder.text.setText(textRes)
         }
-        holder.text.setTextColor(tintColor)
+        holder.text.setTextColor(textColor)
         holder.selected.isInvisible = !selected
         if (showExpand) {
             val expandDrawable = if (expanded) {
