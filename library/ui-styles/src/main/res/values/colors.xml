@@ -42,6 +42,12 @@
     <color name="vctr_chat_background_dark">#0E1621</color>
     <color name="vctr_chat_background_black">@android:color/black</color>
 
+    <!-- Telegram-inspired base for room lists and conversation/profile surfaces. -->
+    <attr name="vctr_room_list_background" format="color" />
+    <color name="vctr_room_list_background_light">#FFFFFF</color>
+    <color name="vctr_room_list_background_dark">#17212B</color>
+    <color name="vctr_room_list_background_black">@android:color/black</color>
+
     <!-- Used for toolbar background -->
     <attr name="vctr_toolbar_background" format="color" />
 
