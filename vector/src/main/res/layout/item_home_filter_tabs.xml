@@ -4,13 +4,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="?vctr_room_list_background"
     tools:viewBindingIgnore="true">
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/home_filter_tabs_tabs"
         style="@style/Widget.Vector.TabLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
+        app:tabIndicatorColor="@color/telegram_brand_green"
+        app:tabIndicatorFullWidth="false"
+        app:tabRippleColor="@color/telegram_tab_ripple"
+        app:tabSelectedTextColor="@color/telegram_brand_green"
+        app:tabTextColor="?vctr_content_secondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="parent"

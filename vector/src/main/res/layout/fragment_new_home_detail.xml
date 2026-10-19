@@ -58,20 +58,25 @@
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:background="?vctr_messenger_actionbar_background"
+            android:elevation="0dp">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:id="@+id/collapsing_toolbar"
                 style="?attr/collapsingToolbarLayoutMediumStyle"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/collapsingToolbarLayoutMediumSize"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?vctr_messenger_actionbar_background"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
                 <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
+                    android:background="?vctr_messenger_actionbar_background"
                     android:elevation="0dp"
+                    android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
                     app:layout_collapseMode="pin"
                     tools:title="@string/all_chats">
 
@@ -176,6 +181,8 @@
         android:contentDescription="@string/a11y_create_message"
         android:src="@drawable/ic_new_chat"
         android:visibility="gone"
+        app:backgroundTint="@color/telegram_brand_green"
+        app:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:targetApi="lollipop_mr1"

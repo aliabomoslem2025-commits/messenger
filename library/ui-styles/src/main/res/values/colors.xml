@@ -38,7 +38,7 @@
 
     <!-- Chat canvas has dedicated Telegram-inspired light/dark tones without changing other app screens. -->
     <attr name="vctr_chat_background" format="color" />
-    <color name="vctr_chat_background_light">#FFFFFF</color>
+    <color name="vctr_chat_background_light">#DDE7EF</color>
     <color name="vctr_chat_background_dark">#0E1621</color>
     <color name="vctr_chat_background_black">@android:color/black</color>
 
@@ -47,6 +47,14 @@
     <color name="vctr_room_list_background_light">#FFFFFF</color>
     <color name="vctr_room_list_background_dark">#17212B</color>
     <color name="vctr_room_list_background_black">@android:color/black</color>
+
+    <!-- Telegram-style action bar surfaces, scoped to the home/chat chrome. -->
+    <attr name="vctr_messenger_actionbar_background" format="color" />
+    <color name="vctr_messenger_actionbar_background_light">#527DA3</color>
+    <color name="vctr_messenger_actionbar_background_dark">#17212B</color>
+    <color name="vctr_messenger_actionbar_background_black">@android:color/black</color>
+    <color name="telegram_brand_green">#0DBD8B</color>
+    <color name="telegram_tab_ripple">#1A0DBD8B</color>
 
     <!-- Used for toolbar background -->
     <attr name="vctr_toolbar_background" format="color" />

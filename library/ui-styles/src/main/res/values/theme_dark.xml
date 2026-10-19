@@ -29,6 +29,7 @@
         <item name="vctr_chat_effect_snow_background">@color/vctr_chat_effect_snow_background_dark</item>
         <item name="vctr_chat_background">@color/vctr_chat_background_dark</item>
         <item name="vctr_room_list_background">@color/vctr_room_list_background_dark</item>
+        <item name="vctr_messenger_actionbar_background">@color/vctr_messenger_actionbar_background_dark</item>
         <item name="vctr_toolbar_background">@color/element_system_dark</item>
         <item name="vctr_message_bubble_inbound">@color/vctr_message_bubble_inbound_dark</item>
         <item name="vctr_message_bubble_outbound">@color/vctr_message_bubble_outbound_dark</item>
