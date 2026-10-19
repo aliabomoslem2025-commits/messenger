@@ -26,7 +26,7 @@
         android:icon="@drawable/ic_video"
         android:title="@string/action_video_call"
         android:visible="false"
-        app:iconTint="?colorPrimary"
+        app:iconTint="@android:color/white"
         app:showAsAction="always"
         tools:visible="true" />
 

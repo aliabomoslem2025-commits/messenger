@@ -158,12 +158,12 @@
         android:contentDescription="@string/a11y_open_spaces"
         android:src="@drawable/ic_spaces"
         android:visibility="gone"
-        app:backgroundTint="?attr/vctr_toolbar_background"
+        app:backgroundTint="@color/telegram_brand_green"
         app:fabSize="mini"
         app:layout_constraintBottom_toTopOf="@id/newLayoutCreateChatButton"
         app:layout_constraintEnd_toEndOf="@id/newLayoutCreateChatButton"
         app:layout_constraintStart_toStartOf="@id/newLayoutCreateChatButton"
-        app:tint="?attr/colorPrimary"
+        app:tint="@android:color/white"
         tools:targetApi="lollipop_mr1"
         tools:visibility="visible" />
 
