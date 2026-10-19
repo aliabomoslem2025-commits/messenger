@@ -6,7 +6,7 @@
         android:right="8dp"
         android:top="8dp">
         <shape android:shape="oval">
-            <solid android:color="?colorPrimary" />
+            <solid android:color="@color/telegram_brand_green" />
         </shape>
     </item>
     <item android:drawable="?attr/selectableItemBackground" />
