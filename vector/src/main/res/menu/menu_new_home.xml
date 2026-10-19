@@ -45,6 +45,6 @@
         android:id="@+id/menu_home_filter"
         android:icon="@drawable/ic_home_search"
         android:title="@string/home_filter_placeholder_home"
-        app:iconTint="?vctr_content_secondary"
+        app:iconTint="@android:color/white"
         app:showAsAction="ifRoom" />
 </menu>
