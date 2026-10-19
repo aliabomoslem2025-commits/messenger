@@ -111,6 +111,9 @@ class HomeDetailFragment :
         withState(viewModel) { state ->
             val isRoomList = state.currentTab is HomeTab.RoomList
             menu.findItem(R.id.menu_home_mark_all_as_read).isVisible = isRoomList && hasUnreadRooms
+            // The collapsible Matrix-backed room search is wired in NewHomeDetailFragment.
+            // Do not expose a dead search icon in the legacy layout.
+            menu.findItem(R.id.menu_home_search).isVisible = false
         }
     }
 
