@@ -9,6 +9,14 @@
         android:title="@string/action_mark_all_as_read" />
 
     <item
+        android:id="@+id/menu_home_search"
+        android:icon="@drawable/ic_home_search"
+        android:title="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:iconTint="@android:color/white"
+        app:showAsAction="ifRoom|collapseActionView" />
+
+    <item
         android:id="@+id/menu_home_spaces"
         android:icon="@drawable/ic_space_icons"
         android:title="@string/a11y_open_spaces"

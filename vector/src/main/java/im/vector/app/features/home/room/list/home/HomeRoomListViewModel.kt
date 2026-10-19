@@ -29,6 +29,8 @@ import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -83,6 +85,9 @@ class HomeRoomListViewModel @AssistedInject constructor(
             .setEnablePlaceholders(true)
             .setPrefetchDistance(10)
             .build()
+
+    private var activeSearchQuery: String = ""
+    private var searchQueryJob: Job? = null
 
     val filteredPagedRoomSummariesLive: UpdatableLivePageResult by lazy {
         val builder = RoomSummaryQueryParams.Builder().also {
@@ -311,6 +316,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
             is HomeRoomListAction.ChangeRoomNotificationState -> handleChangeNotificationMode(action)
             is HomeRoomListAction.ToggleTag -> handleToggleTag(action)
             is HomeRoomListAction.ChangeRoomFilter -> handleChangeRoomFilter(action.filter)
+            is HomeRoomListAction.SearchRooms -> handleSearchRooms(action.query)
             HomeRoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
         }
     }
@@ -329,7 +335,32 @@ class HomeRoomListViewModel @AssistedInject constructor(
         setState { copy(headersData = headersData.copy(currentFilter = newFilter)) }
         updateEmptyState()
         analyticsTracker.updateUserProperties(UserProperties(allChatsActiveFilter = newFilter.toTrackingValue()))
-        filteredPagedRoomSummariesLive.queryParams = getFilteredQueryParams(newFilter, filteredPagedRoomSummariesLive.queryParams)
+        searchQueryJob?.cancel()
+        val filteredParams = getFilteredQueryParams(newFilter, filteredPagedRoomSummariesLive.queryParams)
+        filteredPagedRoomSummariesLive.queryParams = filteredParams.copy(displayName = buildDisplayNameQuery())
+    }
+
+    /** Search the current user's joined Matrix rooms by their displayed room name. */
+    private fun handleSearchRooms(query: String) {
+        activeSearchQuery = query.trim()
+        searchQueryJob?.cancel()
+        searchQueryJob = viewModelScope.launch {
+            delay(220L)
+            val currentFilter = awaitState().headersData.currentFilter
+            val filteredParams = getFilteredQueryParams(
+                    currentFilter,
+                    filteredPagedRoomSummariesLive.queryParams
+            )
+            filteredPagedRoomSummariesLive.queryParams = filteredParams.copy(
+                    displayName = buildDisplayNameQuery()
+            )
+        }
+    }
+
+    private fun buildDisplayNameQuery(): QueryStringValue {
+        return activeSearchQuery.takeIf { it.isNotBlank() }?.let {
+            QueryStringValue.Contains(it, QueryStringValue.Case.INSENSITIVE)
+        } ?: QueryStringValue.NoCondition
     }
 
     suspend fun getLeaveRoomWarning(roomId: String): LeaveRoomPrompt.Warning {

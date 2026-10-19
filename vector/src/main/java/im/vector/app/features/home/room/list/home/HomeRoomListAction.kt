@@ -18,5 +18,6 @@ sealed class HomeRoomListAction : VectorViewModelAction {
     data class ToggleTag(val roomId: String, val tag: String) : HomeRoomListAction()
     data class LeaveRoom(val roomId: String) : HomeRoomListAction()
     data class ChangeRoomFilter(val filter: HomeRoomFilter) : HomeRoomListAction()
+    data class SearchRooms(val query: String) : HomeRoomListAction()
     object DeleteAllLocalRoom : HomeRoomListAction()
 }

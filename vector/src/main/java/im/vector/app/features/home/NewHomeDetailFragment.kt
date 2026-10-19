@@ -17,6 +17,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -97,6 +98,7 @@ class NewHomeDetailFragment :
     private val homeRoomListViewModel: HomeRoomListViewModel by activityViewModel()
 
     private var isSyncingTelegramHomeTabs = false
+    private var configuredHomeSearchView: SearchView? = null
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
     private val migrationBannerViewModel: MigrationBannerViewModel by activityViewModel()
@@ -132,6 +134,7 @@ class NewHomeDetailFragment :
                 spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
                 true
             }
+            R.id.menu_home_search -> true // Expanded SearchView handles the query.
             else -> false
         }
     }
@@ -142,6 +145,37 @@ class NewHomeDetailFragment :
             menu.findItem(R.id.menu_home_mark_all_as_read).isVisible = isRoomList && hasUnreadRooms
             menu.findItem(R.id.menu_home_dialpad).isVisible = state.showDialPadTab
             menu.findItem(R.id.menu_home_spaces).isVisible = isRoomList
+
+            val searchItem = menu.findItem(R.id.menu_home_search)
+            searchItem.isVisible = isRoomList
+            val searchView = searchItem.actionView as? SearchView
+            if (searchView != null) {
+                searchView.queryHint = getString(CommonStrings.search)
+                if (configuredHomeSearchView !== searchView) {
+                    configuredHomeSearchView = searchView
+                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(query.orEmpty()))
+                            searchView.clearFocus()
+                            return true
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(newText.orEmpty()))
+                            return true
+                        }
+                    })
+                    searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+                        override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+
+                        override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                            searchView.setQuery("", false)
+                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(""))
+                            return true
+                        }
+                    })
+                }
+            }
         }
     }
 
