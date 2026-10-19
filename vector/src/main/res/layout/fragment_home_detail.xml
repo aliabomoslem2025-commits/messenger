@@ -118,16 +118,26 @@
 
         </com.google.android.material.appbar.MaterialToolbar>
 
-        <!-- The chat/room switcher sits below the action bar like Telegram's folder tabs. -->
+        <!-- Telegram-style text tabs. Existing room selection remains owned by HomeDetailViewModel. -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/telegramHomeTabs"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?vctr_messenger_actionbar_background"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@android:color/white"
+            app:tabIndicatorFullWidth="false"
+            app:tabMode="fixed"
+            app:tabRippleColor="@color/telegram_tab_ripple"
+            app:tabSelectedTextColor="@android:color/white"
+            app:tabTextColor="#B8D0E0" />
+
+        <!-- Hidden compatibility view: selection IDs and Matrix-backed handlers remain unchanged. -->
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottomNavigationView"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:background="?vctr_messenger_actionbar_background"
-            android:elevation="0dp"
-            app:itemIconTint="@color/telegram_navigation_tint"
-            app:itemTextColor="@color/telegram_navigation_tint"
-            app:labelVisibilityMode="labeled"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
             app:menu="@menu/home_bottom_navigation" />
 
     </com.google.android.material.appbar.AppBarLayout>

@@ -19,6 +19,7 @@ import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.badge.BadgeDrawable
+import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.SpaceStateHandler
@@ -77,6 +78,10 @@ class HomeDetailFragment :
 
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
     private lateinit var sharedCallActionViewModel: SharedKnownCallsViewModel
+
+    private val telegramHomeTabMenuIds = mutableListOf<Int>()
+    private var isSyncingTelegramHomeTabs = false
+    private var isTelegramHomeTabsListenerAdded = false
 
     private var hasUnreadRooms = false
         set(value) {
@@ -198,6 +203,8 @@ class HomeDetailFragment :
 
     override fun onDestroyView() {
         currentCallsViewPresenter.unBind()
+        telegramHomeTabMenuIds.clear()
+        isTelegramHomeTabsListenerAdded = false
         super.onDestroyView()
     }
 
@@ -329,10 +336,71 @@ class HomeDetailFragment :
             viewModel.handle(HomeDetailAction.SwitchTab(tab))
             true
         }
+        setupTelegramHomeTabs()
+    }
+
+    /**
+     * Render Element's existing room-list modes as Telegram-style text tabs.
+     * The hidden BottomNavigationView remains the adapter for current menu IDs,
+     * badges and Matrix-backed screen selection; this only changes the visible chrome.
+     */
+    private fun setupTelegramHomeTabs() {
+        val tabs = views.telegramHomeTabs
+        if (!isTelegramHomeTabsListenerAdded) {
+            tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+                override fun onTabSelected(tab: TabLayout.Tab) {
+                    if (isSyncingTelegramHomeTabs) return
+                    val menuId = telegramHomeTabMenuIds.getOrNull(tab.position) ?: return
+                    if (views.bottomNavigationView.selectedItemId != menuId) {
+                        views.bottomNavigationView.selectedItemId = menuId
+                    }
+                }
+
+                override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+
+                override fun onTabReselected(tab: TabLayout.Tab) = Unit
+            })
+            isTelegramHomeTabsListenerAdded = true
+        }
+
+        isSyncingTelegramHomeTabs = true
+        try {
+            tabs.removeAllTabs()
+            telegramHomeTabMenuIds.clear()
+            val candidateIds = listOf(
+                    R.id.bottom_action_people,
+                    R.id.bottom_action_rooms,
+                    R.id.bottom_action_notification,
+                    R.id.bottom_action_dial_pad
+            )
+            candidateIds.forEach { menuId ->
+                val menuItem = views.bottomNavigationView.menu.findItem(menuId)
+                if (menuItem.isVisible) {
+                    tabs.addTab(tabs.newTab().setText(menuItem.title), false)
+                    telegramHomeTabMenuIds.add(menuId)
+                }
+            }
+            val selectedPosition = telegramHomeTabMenuIds.indexOf(views.bottomNavigationView.selectedItemId)
+            if (selectedPosition >= 0) {
+                tabs.getTabAt(selectedPosition)?.select()
+            }
+        } finally {
+            isSyncingTelegramHomeTabs = false
+        }
     }
 
     private fun updateUIForTab(tab: HomeTab) {
-        views.bottomNavigationView.menu.findItem(tab.toMenuId()).isChecked = true
+        val menuId = tab.toMenuId()
+        views.bottomNavigationView.menu.findItem(menuId).isChecked = true
+        val selectedPosition = telegramHomeTabMenuIds.indexOf(menuId)
+        if (selectedPosition >= 0 && views.telegramHomeTabs.selectedTabPosition != selectedPosition) {
+            isSyncingTelegramHomeTabs = true
+            try {
+                views.telegramHomeTabs.getTabAt(selectedPosition)?.select()
+            } finally {
+                isSyncingTelegramHomeTabs = false
+            }
+        }
         views.groupToolbarTitleView.setText(tab.titleRes)
         updateSelectedFragment(tab)
         invalidateOptionsMenu()
@@ -383,6 +451,9 @@ class HomeDetailFragment :
     private fun updateTabVisibilitySafely(tabId: Int, isVisible: Boolean) {
         val wasVisible = views.bottomNavigationView.menu.findItem(tabId).isVisible
         views.bottomNavigationView.menu.findItem(tabId).isVisible = isVisible
+        if (wasVisible != isVisible) {
+            setupTelegramHomeTabs()
+        }
         if (wasVisible && !isVisible) {
             // As we hide it check if it's not the current item!
             withState(viewModel) {
