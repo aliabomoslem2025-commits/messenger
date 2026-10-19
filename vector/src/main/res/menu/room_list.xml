@@ -9,6 +9,12 @@
         android:title="@string/action_mark_all_as_read" />
 
     <item
+        android:id="@+id/menu_home_spaces"
+        android:icon="@drawable/ic_space_icons"
+        android:title="@string/a11y_open_spaces"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_home_dialpad"
         android:title="@string/call_dial_pad_title"
         android:visible="false"

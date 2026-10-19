@@ -99,6 +99,10 @@ class HomeDetailFragment :
                 viewModel.handle(HomeDetailAction.MarkAllRoomsRead)
                 true
             }
+            R.id.menu_home_spaces -> {
+                sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
+                true
+            }
             else -> false
         }
     }

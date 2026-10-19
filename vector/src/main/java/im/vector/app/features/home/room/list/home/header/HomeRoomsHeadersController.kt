@@ -56,20 +56,23 @@ class HomeRoomsHeadersController @Inject constructor(
 
     override fun buildModels() {
         val host = this
-        if (data.invitesCount != 0) {
-            addInviteCounter(host.invitesClickListener, data.invitesCount)
-        }
 
-        data.recents?.let {
-            addRecents(host, it)
-        }
-
+        // Telegram places chat-folder filters directly below the action bar. Keep Matrix-backed
+        // filtering unchanged, but build that row before recents so it is the first list section.
         host.data.filtersList?.let {
             addRoomFilterHeaderItem(
                     filterChangedListener = host.onFilterChangedListener,
                     filtersList = it,
                     currentFilter = host.data.currentFilter,
                     analyticsTracker = analyticsTracker)
+        }
+
+        if (data.invitesCount != 0) {
+            addInviteCounter(host.invitesClickListener, data.invitesCount)
+        }
+
+        data.recents?.let {
+            addRecents(host, it)
         }
     }
 

@@ -120,6 +120,10 @@ class NewHomeDetailFragment :
                 startActivity(Intent(requireContext(), PstnDialActivity::class.java))
                 true
             }
+            R.id.menu_home_spaces -> {
+                spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
+                true
+            }
             else -> false
         }
     }
@@ -129,6 +133,7 @@ class NewHomeDetailFragment :
             val isRoomList = state.currentTab is HomeTab.RoomList
             menu.findItem(R.id.menu_home_mark_all_as_read).isVisible = isRoomList && hasUnreadRooms
             menu.findItem(R.id.menu_home_dialpad).isVisible = state.showDialPadTab
+            menu.findItem(R.id.menu_home_spaces).isVisible = isRoomList
         }
     }
 
@@ -221,14 +226,11 @@ class NewHomeDetailFragment :
             newChatBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, NewChatBottomSheet.TAG)
         }
 
-        views.newLayoutOpenSpacesButton.debouncedClicks {
-            spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
-        }
     }
 
     private fun showFABs() {
+        // One primary compose action, as in Telegram. Spaces stays available in the toolbar menu.
         views.newLayoutCreateChatButton.show()
-        views.newLayoutOpenSpacesButton.show()
     }
 
     private fun setCurrentSpace(spaceId: String?) {
