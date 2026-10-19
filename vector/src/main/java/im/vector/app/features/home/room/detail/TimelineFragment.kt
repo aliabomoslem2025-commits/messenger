@@ -188,6 +188,7 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -1244,14 +1245,35 @@ class TimelineFragment :
             else -> {
                 views.includeRoomToolbar.roomToolbarContentView.isVisible = true
                 views.includeThreadToolbar.roomToolbarThreadConstraintLayout.isVisible = false
+                val presenceSubtitle = views.includeRoomToolbar.roomToolbarSubtitleView
                 if (roomSummary == null) {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = false
+                    presenceSubtitle.isVisible = false
+                    presenceSubtitle.text = null
                 } else {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = roomSummary.membership == Membership.JOIN
                     views.includeRoomToolbar.roomToolbarTitleView.text = roomSummary.displayName
                     avatarRenderer.render(roomSummary.toMatrixItem(), views.includeRoomToolbar.roomToolbarAvatarImageView)
                     val showPresence = roomSummary.isDirect
-                    views.includeRoomToolbar.roomToolbarPresenceImageView.render(showPresence, roomSummary.directUserPresence)
+                    val directPresence = roomSummary.directUserPresence
+                    views.includeRoomToolbar.roomToolbarPresenceImageView.render(showPresence, directPresence)
+                    val presenceLabel = if (showPresence) {
+                        when (directPresence?.presence) {
+                            PresenceEnum.ONLINE -> CommonStrings.a11y_presence_online
+                            PresenceEnum.OFFLINE -> CommonStrings.a11y_presence_offline
+                            PresenceEnum.BUSY -> CommonStrings.a11y_presence_busy
+                            PresenceEnum.UNAVAILABLE -> CommonStrings.a11y_presence_unavailable
+                            null -> null
+                        }
+                    } else {
+                        null
+                    }
+                    presenceSubtitle.isVisible = presenceLabel != null
+                    if (presenceLabel != null) {
+                        presenceSubtitle.setText(presenceLabel)
+                    } else {
+                        presenceSubtitle.text = null
+                    }
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect

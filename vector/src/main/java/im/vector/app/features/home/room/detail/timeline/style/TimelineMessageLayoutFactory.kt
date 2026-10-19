@@ -72,6 +72,10 @@ class TimelineMessageLayoutFactory @Inject constructor(
         resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_corner_radius).toFloat()
     }
 
+    private val groupedCornerRadius: Float by lazy {
+        resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_grouped_corner_radius).toFloat()
+    }
+
     private val isRTL: Boolean by lazy {
         localeProvider.isRTL()
     }
@@ -179,19 +183,24 @@ class TimelineMessageLayoutFactory @Inject constructor(
             isFirstFromThisSender: Boolean,
             isLastFromThisSender: Boolean
     ): TimelineMessageLayout.Bubble.CornersRadius {
+        // Telegram-inspired grouped bubbles keep a small rounded inner corner rather than
+        // collapsing it to a hard 0dp angle. Sender grouping and RTL mirroring are unchanged.
+        val groupedTopRadius = if (isFirstFromThisSender) cornerRadius else groupedCornerRadius
+        val groupedBottomRadius = if (isLastFromThisSender) cornerRadius else groupedCornerRadius
+
         return if ((isIncoming && !isRTL) || (!isIncoming && isRTL)) {
             TimelineMessageLayout.Bubble.CornersRadius(
-                    topStartRadius = if (isFirstFromThisSender) cornerRadius else 0f,
+                    topStartRadius = groupedTopRadius,
                     topEndRadius = cornerRadius,
-                    bottomStartRadius = if (isLastFromThisSender) cornerRadius else 0f,
+                    bottomStartRadius = groupedBottomRadius,
                     bottomEndRadius = cornerRadius
             )
         } else {
             TimelineMessageLayout.Bubble.CornersRadius(
                     topStartRadius = cornerRadius,
-                    topEndRadius = if (isFirstFromThisSender) cornerRadius else 0f,
+                    topEndRadius = groupedTopRadius,
                     bottomStartRadius = cornerRadius,
-                    bottomEndRadius = if (isLastFromThisSender) cornerRadius else 0f
+                    bottomEndRadius = groupedBottomRadius
             )
         }
     }

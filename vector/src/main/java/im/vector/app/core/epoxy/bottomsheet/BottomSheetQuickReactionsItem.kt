@@ -7,7 +7,9 @@
 package im.vector.app.core.epoxy.bottomsheet
 
 import android.graphics.Typeface
+import android.view.HapticFeedbackConstants
 import android.widget.TextView
+import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.EmojiCompatFontProvider
@@ -15,6 +17,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.VectorEpoxyHolder
 import im.vector.app.core.epoxy.VectorEpoxyModel
 import im.vector.app.core.epoxy.onClick
+import im.vector.app.core.utils.isAnimationEnabled
 
 /**
  * A quick reaction list for bottom sheet.
@@ -37,12 +40,50 @@ abstract class BottomSheetQuickReactionsItem : VectorEpoxyModel<BottomSheetQuick
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.textViews.forEachIndexed { index, textView ->
+            val reaction = texts.getOrNull(index)
+            val isSelected = selecteds.getOrNull(index) == true
+
+            textView.isVisible = reaction != null
+            textView.isEnabled = reaction != null
             textView.typeface = fontProvider.typeface ?: Typeface.DEFAULT
-            textView.text = texts[index]
-            textView.alpha = if (selecteds[index]) 0.2f else 1f
+            textView.text = reaction.orEmpty()
+            textView.contentDescription = reaction.orEmpty()
+            textView.isSelected = isSelected
+            textView.isActivated = isSelected
+            // A selected quick reaction should be highlighted, not faded almost invisible.
+            // The background selector supplies a soft accent fill and a normal pressed ripple.
+            textView.alpha = 1f
+
+            // RecyclerView/Epoxy may reuse a view while it is still scaled from a previous bind.
+            textView.animate().cancel()
+            textView.scaleX = 1f
+            textView.scaleY = 1f
+
+            if (reaction == null) {
+                // Server/user preference sets may contain fewer than the eight reusable views.
+                // Hide unused slots and make sure an old listener cannot react to an empty chip.
+                textView.onClick(null)
+                return@forEachIndexed
+            }
 
             textView.onClick {
-                listener?.didSelect(texts[index], !selecteds[index])
+                // Haptics and reduced-motion settings are independent: preserve the
+                // touch acknowledgement even when the user disables animations.
+                textView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+                if (textView.context.isAnimationEnabled()) {
+                    textView.animate().cancel()
+                    textView.scaleX = 0.88f
+                    textView.scaleY = 0.88f
+                    textView.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(140L)
+                            .start()
+                } else {
+                    textView.scaleX = 1f
+                    textView.scaleY = 1f
+                }
+                listener?.didSelect(reaction, !isSelected)
             }
         }
     }

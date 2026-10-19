@@ -7,6 +7,7 @@
 package im.vector.app.core.epoxy.bottomsheet
 
 import android.content.res.ColorStateList
+import android.view.HapticFeedbackConstants
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -69,12 +70,20 @@ abstract class BottomSheetActionItem : VectorEpoxyModel<BottomSheetActionItem.Ho
 
     override fun bind(holder: Holder) {
         super.bind(holder)
-        holder.view.onClick(listener)
+        holder.view.onClick { view ->
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            listener(view)
+        }
         holder.startSpace.isVisible = subMenuItem
         val tintColor = if (destructive) {
             ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorError)
         } else {
             ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+        }
+        val textColor = if (destructive) {
+            ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorError)
+        } else {
+            ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_primary)
         }
         holder.icon.isVisible = showIcon
         holder.icon.setImageResource(iconRes)
@@ -84,7 +93,7 @@ abstract class BottomSheetActionItem : VectorEpoxyModel<BottomSheetActionItem.Ho
         } else {
             holder.text.setText(textRes)
         }
-        holder.text.setTextColor(tintColor)
+        holder.text.setTextColor(textColor)
         holder.selected.isInvisible = !selected
         if (showExpand) {
             val expandDrawable = if (expanded) {

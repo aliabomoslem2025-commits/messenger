@@ -33,6 +33,7 @@ import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.StateView
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.resources.UserPreferencesProvider
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.databinding.FragmentRoomListBinding
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.analytics.plan.ViewRoom
@@ -280,7 +281,11 @@ class RoomListFragment :
         val layoutManager = LinearLayoutManager(requireContext())
         stateRestorer = LayoutManagerStateRestorer(layoutManager).register()
         views.roomListView.layoutManager = layoutManager
-        views.roomListView.itemAnimator = RoomListAnimator()
+        views.roomListView.itemAnimator = if (requireContext().isAnimationEnabled()) {
+            RoomListAnimator()
+        } else {
+            null
+        }
         layoutManager.recycleChildrenOnDetach = true
 
         modelBuildListener = OnModelBuildFinishedListener { it.dispatchTo(stateRestorer) }

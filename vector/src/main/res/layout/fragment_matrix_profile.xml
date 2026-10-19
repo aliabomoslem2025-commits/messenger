@@ -5,7 +5,7 @@
     android:id="@+id/coordinatorLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?colorSurface">
+    android:background="?vctr_room_list_background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/matrixProfileAppBarLayout"
@@ -16,7 +16,7 @@
             android:id="@+id/matrixProfileCollapsingToolbarLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:contentScrim="?android:colorBackground"
+            app:contentScrim="?vctr_room_list_background"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
             app:scrimAnimationDuration="250"
             app:scrimVisibleHeightTrigger="80dp"
@@ -27,7 +27,7 @@
                 android:id="@+id/matrixProfileHeaderView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?android:colorBackground"
+                android:background="?vctr_room_list_background"
                 android:orientation="vertical"
                 app:layout_collapseMode="parallax"
                 app:layout_collapseParallaxMultiplier="0.9" />

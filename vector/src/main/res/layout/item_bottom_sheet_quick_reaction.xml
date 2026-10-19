@@ -13,6 +13,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         android:textColor="@color/emoji_black"
         tools:text="👍" />
@@ -22,6 +26,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         tools:text="👎" />
 
@@ -30,6 +38,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         android:textColor="@color/emoji_black"
         tools:text="😀" />
@@ -39,6 +51,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         android:textColor="@color/emoji_black"
         tools:text="🎉" />
@@ -48,6 +64,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         android:textColor="@color/emoji_black"
         tools:text="😕" />
@@ -57,6 +77,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         android:textColor="@color/emoji_black"
         tools:text="♥" />
@@ -66,6 +90,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         android:textColor="@color/emoji_black"
         tools:text="🍆" />
@@ -75,6 +103,10 @@
         style="@style/Widget.Vector.TextView.Title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:minWidth="40dp"
+        android:minHeight="40dp"
+        android:gravity="center"
+        android:background="@drawable/bg_quick_reaction"
         android:padding="4dp"
         android:textColor="@color/emoji_black"
         tools:text="👀" />

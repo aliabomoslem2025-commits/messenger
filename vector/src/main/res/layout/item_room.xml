@@ -5,11 +5,24 @@
     android:id="@+id/itemRoomLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:colorBackground"
+    android:background="?vctr_room_list_background"
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
     tools:viewBindingIgnore="true">
+
+    <!-- Full-row selection feedback, drawn beneath content and above the screen background. -->
+    <View
+        android:id="@+id/roomSelectionBackground"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?vctr_reaction_background_on"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <View
         android:id="@+id/roomUnreadIndicator"
@@ -27,7 +40,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -107,7 +120,7 @@
     <Space
         android:id="@+id/roomAvatarBottomSpace"
         android:layout_width="0dp"
-        android:layout_height="10dp"
+        android:layout_height="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/roomAvatarContainer"
         tools:layout_marginStart="20dp" />
@@ -118,7 +131,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:duplicateParentState="true"
         android:ellipsize="end"
@@ -240,7 +253,7 @@
         android:background="?vctr_list_separator_system"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/roomNameView"
         app:layout_constraintTop_toBottomOf="@id/roomBottomBarrier" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

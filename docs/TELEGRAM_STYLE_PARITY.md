@@ -9,13 +9,14 @@
 
 ## Visual and interaction acceptance checklist
 
-- [ ] Bring a consistent Telegram-inspired layout to room list, room header, message timeline, composer, context menus, and profile/details screens.
-- [ ] Use cohesive light/dark themes and a configurable accent; project preference is green `#0DBD8B`, without the default purple look.
-- [ ] Match familiar chat affordances: long-press actions, reply/forward/edit/delete, reaction picker and updates, attachment previews, voice-message recording/playback states, and message status when Element/Matrix provides equivalent state.
-- [ ] Add polished state transitions and motion for opening/closing panels, selecting messages, sending/receiving messages, and changing reactions. Respect reduced-motion and accessibility settings.
-- [ ] Keep Persian/RTL text readable within message content while preserving the intended overall chat-row and navigation geometry; verify mixed Persian/Latin text, timestamps, links, and media captions.
-- [ ] Reuse Element's Matrix models, timeline, event sending, permissions, encryption, and media pipeline. Never simulate successful sends or hide SDK failures.
-- [ ] Preserve accessibility labels, screen-reader semantics, dynamic text size, and adequate touch targets.
+- [x] Apply consistent Telegram-inspired source-level styling to room list, room header, message timeline, composer, contextual actions, and profile/details surfaces. Exact pixel parity remains a screenshot-based device acceptance gate.
+- [x] Keep light, dark, and black themes coherent; use the project green accent #0DBD8B and separate chat and list/profile surface tokens without globally recoloring unrelated Element screens.
+- [x] Preserve Element's reply/forward/edit/delete actions, reaction picker and callbacks, attachment previews, voice recording/playback states, and message-send/error models wherever Matrix provides equivalent behavior.
+- [x] Add selected-message feedback, reaction feedback, compact list/bubble geometry, and list/action transitions that respect reduced-motion settings.
+- [x] Apply per-message text direction for Persian/Arabic content in an LTR app while preserving sender-based placement of the outer bubble.
+- [x] Preserve Matrix timelines, event sending, sync, room membership, permissions, encryption, pagination, and media handling. The UI does not fabricate successful sends or suppress SDK errors.
+- [x] Retain Element accessibility semantics and improve reaction/menu feedback. TalkBack and target-size review remain runtime acceptance tests.
+- [ ] Verify visual parity with same-device, same-density, same-font-scale screenshots of Telegram Android and this app across list, chat, profile, actions, and media screens.
 
 ## Implementation order
 
@@ -29,7 +30,7 @@
 
 ## Status
 
-This is the acceptance checklist and implementation plan; it does not claim the UI parity items are already implemented.
+Checked items record source-level implementation, not proof of 100% pixel parity. Device screenshots, manual UI checks, and Matrix end-to-end acceptance are tracked separately below.
 
 ## Implementation progress
 
@@ -53,12 +54,56 @@ This is the acceptance checklist and implementation plan; it does not claim the 
 - Kept the Gradle Wrapper on 8.13, using the official distribution checksum, rather than accepting the imported upstream wrapper's 8.14.3 version.
 
 
-### Still required before calling this Telegram parity
+### Current incremental PR: RTL and reaction polish (not build-verified)
 
-- [ ] Compare the running app against current Telegram Android screens for room list, header, timeline, composer, action menu, profile, and media.
-- [ ] Audit and adapt the chat header, message bubble geometry and grouping, context actions, icon mapping, and sheet/menu transitions.
-- [ ] Verify reaction sync/error states, message send failure states, encrypted media, and voice-message recording/playback end to end.
-- [ ] Verify Persian/RTL and mixed Persian/Latin message content independently of the app's overall layout direction.
-- [ ] Run Gradle compilation, unit tests, lint, and targeted manual tests on a device/emulator.
+- Resolve the actual message text view's paragraph direction from the first strong character before measuring it. This is intended to improve Persian/Arabic alignment in an LTR app while keeping the outer message bubble's sender-based placement.
+- Keep reaction selected/activated view states in sync with the current checked state, add system-mediated light haptic feedback on tap, and retain existing Matrix reaction callbacks and selection animation.
+- Use the messenger green accent (`#0DBD8B`) for selected-reaction surfaces across light, dark, and black themes.
+- Replace square internal corners between adjacent same-sender bubbles with a 4dp soft radius while preserving the existing 16dp outer corner and RTL-aware grouping logic.
+- Reduced the room-list row's vertical padding to target Telegram's compact ~70dp row rhythm, and inset dividers to begin at the title/content column rather than under the avatar.
+- Unified the rich-text send-circle's rendered size with the plain composer at 40dp.
+- Added a pinned-action Android CI workflow on the repository default branch to assemble both GPlay and F-Droid debug variants for pull requests. Its result is the compile-validation gate; it does not replace device-level UI and Matrix-flow tests.
+- These changes were committed on `telegram-ui-rtl-reaction-polish`; no device-level test has been run from this editing session.
 
-No Gradle build or device test has been run from the remote repository editing session. The items above are source changes only and should be treated as a first pass pending compilation and runtime validation.
+
+### Additional room-list, quick-reaction, and motion-accessibility pass (not yet build-verified)
+
+- Multi-select now highlights the whole room row as well as the avatar, while preserving the existing room click and Matrix selection callbacks.
+- Quick reactions in the message-action sheet now have a visible selected chip state, adequate minimum touch-area sizing, emoji content descriptions, tap haptic feedback, and a short selection scale response when system animations are enabled. The selected chip is no longer reduced to 20% opacity.
+- The composer send-button fade now follows the system animation setting and resets alpha when hidden, preventing a recycled/invisible send button from retaining a transparent state.
+- The branch's Android UI validation workflow should be checked on the latest commit before merging.
+
+
+### Chat header and selection clarity pass (not yet build-verified)
+
+- Direct-message headers now show a localized Matrix presence label under the room title when presence data is available, while non-direct rooms and unavailable presence keep the subtitle hidden.
+- The small presence icon is excluded from accessibility traversal because the same presence state is presented as readable subtitle text; this avoids announcing the state twice.
+- The selected room-row overlay uses constraints on all four edges so it follows the measured row height instead of relying on `match_parent` inside a wrapping ConstraintLayout.
+
+
+### RecyclerView reuse and motion-preference audit (not yet build-verified)
+
+- The dedicated room-list screen now disables row animations when Android's system animator scale is zero, matching the home room list and timeline.
+- Room-list rows explicitly hide typing and timestamp views in filtered mode and restore timestamp visibility when returning to the normal list, preventing stale recycled-row content.
+- Reaction-pill scale feedback now uses Element's system animation-scale helper on all supported Android versions (rather than only checking the API-26 animator flag); haptic confirmation remains available when motion is disabled.
+
+
+### Menu and profile action feedback pass (not yet build-verified)
+
+- Generic message/context bottom-sheet actions and profile action rows now provide light keyboard-tap haptic feedback on activation. Their existing debounced click listeners, selection state, and Matrix action callbacks are retained.
+
+
+### Final action-sheet visual audit (awaiting the current CI run)
+
+- Quick-reaction sheets now hide unused reaction slots when the configured reaction list has fewer than eight entries, preventing blank clickable chips after Epoxy view reuse.
+- Standard context-menu labels use the primary content color for readable Telegram-like menu hierarchy, while icons remain secondary and destructive actions retain the theme's error color.
+
+
+### Remaining acceptance gates before claiming 100% Telegram parity
+
+- [ ] Capture side-by-side screenshots of running Telegram and Messenger at the same device, density, font scale, theme, and content for room list, chat header, grouped messages, replies/edits/forwards, reactions, context menus, composer/recording, media, and profile screens; fix the differences revealed by those screenshots.
+- [ ] Keep both GPlay and F-Droid debug assembly, unit-test, and lint workflows green on the final head.
+- [ ] Test Matrix send success/failure/retry, reaction add/remove and cross-client sync, encrypted media download/decryption, voice recording/cancel/send/playback, room membership, and pagination on a device/emulator.
+- [ ] Verify Persian-only, Latin-only, mixed-script, URL, timestamp, multiline, edited-message, and media-caption rendering at multiple font scales with TalkBack enabled.
+
+Remote source editing cannot substitute for screenshot comparison or hands-on Matrix acceptance. Do not describe this as 100% parity until these gates pass.

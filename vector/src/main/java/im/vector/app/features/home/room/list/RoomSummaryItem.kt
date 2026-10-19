@@ -132,12 +132,18 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     private fun renderForDefaultDisplayMode(holder: Holder) {
         holder.subtitleView.text = lastFormattedEvent.charSequence
         holder.lastEventTimeView.text = lastEventTime
+        holder.lastEventTimeView.isVisible = lastEventTime.isNotBlank()
         holder.typingView.setTextOrHide(typingMessage)
         holder.subtitleView.isInvisible = holder.typingView.isVisible
     }
 
     private fun renderForFilteredDisplayMode(holder: Holder) {
+        // A holder can be recycled across display modes; clear default-list-only views
+        // to avoid showing an old timestamp or typing indicator in a filtered result.
         holder.subtitleView.text = subtitle
+        holder.subtitleView.isVisible = true
+        holder.lastEventTimeView.isVisible = false
+        holder.typingView.isVisible = false
     }
 
     override fun unbind(holder: Holder) {
@@ -148,6 +154,11 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     }
 
     private fun renderSelection(holder: Holder, isSelected: Boolean) {
+        // Show selection across the entire row as well as on the avatar so multi-select
+        // remains obvious without changing click/long-click dispatch to Matrix actions.
+        holder.rootView.isSelected = isSelected
+        holder.selectionBackground.isVisible = isSelected
+
         if (isSelected) {
             holder.avatarCheckedImageView.visibility = View.VISIBLE
             val backgroundColor = ThemeUtils.getColor(holder.view.context, com.google.android.material.R.attr.colorPrimary)
@@ -160,6 +171,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     }
 
     class Holder : VectorEpoxyHolder() {
+        val selectionBackground by bind<View>(R.id.roomSelectionBackground)
         val titleView by bind<TextView>(R.id.roomNameView)
         val unreadCounterBadgeView by bind<UnreadCounterBadgeView>(R.id.roomUnreadCounterBadgeView)
         val unreadIndentIndicator by bind<View>(R.id.roomUnreadIndicator)

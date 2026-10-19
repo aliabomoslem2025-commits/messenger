@@ -1,0 +1,50 @@
+name: Android UI quality checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - develop
+      - telegram-ui-rtl-reaction-polish
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx5120m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError -XX:MaxMetaspaceSize=1g" -Dkotlin.daemon.jvm.options="-Xmx2560m" -Dkotlin.incremental=false'
+
+jobs:
+  unit-and-lint:
+    name: Unit tests and lint (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    concurrency:
+      group: android-ui-quality-${{ github.event.pull_request.number || github.ref }}-${{ matrix.target }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [Gplay, Fdroid]
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Configure Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c
+
+      - name: Run debug unit tests
+        run: ./gradlew test${{ matrix.target }}DebugUnitTest --stacktrace -PpreDexEnable=false --max-workers 2 --no-daemon
+
+      - name: Run Android lint
+        run: ./gradlew lint${{ matrix.target }}Debug --stacktrace -PpreDexEnable=false --max-workers 2 --no-daemon
