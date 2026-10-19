@@ -207,12 +207,22 @@ class HomeActivity :
         views.drawerLayout.addDrawerListener(drawerListener)
         if (isFirstCreation()) {
             if (vectorPreferences.isNewAppLayoutEnabled()) {
-                views.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+                views.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
                 replaceFragment(views.homeDetailFragmentContainer, NewHomeDetailFragment::class.java)
+                replaceFragment(views.homeDrawerFragmentContainer, HomeDrawerFragment::class.java)
             } else {
                 replaceFragment(views.homeDetailFragmentContainer, HomeDetailFragment::class.java)
                 replaceFragment(views.homeDrawerFragmentContainer, HomeDrawerFragment::class.java)
                 views.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+            }
+        }
+
+        // New Home used to lock the drawer and hide its profile/navigation entry point.
+        // Re-enable the same Matrix-backed drawer without altering old-layout navigation.
+        if (isNewAppLayoutEnabled) {
+            views.drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
+            if (!isFirstCreation() && supportFragmentManager.findFragmentById(views.homeDrawerFragmentContainer.id) == null) {
+                replaceFragment(views.homeDrawerFragmentContainer, HomeDrawerFragment::class.java)
             }
         }
 

@@ -12,6 +12,7 @@
         android:id="@+id/homeDrawerHeader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/telegram_accent_blue"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -37,7 +38,8 @@
             android:layout_marginEnd="8dp"
             android:maxLines="1"
             android:singleLine="true"
-            android:textColor="?vctr_content_primary"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/homeDrawerUserIdView"
             app:layout_constraintEnd_toStartOf="@id/homeDrawerQRCodeButton"
             app:layout_constraintStart_toEndOf="@id/homeDrawerHeaderAvatarView"
@@ -54,7 +56,7 @@
             android:layout_marginEnd="8dp"
             android:maxLines="1"
             android:singleLine="true"
-            android:textColor="?vctr_content_secondary"
+            android:textColor="#D9FFFFFF"
             app:layout_constraintBottom_toBottomOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintEnd_toStartOf="@id/homeDrawerQRCodeButton"
             app:layout_constraintStart_toStartOf="@id/homeDrawerUsernameView"
@@ -73,7 +75,7 @@
             app:layout_constraintBottom_toBottomOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/homeDrawerHeaderAvatarView"
-            app:tint="?vctr_content_tertiary"
+            app:tint="@android:color/white"
             tools:ignore="MissingPrefix" />
 
         <Button
@@ -89,9 +91,11 @@
             android:padding="0dp"
             android:text="@string/invite_friends"
             android:textAllCaps="false"
+            android:textColor="@android:color/white"
             app:icon="@drawable/ic_share"
             app:iconGravity="textStart"
             app:iconSize="20dp"
+            app:iconTint="@android:color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="@id/homeDrawerHeaderAvatarView"
             app:layout_constraintTop_toBottomOf="@id/homeDrawerHeaderAvatarView"
@@ -107,7 +111,7 @@
             android:src="@drawable/ic_settings_x"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:tint="?colorPrimary"
+            app:tint="@android:color/white"
             tools:ignore="MissingPrefix" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -116,7 +120,7 @@
         android:id="@+id/homeDrawerHeaderSeparator"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?vctr_list_separator"
+        android:background="#40FFFFFF"
         app:layout_constraintTop_toBottomOf="@id/homeDrawerHeader" />
 
     <androidx.fragment.app.FragmentContainerView

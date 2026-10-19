@@ -401,7 +401,8 @@ class NewHomeDetailFragment :
         views.toolbar.debouncedClicks(::openSpaceSettings)
 
         views.avatar.debouncedClicks {
-            navigator.openSettings(requireContext())
+            // Match Telegram's hamburger behavior; account/settings remain in the drawer.
+            sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
         }
     }
 
@@ -485,10 +486,10 @@ class NewHomeDetailFragment :
         hasUnreadRooms = it.hasUnreadMessages
     }
 
-    private fun refreshAvatar() = withState(viewModel) { state ->
-        state.myMatrixItem?.let { user ->
-            avatarRenderer.render(user, views.avatar)
-        }
+    private fun refreshAvatar() {
+        // This toolbar slot is the navigation affordance in the Telegram-style home.
+        // The actual account avatar is rendered in HomeDrawerFragment from the Matrix session.
+        views.avatar.setImageResource(R.drawable.ic_telegram_menu)
     }
 
     private fun refreshUnreadCounterBadge(badgeState: UnreadCounterBadgeView.State) {
