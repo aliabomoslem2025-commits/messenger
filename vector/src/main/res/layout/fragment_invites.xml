@@ -8,6 +8,7 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="?vctr_messenger_actionbar_background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -16,6 +17,8 @@
             android:id="@+id/invites_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
+            android:background="?vctr_messenger_actionbar_background"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
             app:title="@string/invites_title" />
 
     </com.google.android.material.appbar.AppBarLayout>

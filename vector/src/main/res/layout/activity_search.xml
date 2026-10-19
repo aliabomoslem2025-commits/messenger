@@ -13,19 +13,23 @@
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="?vctr_messenger_actionbar_background"
             app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/searchToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:background="?vctr_messenger_actionbar_background"
+                android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
                 app:contentInsetStart="0dp">
 
                 <androidx.appcompat.widget.SearchView
                     android:id="@+id/searchView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:backgroundTint="@color/base_color"
+                    android:backgroundTint="#26FFFFFF"
+                    android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
                     app:queryHint="@string/search_hint" />
 
             </com.google.android.material.appbar.MaterialToolbar>
