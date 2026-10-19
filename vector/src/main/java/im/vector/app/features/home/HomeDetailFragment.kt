@@ -405,7 +405,9 @@ class HomeDetailFragment :
                 isSyncingTelegramHomeTabs = false
             }
         }
-        views.groupToolbarTitleView.setText(tab.titleRes)
+        views.groupToolbarTitleView.setText(
+                if (tab is HomeTab.RoomList) R.string.all_chats else tab.titleRes
+        )
         updateSelectedFragment(tab)
         invalidateOptionsMenu()
     }
