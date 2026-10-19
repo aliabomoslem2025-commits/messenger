@@ -24,6 +24,7 @@ import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.SpaceStateHandler
@@ -52,7 +53,11 @@ import im.vector.app.features.elementx.MigrationBannerViewModel
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.home.room.list.actions.RoomListSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListSharedActionViewModel
+import im.vector.app.features.home.room.list.home.HomeRoomListAction
 import im.vector.app.features.home.room.list.home.HomeRoomListFragment
+import im.vector.app.features.home.room.list.home.HomeRoomListViewModel
+import im.vector.app.features.home.room.list.home.HomeRoomListViewState
+import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.home.room.list.home.NewChatBottomSheet
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
@@ -89,6 +94,9 @@ class NewHomeDetailFragment :
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val newHomeDetailViewModel: NewHomeDetailViewModel by fragmentViewModel()
+    private val homeRoomListViewModel: HomeRoomListViewModel by activityViewModel()
+
+    private var isSyncingTelegramHomeTabs = false
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
     private val migrationBannerViewModel: MigrationBannerViewModel by activityViewModel()
@@ -159,6 +167,7 @@ class NewHomeDetailFragment :
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)
         }
+        setupTelegramHomeTabs()
 
         viewModel.onEach(HomeDetailViewState::selectedSpace) { selectedSpace ->
             onSpaceChange(selectedSpace)
@@ -201,6 +210,43 @@ class NewHomeDetailFragment :
 
         newHomeDetailViewModel.onEach { viewState ->
             refreshUnreadCounterBadge(viewState.spacesNotificationCounterBadgeState)
+        }
+    }
+
+    private fun setupTelegramHomeTabs() {
+        val tabs = views.telegramHomeTabs
+        tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                if (isSyncingTelegramHomeTabs) return
+                val filter = tab.tag as? HomeRoomFilter ?: return
+                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(filter))
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab) = Unit
+
+            override fun onTabReselected(tab: TabLayout.Tab) = Unit
+        })
+
+        homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
+            val filters = headers.filtersList
+            isSyncingTelegramHomeTabs = true
+            try {
+                tabs.removeAllTabs()
+                if (filters.isNullOrEmpty()) {
+                    tabs.isVisible = false
+                } else {
+                    tabs.isVisible = true
+                    filters.forEach { filter ->
+                        tabs.addTab(tabs.newTab().setText(filter.titleRes).setTag(filter), false)
+                    }
+                    val selectedIndex = filters.indexOf(headers.currentFilter)
+                    if (selectedIndex >= 0) {
+                        tabs.getTabAt(selectedIndex)?.select()
+                    }
+                }
+            } finally {
+                isSyncingTelegramHomeTabs = false
+            }
         }
     }
 

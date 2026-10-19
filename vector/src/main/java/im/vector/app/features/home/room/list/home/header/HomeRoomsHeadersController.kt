@@ -59,13 +59,8 @@ class HomeRoomsHeadersController @Inject constructor(
 
         // Telegram places chat-folder filters directly below the action bar. Keep Matrix-backed
         // filtering unchanged, but build that row before recents so it is the first list section.
-        host.data.filtersList?.let {
-            addRoomFilterHeaderItem(
-                    filterChangedListener = host.onFilterChangedListener,
-                    filtersList = it,
-                    currentFilter = host.data.currentFilter,
-                    analyticsTracker = analyticsTracker)
-        }
+        // Filter tabs are rendered as a pinned strip in NewHomeDetailFragment so
+        // they remain reachable while the Matrix-backed room list scrolls.
 
         if (data.invitesCount != 0) {
             addInviteCounter(host.invitesClickListener, data.invitesCount)

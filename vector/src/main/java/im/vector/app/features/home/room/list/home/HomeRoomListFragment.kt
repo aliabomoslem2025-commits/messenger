@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.ConcatAdapter.Config.StableIdMode
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.airbnb.epoxy.OnModelBuildFinishedListener
-import com.airbnb.mvrx.fragmentViewModel
+import com.airbnb.mvrx.activityViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
 import im.vector.app.core.extensions.cleanup
@@ -54,7 +54,7 @@ class HomeRoomListFragment :
     @Inject lateinit var headersController: HomeRoomsHeadersController
     @Inject lateinit var roomsController: HomeFilteredRoomsController
 
-    private val roomListViewModel: HomeRoomListViewModel by fragmentViewModel()
+    private val roomListViewModel: HomeRoomListViewModel by activityViewModel()
     private lateinit var sharedQuickActionsViewModel: RoomListQuickActionsSharedActionViewModel
     private var concatAdapter = ConcatAdapter(
             ConcatAdapter.Config.Builder()

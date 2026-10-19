@@ -116,6 +116,21 @@
             android:orientation="vertical"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
+            <!-- Pinned Telegram-like folder filters; these operate on Matrix room queries. -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/telegramHomeTabs"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="?vctr_room_list_background"
+                android:visibility="gone"
+                app:tabGravity="fill"
+                app:tabIndicatorColor="@color/telegram_brand_green"
+                app:tabIndicatorFullWidth="false"
+                app:tabMode="scrollable"
+                app:tabRippleColor="@color/telegram_tab_ripple"
+                app:tabSelectedTextColor="@color/telegram_brand_green"
+                app:tabTextColor="?vctr_content_secondary" />
+
             <im.vector.app.core.ui.views.VerifyDeviceBanner
                 android:id="@+id/homeVerifyDevice"
                 android:layout_width="match_parent"
