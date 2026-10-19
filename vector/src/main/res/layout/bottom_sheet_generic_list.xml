@@ -4,7 +4,7 @@
     android:id="@+id/bottomSheetRecyclerView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?colorSurface"
+    android:background="?vctr_room_list_background"
     android:fadeScrollbars="false"
     android:scrollbars="vertical"
     tools:itemCount="5"
