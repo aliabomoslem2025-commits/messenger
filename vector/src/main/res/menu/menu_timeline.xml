@@ -36,7 +36,7 @@
         android:icon="@drawable/ic_phone"
         android:title="@string/action_voice_call"
         android:visible="false"
-        app:iconTint="?colorPrimary"
+        app:iconTint="@android:color/white"
         app:showAsAction="always"
         tools:visible="true" />
 
