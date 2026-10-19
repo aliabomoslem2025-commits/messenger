@@ -99,6 +99,11 @@ Checked items record source-level implementation, not proof of 100% pixel parity
 - Standard context-menu labels use the primary content color for readable Telegram-like menu hierarchy, while icons remain secondary and destructive actions retain the theme's error color.
 
 
+### Black-theme bubble color follow-up
+
+- Explicit black-theme inbound and outbound bubble tokens now override inherited dark-theme bubble colors. The chat canvas remains pure black while incoming/outgoing bubbles keep subtly distinct surfaces.
+- This is a source-level theme correction; verify it visually with a real black-theme screenshot before treating theme parity as accepted.
+
 ### Remaining acceptance gates before claiming 100% Telegram parity
 
 - [ ] Capture side-by-side screenshots of running Telegram and Messenger at the same device, density, font scale, theme, and content for room list, chat header, grouped messages, replies/edits/forwards, reactions, context menus, composer/recording, media, and profile screens; fix the differences revealed by those screenshots.

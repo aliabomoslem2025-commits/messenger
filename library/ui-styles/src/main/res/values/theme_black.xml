@@ -18,6 +18,9 @@
         <item name="vctr_markdown_block_background_color">#FF4D4D4D</item>
         <item name="vctr_chat_background">@color/vctr_chat_background_black</item>
         <item name="vctr_room_list_background">@color/vctr_room_list_background_black</item>
+        <!-- Override the inherited dark-theme message colors so black mode keeps distinct bubbles on a pure-black canvas. -->
+        <item name="vctr_message_bubble_inbound">@color/vctr_message_bubble_inbound_black</item>
+        <item name="vctr_message_bubble_outbound">@color/vctr_message_bubble_outbound_black</item>
         <item name="vctr_toolbar_background">@color/element_background_black</item>
 
         <!-- Material color -->

@@ -6,7 +6,9 @@
     <attr name="vctr_message_bubble_inbound" format="color" />
     <color name="vctr_message_bubble_inbound_light">#F1F3F5</color>
     <color name="vctr_message_bubble_inbound_dark">#2A3038</color>
+    <color name="vctr_message_bubble_inbound_black">#1C1C1E</color>
     <attr name="vctr_message_bubble_outbound" format="color" />
     <color name="vctr_message_bubble_outbound_light">#DDF7C8</color>
     <color name="vctr_message_bubble_outbound_dark">#1D4937</color>
+    <color name="vctr_message_bubble_outbound_black">#10382B</color>
 </resources>
