@@ -434,6 +434,7 @@ class NewHomeDetailFragment :
         views.collapsingToolbar.debouncedClicks(::openSpaceSettings)
         views.toolbar.debouncedClicks(::openSpaceSettings)
 
+        views.avatar.setImageResource(R.drawable.ic_telegram_menu)
         views.avatar.debouncedClicks {
             // Match Telegram's hamburger behavior; account/settings remain in the drawer.
             sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)

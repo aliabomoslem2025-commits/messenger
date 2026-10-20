@@ -5,7 +5,7 @@
     android:id="@+id/itemRoomLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:minHeight="76dp"
+    android:minHeight="72dp"
     android:background="?vctr_room_list_background"
     android:clickable="true"
     android:focusable="true"
@@ -30,14 +30,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="9dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/roomAvatarImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
             android:importantForAccessibility="no"
             tools:src="@sample/room_round_avatars" />
 
@@ -240,6 +240,7 @@
         android:id="@+id/roomDividerView"
         android:layout_width="0dp"
         android:layout_height="1dp"
+        android:layout_marginStart="82dp"
         android:background="?vctr_list_separator_system"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
