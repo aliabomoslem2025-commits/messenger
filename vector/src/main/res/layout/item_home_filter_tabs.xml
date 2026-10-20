@@ -19,7 +19,6 @@
         app:tabTextColor="?vctr_content_secondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <View
