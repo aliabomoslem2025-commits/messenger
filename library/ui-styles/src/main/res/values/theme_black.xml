@@ -19,6 +19,7 @@
         <item name="vctr_chat_background">@color/vctr_chat_background_black</item>
         <item name="vctr_room_list_background">@color/vctr_room_list_background_black</item>
         <item name="vctr_messenger_actionbar_background">@color/vctr_messenger_actionbar_background_black</item>
+        <item name="vctr_telegram_send_accent">@color/telegram_brand_green_black</item>
         <!-- Override the inherited dark-theme message colors so black mode keeps distinct bubbles on a pure-black canvas. -->
         <item name="vctr_message_bubble_inbound">@color/vctr_message_bubble_inbound_black</item>
         <item name="vctr_message_bubble_outbound">@color/vctr_message_bubble_outbound_black</item>
