@@ -146,21 +146,6 @@ class HomeRoomsHeadersController @Inject constructor(
         }
     }
 
-    private fun addRoomFilterHeaderItem(
-            filterChangedListener: ((HomeRoomFilter) -> Unit)?,
-            filtersList: List<HomeRoomFilter>,
-            currentFilter: HomeRoomFilter?,
-            analyticsTracker: AnalyticsTracker,
-    ) {
-        roomFilterHeaderItem {
-            id("filter_header")
-            filtersData(filtersList)
-            selectedFilter(currentFilter)
-            onFilterChangedListener(filterChangedListener)
-            analyticsTracker(analyticsTracker)
-        }
-    }
-
     fun submitData(data: RoomsHeadersData) {
         this.data = data
         requestModelBuild()
