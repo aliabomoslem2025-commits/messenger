@@ -40,7 +40,7 @@
             android:scaleType="center"
             android:src="@drawable/ic_fab_add_chat"
             android:visibility="gone"
-            app:backgroundTint="@color/telegram_accent_blue"
+            app:backgroundTint="@color/telegram_brand_green"
             app:tint="@android:color/white"
             app:maxImageSize="34dp"
             tools:layout_marginEnd="80dp"
