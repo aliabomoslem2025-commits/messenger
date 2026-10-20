@@ -57,10 +57,8 @@ class HomeRoomsHeadersController @Inject constructor(
     override fun buildModels() {
         val host = this
 
-        // Telegram places chat-folder filters directly below the action bar. Keep Matrix-backed
-        // filtering unchanged, but build that row before recents so it is the first list section.
-        // Filter tabs are rendered as a pinned strip in NewHomeDetailFragment so
-        // they remain reachable while the Matrix-backed room list scrolls.
+        // HomeRoomFilter tabs are pinned in NewHomeDetailFragment. Keep this
+        // Epoxy header responsible only for invites and recent chats.
 
         if (data.invitesCount != 0) {
             addInviteCounter(host.invitesClickListener, data.invitesCount)
