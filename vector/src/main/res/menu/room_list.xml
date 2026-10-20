@@ -14,7 +14,7 @@
         android:title="@string/search"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:iconTint="@android:color/white"
-        app:showAsAction="always|collapseActionView"
+        app:showAsAction="always|collapseActionView" />
 
     <item
         android:id="@+id/menu_home_spaces"
