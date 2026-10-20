@@ -6,7 +6,7 @@
         android:right="8dp"
         android:top="8dp">
         <shape android:shape="oval">
-            <solid android:color="@color/telegram_accent_blue" />
+            <solid android:color="?vctr_telegram_send_accent" />
         </shape>
     </item>
     <item android:drawable="?attr/selectableItemBackground" />
