@@ -53,7 +53,10 @@
     <color name="vctr_messenger_actionbar_background_light">#527DA3</color>
     <color name="vctr_messenger_actionbar_background_dark">#17212B</color>
     <color name="vctr_messenger_actionbar_background_black">@android:color/black</color>
+    <attr name="vctr_telegram_send_accent" format="color" />
     <color name="telegram_brand_green">#0DBD8B</color>
+    <color name="telegram_brand_green_dark">#0DBD8B</color>
+    <color name="telegram_brand_green_black">#0DBD8B</color>
     <!-- Telegram's Android accent blue; keep the product logo's green as a separate token. -->
     <color name="telegram_accent_blue">#3390EC</color>
     <color name="telegram_statusbar_blue">#466C8E</color>
