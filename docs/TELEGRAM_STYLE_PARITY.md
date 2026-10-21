@@ -99,6 +99,15 @@ Checked items record source-level implementation, not proof of 100% pixel parity
 - Standard context-menu labels use the primary content color for readable Telegram-like menu hierarchy, while icons remain secondary and destructive actions retain the theme's error color.
 
 
+### Telegram chat actions and channel-creation follow-up (source changes pending CI/device acceptance)
+
+- Added a create destination chooser with separate actions for Matrix-backed group creation, Matrix-backed public channel creation, and browsing public rooms. The room-list group action and home create-menu action now share this chooser instead of silently opening the room directory.
+- Added a channel mode to the existing create-room flow. Channels start public and set the Matrix `m.room.message` power-level override to 50; reaction event permissions remain on Matrix defaults so regular members can react while only moderators can publish messages. The Matrix SDK creation path remains in use.
+- Made reaction selection pop more expressively and added a reduced-motion-aware transition when a reaction summary changes for the same event. Reaction send/undo continues through the existing Matrix relation service; recycled rows do not animate across event IDs.
+- Added a reduced-motion-aware fade/pop entrance to the composer send action when it appears, with scale/alpha restored when hidden; this complements (rather than replaces) Matrix send-state feedback.
+- Tuned text-message body size from 15.5sp to 16sp and changed the create-menu label to identify the group/channel choice.
+- These are source changes only. Verify channel permissions with a normal member and moderator on the target homeserver, and test group creation, send/undo reaction, reaction changes from another client, animation scale zero, and the screenshot acceptance list before claiming parity.
+
 ### Selected-reaction palette consistency follow-up
 
 - Corrected the selected-reaction chip colors for light, dark, and black themes. The previous values were still translucent Telegram blue despite the resource comment and project checklist specifying the messenger green accent `#0DBD8B`.

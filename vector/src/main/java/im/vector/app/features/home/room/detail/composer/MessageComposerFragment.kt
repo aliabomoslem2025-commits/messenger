@@ -19,6 +19,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.Toast
@@ -495,18 +496,33 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (event.isVisible) {
             sendButton.isVisible = true
             if (requireContext().isAnimationEnabled()) {
+                // Telegram-like send action entrance: fade + compact pop, not a color-only change.
                 sendButton.alpha = 0f
+                sendButton.scaleX = 0.78f
+                sendButton.scaleY = 0.78f
                 sendButton.animate()
                         .alpha(1f)
-                        .setDuration(150L)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(190L)
+                        .setInterpolator(OvershootInterpolator(1.25f))
+                        .withEndAction {
+                            // Always leave the reused composer control at its resting scale.
+                            sendButton.scaleX = 1f
+                            sendButton.scaleY = 1f
+                        }
                         .start()
             } else {
-                // Reduced-motion mode must not leave the send action transparent.
+                // Reduced-motion mode must not leave the send action transparent or scaled.
                 sendButton.alpha = 1f
+                sendButton.scaleX = 1f
+                sendButton.scaleY = 1f
             }
         } else {
-            // Cancel an in-flight fade before hiding, then restore the reusable view's alpha.
+            // Cancel in-flight animation, then reset reusable view properties before hiding.
             sendButton.alpha = 1f
+            sendButton.scaleX = 1f
+            sendButton.scaleY = 1f
             sendButton.isInvisible = true
         }
     }

@@ -318,8 +318,8 @@ class DefaultNavigator @Inject constructor(
         }.start(context)
     }
 
-    override fun openCreateRoom(context: Context, initialName: String, openAfterCreate: Boolean) {
-        val intent = CreateRoomActivity.getIntent(context = context, initialName = initialName, openAfterCreate = openAfterCreate)
+    override fun openCreateRoom(context: Context, initialName: String, openAfterCreate: Boolean, isChannel: Boolean) {
+        val intent = CreateRoomActivity.getIntent(context = context, initialName = initialName, openAfterCreate = openAfterCreate, isChannel = isChannel)
         context.startActivity(intent)
     }
 

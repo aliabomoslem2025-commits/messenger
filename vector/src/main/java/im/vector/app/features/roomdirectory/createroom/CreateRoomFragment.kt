@@ -23,6 +23,7 @@ import com.airbnb.mvrx.withState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelper
+import im.vector.app.R
 import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
@@ -49,7 +50,8 @@ data class CreateRoomArgs(
         val initialName: String,
         val parentSpaceId: String? = null,
         val isSpace: Boolean = false,
-        val openAfterCreate: Boolean = true
+        val openAfterCreate: Boolean = true,
+        val isChannel: Boolean = false
 ) : Parcelable
 
 @AndroidEntryPoint
@@ -87,7 +89,11 @@ class CreateRoomFragment :
         setupWaitingView()
         setupRecyclerView()
         setupToolbar(views.createRoomToolbar)
-                .setTitle(if (args.isSpace) CommonStrings.create_new_space else CommonStrings.create_new_room)
+                .setTitle(when {
+                    args.isSpace -> CommonStrings.create_new_space
+                    args.isChannel -> R.string.telegram_create_channel
+                    else -> CommonStrings.create_new_room
+                })
                 .allowBack(useCross = true)
         viewModel.observeViewEvents {
             when (it) {

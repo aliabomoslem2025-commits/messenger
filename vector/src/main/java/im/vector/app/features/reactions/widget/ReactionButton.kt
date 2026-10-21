@@ -23,8 +23,8 @@ import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.databinding.ReactionButtonBinding
 import javax.inject.Inject
 
-private const val REACTION_BOUNCE_DURATION_MS = 180L
-private const val REACTION_TEXT_BOUNCE_SCALE = 0.72f
+private const val REACTION_BOUNCE_DURATION_MS = 230L
+private const val REACTION_TEXT_BOUNCE_SCALE = 0.48f
 
 /**
  * An animated reaction button.
@@ -125,14 +125,14 @@ class ReactionButton @JvmOverloads constructor(
             return
         }
 
-        val buttonStartScale = if (isChecked) 0.94f else 0.97f
+        val buttonStartScale = if (isChecked) 0.84f else 0.96f
         scaleX = buttonStartScale
         scaleY = buttonStartScale
         animate()
                 .scaleX(1f)
                 .scaleY(1f)
                 .setDuration(REACTION_BOUNCE_DURATION_MS)
-                .setInterpolator(OvershootInterpolator(1.2f))
+                .setInterpolator(OvershootInterpolator(1.55f))
                 .start()
 
         // Selection gets the stronger emoji pop; unselecting still gets a softer response.
@@ -143,7 +143,7 @@ class ReactionButton @JvmOverloads constructor(
                 .scaleX(1f)
                 .scaleY(1f)
                 .setDuration(REACTION_BOUNCE_DURATION_MS)
-                .setInterpolator(OvershootInterpolator(1.5f))
+                .setInterpolator(OvershootInterpolator(1.85f))
                 .start()
     }
 
