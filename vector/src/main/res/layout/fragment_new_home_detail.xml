@@ -250,13 +250,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:duplicateParentState="true"
-                android:fontFamily="sans"
+                android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false"
                 android:maxLines="1"
                 android:text="@string/telegram_tab_chats"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp"
-                android:fontFamily="sans-serif-medium" />
+                android:textSize="13sp" />
 
         </LinearLayout>
 
