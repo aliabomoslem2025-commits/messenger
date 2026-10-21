@@ -105,6 +105,8 @@ class HomeFilteredRoomsController @Inject constructor(
                 (model as? RoomSummaryItem_)?.apply {
                     hideMessagePreview(true)
                     hideRoomDivider(true)
+                    // The Telegram chat list does not overlay presence dots on avatars.
+                    showPresence(false)
                 }
             }
         }
