@@ -34,7 +34,9 @@ class HomeLayoutPreferencesStore @Inject constructor(
             .distinctUntilChanged()
 
     val areFiltersEnabledFlow: Flow<Boolean> = context.dataStore.data
-            .map { preferences -> preferences[areFiltersEnabled].orFalse() }
+            // The Telegram-style home has a persistent folder row by default.
+            // A user can still explicitly turn home filters off in layout preferences.
+            .map { preferences -> preferences[areFiltersEnabled] ?: true }
             .distinctUntilChanged()
 
     val isAZOrderingEnabledFlow: Flow<Boolean> = context.dataStore.data
