@@ -99,6 +99,12 @@ Checked items record source-level implementation, not proof of 100% pixel parity
 - Standard context-menu labels use the primary content color for readable Telegram-like menu hierarchy, while icons remain secondary and destructive actions retain the theme's error color.
 
 
+### Selected-reaction palette consistency follow-up
+
+- Corrected the selected-reaction chip colors for light, dark, and black themes. The previous values were still translucent Telegram blue despite the resource comment and project checklist specifying the messenger green accent `#0DBD8B`.
+- The revised Android ARGB values use a 12.5% green overlay in light mode (`#200DBD8B`) and a 25% overlay in dark/black mode (`#400DBD8B`), preserving the existing neutral unselected chips and theme-specific contrast.
+- This is a presentation-only resource correction: reaction selection, event sending, and Matrix callbacks are unchanged. A real-device screenshot/contrast check remains required.
+
 ### Black-theme bubble color follow-up (merged and CI-verified; device screenshot pending)
 
 - Explicit black-theme inbound and outbound bubble tokens now override inherited dark-theme bubble colors. The chat canvas remains pure black while incoming/outgoing bubbles keep subtly distinct surfaces.

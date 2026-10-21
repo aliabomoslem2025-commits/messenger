@@ -127,9 +127,9 @@
 
     <attr name="vctr_reaction_background_on" format="color" />
     <!-- Use the app accent (#0DBD8B) so selected reactions stay on-brand in every theme. -->
-    <color name="vctr_reaction_background_on_light">#203390EC</color>
-    <color name="vctr_reaction_background_on_dark">#403390EC</color>
-    <color name="vctr_reaction_background_on_black">#403390EC</color>
+    <color name="vctr_reaction_background_on_light">#200DBD8B</color>
+    <color name="vctr_reaction_background_on_dark">#400DBD8B</color>
+    <color name="vctr_reaction_background_on_black">#400DBD8B</color>
 
     <!-- (color from RiotWeb) -->
     <attr name="vctr_keys_backup_banner_accent_color" format="color" />
