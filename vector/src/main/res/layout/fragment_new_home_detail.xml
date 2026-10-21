@@ -81,18 +81,9 @@
                     android:elevation="0dp"
                     android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
                     app:layout_collapseMode="pin"
+                    app:navigationIcon="@drawable/ic_telegram_menu"
+                    app:navigationIconTint="@android:color/white"
                     tools:title="@string/all_chats">
-
-                    <ImageView
-                        android:id="@+id/avatar"
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:contentDescription="@string/a11y_open_drawer"
-                        android:padding="6dp"
-                        android:scaleType="center"
-                        android:src="@drawable/ic_telegram_menu"
-                        app:tint="@android:color/white"
-                        tools:ignore="MissingPrefix" />
 
                 </com.google.android.material.appbar.MaterialToolbar>
 
