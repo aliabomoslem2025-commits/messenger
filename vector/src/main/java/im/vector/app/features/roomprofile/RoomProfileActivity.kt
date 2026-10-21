@@ -46,6 +46,7 @@ class RoomProfileActivity :
         const val EXTRA_DIRECT_ACCESS_ROOM_ROOT = 0
         const val EXTRA_DIRECT_ACCESS_ROOM_SETTINGS = 1
         const val EXTRA_DIRECT_ACCESS_ROOM_MEMBERS = 2
+        const val EXTRA_DIRECT_ACCESS_ROOM_NOTIFICATIONS = 3
 
         fun newIntent(context: Context, roomId: String, directAccess: Int?): Intent {
             val roomProfileArgs = RoomProfileArgs(roomId)
@@ -83,6 +84,10 @@ class RoomProfileActivity :
                 }
                 EXTRA_DIRECT_ACCESS_ROOM_MEMBERS -> {
                     addFragment(views.simpleFragmentContainer, RoomMemberListFragment::class.java, roomProfileArgs)
+                }
+                EXTRA_DIRECT_ACCESS_ROOM_NOTIFICATIONS -> {
+                    addFragment(views.simpleFragmentContainer, RoomProfileFragment::class.java, roomProfileArgs)
+                    addFragmentToBackstack(views.simpleFragmentContainer, RoomNotificationSettingsFragment::class.java, roomProfileArgs)
                 }
                 else -> addFragment(views.simpleFragmentContainer, RoomProfileFragment::class.java, roomProfileArgs)
             }
