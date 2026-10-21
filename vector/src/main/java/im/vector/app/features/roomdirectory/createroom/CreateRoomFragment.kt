@@ -52,7 +52,10 @@ data class CreateRoomArgs(
         val isSpace: Boolean = false,
         val openAfterCreate: Boolean = true,
         val initialJoinRule: RoomJoinRules? = null,
-        val isChannel: Boolean = false
+        val isChannel: Boolean = false,
+        val isGroup: Boolean = false,
+        val initialInvitedUserIds: List<String> = emptyList(),
+        val initialInvitedThreePids: List<String> = emptyList()
 ) : Parcelable
 
 @AndroidEntryPoint
@@ -93,6 +96,7 @@ class CreateRoomFragment :
                 .setTitle(when {
                     args.isSpace -> CommonStrings.create_new_space
                     args.isChannel -> R.string.telegram_create_channel_title
+                    args.isGroup -> R.string.telegram_new_group
                     else -> CommonStrings.create_new_room
                 })
                 .allowBack(useCross = true)
