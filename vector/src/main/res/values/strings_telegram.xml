@@ -13,6 +13,7 @@
     <string name="telegram_next">Next</string>
     <string name="telegram_chat_info">Chat info</string>
     <string name="telegram_mute_notifications">Mute notifications</string>
+    <string name="telegram_notifications_muted">Notifications muted</string>
     <string name="telegram_set_wallpaper">Set Wallpaper</string>
     <string name="telegram_share_my_contact">Share my contact</string>
     <string name="telegram_my_matrix_contact">My Matrix ID: %1$s</string>
