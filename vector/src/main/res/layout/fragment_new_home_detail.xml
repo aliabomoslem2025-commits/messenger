@@ -387,7 +387,7 @@
         android:background="@drawable/bg_telegram_camera_button"
         android:contentDescription="@string/telegram_open_camera"
         android:elevation="4dp"
-        android:padding="12dp"
+        android:padding="8dp"
         android:src="@drawable/ic_camera"
         app:layout_constraintBottom_toTopOf="@id/newLayoutCreateChatButton"
         app:layout_constraintEnd_toEndOf="@id/newLayoutCreateChatButton"
