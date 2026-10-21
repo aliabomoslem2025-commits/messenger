@@ -506,6 +506,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                         .scaleY(1f)
                         .setDuration(190L)
                         .setInterpolator(OvershootInterpolator(1.25f))
+                        .withEndAction {
+                            // Always leave the reused composer control at its resting scale.
+                            sendButton.scaleX = 1f
+                            sendButton.scaleY = 1f
+                        }
                         .start()
             } else {
                 // Reduced-motion mode must not leave the send action transparent or scaled.
