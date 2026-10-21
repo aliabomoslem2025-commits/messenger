@@ -7,8 +7,10 @@
 
 package im.vector.app.features.home
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -19,6 +21,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -136,6 +139,10 @@ class NewHomeDetailFragment :
             }
             R.id.menu_home_spaces -> {
                 spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
+                true
+            }
+            R.id.menu_home_open_drawer -> {
+                sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
                 true
             }
             R.id.menu_home_search -> true // The persistent search input handles the query.
@@ -271,6 +278,9 @@ class NewHomeDetailFragment :
         }
 
         selectTab(views.telegramTabChats)
+        withState(viewModel) { state ->
+            state.myMatrixItem?.let { avatarRenderer.render(it, views.telegramTabProfileIcon) }
+        }
 
         views.telegramTabChats.debouncedClicks {
             selectTab(views.telegramTabChats)
@@ -339,7 +349,13 @@ class NewHomeDetailFragment :
                 } else {
                     tabs.isVisible = true
                     filters.forEach { filter ->
-                        tabs.addTab(tabs.newTab().setText(filter.titleRes).setTag(filter), false)
+                        val label = when (filter) {
+                            HomeRoomFilter.ALL -> R.string.telegram_filter_all_chats
+                            HomeRoomFilter.UNREADS -> R.string.telegram_filter_unread
+                            HomeRoomFilter.FAVOURITES -> R.string.telegram_filter_favourites
+                            HomeRoomFilter.PEOPlE -> R.string.telegram_filter_people
+                        }
+                        tabs.addTab(tabs.newTab().setText(label).setTag(filter), false)
                     }
                     val selectedIndex = filters.indexOf(headers.currentFilter)
                     if (selectedIndex >= 0) {
@@ -374,6 +390,22 @@ class NewHomeDetailFragment :
             newChatBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, NewChatBottomSheet.TAG)
         }
 
+        views.telegramCameraButton.debouncedClicks {
+            openSystemCamera()
+        }
+
+    }
+
+    private fun openSystemCamera() {
+        try {
+            startActivity(Intent(MediaStore.ACTION_IMAGE_CAPTURE))
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(
+                    requireContext(),
+                    R.string.telegram_camera_unavailable,
+                    Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun showFABs() {
@@ -502,15 +534,10 @@ class NewHomeDetailFragment :
         setupToolbar(views.toolbar)
         views.toolbar.title = getString(R.string.telegram_home_title)
 
-        views.collapsingToolbar.debouncedClicks(::openSpaceSettings)
-        views.toolbar.debouncedClicks(::openSpaceSettings)
-
-        views.toolbar.setNavigationIcon(R.drawable.ic_telegram_menu)
-        views.toolbar.setNavigationContentDescription(R.string.a11y_open_drawer)
-        views.toolbar.setNavigationOnClickListener {
-            // Match Telegram's hamburger behavior; account/settings remain in the drawer.
-            sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
-        }
+        // Telegram's chat list uses a plain title and a trailing overflow menu.
+        // Drawer access remains available as an item in that menu.
+        views.toolbar.navigationIcon = null
+        views.toolbar.setNavigationOnClickListener(null)
     }
 
     private fun setupMigrationBanner() {
