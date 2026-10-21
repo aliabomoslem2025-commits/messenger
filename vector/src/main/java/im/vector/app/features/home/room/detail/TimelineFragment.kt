@@ -184,11 +184,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
+import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -855,11 +857,7 @@ class TimelineFragment :
                 true
             }
             R.id.room_notifications -> {
-                navigator.openRoomProfile(
-                        context = requireActivity(),
-                        roomId = timelineArgs.roomId,
-                        directAccess = RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_NOTIFICATIONS
-                )
+                muteRoomNotifications()
                 true
             }
             R.id.share_my_contact -> {
@@ -1006,6 +1004,18 @@ class TimelineFragment :
                     applyChatWallpaperPreference()
                 }
                 .show()
+    }
+
+    private fun muteRoomNotifications() {
+        val room = session.getRoom(timelineArgs.roomId) ?: return
+        lifecycleScope.launch {
+            try {
+                room.roomPushRuleService().setRoomNotificationState(RoomNotificationState.MUTE)
+                if (isAdded) showSnackWithMessage(getString(R.string.telegram_notifications_muted))
+            } catch (failure: Throwable) {
+                if (isAdded) showSnackWithMessage(errorFormatter.toHumanReadable(failure))
+            }
+        }
     }
 
     private fun confirmLeaveRoom() {
