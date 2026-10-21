@@ -17,6 +17,7 @@
         <item name="vctr_reaction_background_on">@color/vctr_reaction_background_on_black</item>
         <item name="vctr_markdown_block_background_color">#FF4D4D4D</item>
         <item name="vctr_chat_background">@color/vctr_chat_background_black</item>
+        <item name="vctr_chat_wallpaper_doodle">@color/telegram_chat_wallpaper_doodle_black</item>
         <item name="vctr_room_list_background">@color/vctr_room_list_background_black</item>
         <item name="vctr_telegram_search_surface">@color/telegram_search_surface_black</item>
         <item name="vctr_telegram_tab_selected_background">@color/telegram_tab_selected_black</item>
