@@ -9,6 +9,8 @@ package im.vector.app.features.home
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -17,7 +19,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.widget.SearchView
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -47,6 +48,7 @@ import im.vector.app.features.call.SharedKnownCallsViewModel
 import im.vector.app.features.call.VectorCallActivity
 import im.vector.app.features.call.dialpad.PstnDialActivity
 import im.vector.app.features.call.webrtc.WebRtcCallManager
+import im.vector.app.features.contactsbook.ContactsBookFragment
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.elementx.MigrationBannerAction
 import im.vector.app.features.elementx.MigrationBannerState
@@ -98,7 +100,7 @@ class NewHomeDetailFragment :
     private val homeRoomListViewModel: HomeRoomListViewModel by activityViewModel()
 
     private var isSyncingTelegramHomeTabs = false
-    private var configuredHomeSearchView: SearchView? = null
+    private var homeSearchTextWatcher: TextWatcher? = null
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
     private val migrationBannerViewModel: MigrationBannerViewModel by activityViewModel()
@@ -136,7 +138,7 @@ class NewHomeDetailFragment :
                 spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
                 true
             }
-            R.id.menu_home_search -> true // Expanded SearchView handles the query.
+            R.id.menu_home_search -> true // The persistent search input handles the query.
             else -> false
         }
     }
@@ -151,36 +153,8 @@ class NewHomeDetailFragment :
             val spacesTitle = getString(R.string.a11y_open_spaces)
             spacesItem.title = spacesUnreadLabel?.let { "$spacesTitle ($it)" } ?: spacesTitle
 
-            val searchItem = menu.findItem(R.id.menu_home_search)
-            searchItem.isVisible = isRoomList
-            val searchView = searchItem.actionView as? SearchView
-            if (searchView != null) {
-                searchView.queryHint = getString(CommonStrings.search)
-                if (configuredHomeSearchView !== searchView) {
-                    configuredHomeSearchView = searchView
-                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                        override fun onQueryTextSubmit(query: String?): Boolean {
-                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(query.orEmpty()))
-                            searchView.clearFocus()
-                            return true
-                        }
-
-                        override fun onQueryTextChange(newText: String?): Boolean {
-                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(newText.orEmpty()))
-                            return true
-                        }
-                    })
-                    searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-                        override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
-
-                        override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                            searchView.setQuery("", false)
-                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(""))
-                            return true
-                        }
-                    })
-                }
-            }
+            // Search is a persistent input below the toolbar, not an overflow action.
+            menu.findItem(R.id.menu_home_search).isVisible = false
         }
     }
 
@@ -202,6 +176,9 @@ class NewHomeDetailFragment :
         setupDebugButton()
         setupFabs()
         setupObservers()
+
+        setupTelegramHomeSearch()
+        setupTelegramBottomNavigation()
 
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)
@@ -257,6 +234,84 @@ class NewHomeDetailFragment :
             // Spaces is now in the toolbar menu; keep its unread signal there instead of
             // drawing a detached badge where the hidden floating action button used to be.
             invalidateOptionsMenu()
+        }
+    }
+
+    private fun setupTelegramHomeSearch() {
+        val input = views.telegramHomeSearchInput
+        homeSearchTextWatcher?.let(input::removeTextChangedListener)
+        val watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(s?.toString().orEmpty()))
+            }
+            override fun afterTextChanged(s: Editable?) = Unit
+        }
+        homeSearchTextWatcher = watcher
+        input.addTextChangedListener(watcher)
+    }
+
+    /**
+     * Keep the floating four-item navigation tied to real Element/Matrix destinations.
+     * Contacts opens the device contacts book; profile opens the signed-in user's
+     * Matrix profile. No placeholder tabs or fake screen content are introduced.
+     */
+    private fun setupTelegramBottomNavigation() {
+        val tabs = listOf(
+                views.telegramTabChats,
+                views.telegramTabContacts,
+                views.telegramTabSettings,
+                views.telegramTabProfile
+        )
+
+        fun selectTab(selected: View) {
+            tabs.forEach { tab ->
+                tab.isSelected = tab.id == selected.id
+            }
+        }
+
+        selectTab(views.telegramTabChats)
+
+        views.telegramTabChats.debouncedClicks {
+            selectTab(views.telegramTabChats)
+            views.telegramHomeSearchInput.text?.clear()
+            viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.PEOPLE)))
+            homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
+        }
+
+        views.telegramTabContacts.debouncedClicks {
+            selectTab(views.telegramTabContacts)
+            views.toolbar.title = getString(R.string.telegram_tab_contacts)
+            childFragmentManager.commitTransaction {
+                replace(R.id.roomListContainer, ContactsBookFragment())
+                addToBackStack("telegram_contacts")
+            }
+        }
+
+        childFragmentManager.addOnBackStackChangedListener {
+            val contactsVisible = childFragmentManager.findFragmentById(R.id.roomListContainer) is ContactsBookFragment
+            // FragmentManager outlives this view; don't access view binding after onDestroyView.
+            if (!contactsVisible && isAdded && view != null) {
+                views.toolbar.title = getString(R.string.telegram_home_title)
+                selectTab(views.telegramTabChats)
+            }
+        }
+
+        views.telegramTabSettings.debouncedClicks {
+            selectTab(views.telegramTabSettings)
+            navigator.openSettings(requireContext())
+        }
+
+        views.telegramTabProfile.debouncedClicks {
+            selectTab(views.telegramTabProfile)
+            withState(viewModel) { state ->
+                val ownUserId = state.myMatrixItem?.id
+                if (ownUserId.isNullOrBlank()) {
+                    navigator.openSettings(requireContext())
+                } else {
+                    navigator.openRoomMemberProfile(ownUserId, null, requireContext())
+                }
+            }
         }
     }
 
@@ -332,6 +387,8 @@ class NewHomeDetailFragment :
     }
 
     override fun onDestroyView() {
+        homeSearchTextWatcher?.let { watcher -> views.telegramHomeSearchInput.removeTextChangedListener(watcher) }
+        homeSearchTextWatcher = null
         currentCallsViewPresenter.unBind()
         super.onDestroyView()
     }
@@ -443,6 +500,7 @@ class NewHomeDetailFragment :
 
     private fun setupToolbar() {
         setupToolbar(views.toolbar)
+        views.toolbar.title = getString(R.string.telegram_home_title)
 
         views.collapsingToolbar.debouncedClicks(::openSpaceSettings)
         views.toolbar.debouncedClicks(::openSpaceSettings)

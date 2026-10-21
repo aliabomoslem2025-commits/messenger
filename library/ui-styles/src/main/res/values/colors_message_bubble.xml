@@ -8,7 +8,8 @@
     <color name="vctr_message_bubble_inbound_dark">#182533</color>
     <color name="vctr_message_bubble_inbound_black">#1C1C1E</color>
     <attr name="vctr_message_bubble_outbound" format="color" />
-    <color name="vctr_message_bubble_outbound_light">#EEFFDE</color>
+    <attr name="vctr_message_bubble_outbound_text" format="color" />
+    <color name="vctr_message_bubble_outbound_light">#3390EC</color>
     <color name="vctr_message_bubble_outbound_dark">#2B5278</color>
     <color name="vctr_message_bubble_outbound_black">#15324A</color>
 </resources>

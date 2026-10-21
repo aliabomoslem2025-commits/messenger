@@ -11,7 +11,8 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?vctr_messenger_actionbar_background"
+        android:background="@android:color/transparent"
+        android:elevation="0dp"
         app:layout_constraintTop_toTopOf="parent">
 
         <im.vector.app.core.ui.views.CurrentCallsView
@@ -25,10 +26,17 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/roomToolbar"
             android:layout_width="match_parent"
-            android:layout_height="?actionBarSize"
-            android:background="?vctr_messenger_actionbar_background"
-            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
-            android:transitionName="toolbar">
+            android:layout_height="64dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="4dp"
+            android:background="@drawable/bg_telegram_chat_header"
+            android:clipToOutline="true"
+            android:elevation="2dp"
+            android:transitionName="toolbar"
+            app:navigationIconTint="?vctr_content_primary"
+            >
 
             <include
                 android:id="@+id/includeThreadToolbar"
@@ -79,7 +87,7 @@
             android:id="@+id/timelineRecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="?vctr_chat_background"
+            android:background="@drawable/bg_telegram_chat_doodles"
             android:overScrollMode="always"
             app:layout_constraintBottom_toTopOf="@id/failedMessagesWarningStub"
             app:layout_constraintEnd_toEndOf="parent"

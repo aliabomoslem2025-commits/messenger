@@ -25,6 +25,7 @@ import javax.inject.Inject
 
 private const val REACTION_BOUNCE_DURATION_MS = 180L
 private const val REACTION_TEXT_BOUNCE_SCALE = 0.72f
+private const val REACTION_COUNT_BOUNCE_DURATION_MS = 170L
 
 /**
  * An animated reaction button.
@@ -47,8 +48,12 @@ class ReactionButton @JvmOverloads constructor(
 
     var reactionCount = 11
         set(value) {
+            val didChange = field != value
             field = value
             views.reactionCount.text = TextUtils.formatCountToShortDecimal(value)
+            if (didChange) {
+                animateReactionCountChange()
+            }
         }
 
     var reactionString = "😀"
@@ -110,6 +115,35 @@ class ReactionButton @JvmOverloads constructor(
         }
 
         animateReactionSelection()
+    }
+
+    /**
+     * A Matrix reaction summary can update after the local echo or when another
+     * member reacts. Pop only the count label, not the entire timeline row, so
+     * receipt and encryption-state rebinding cannot make the message flicker.
+     */
+    private fun animateReactionCountChange() {
+        val countView = views.reactionCount
+        countView.animate().cancel()
+        countView.scaleX = 1f
+        countView.scaleY = 1f
+        countView.alpha = 1f
+        countView.translationY = 0f
+
+        if (!isAttachedToWindow || !context.isAnimationEnabled()) return
+
+        countView.scaleX = 0.72f
+        countView.scaleY = 0.72f
+        countView.alpha = 0.65f
+        countView.translationY = -resources.displayMetrics.density * 2f
+        countView.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(REACTION_COUNT_BOUNCE_DURATION_MS)
+                .setInterpolator(OvershootInterpolator(1.25f))
+                .start()
     }
 
     private fun animateReactionSelection() {

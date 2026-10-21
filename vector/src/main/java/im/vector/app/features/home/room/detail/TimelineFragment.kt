@@ -184,11 +184,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.billcarsonfr.jsonviewer.JSonViewerDialog
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
+import org.matrix.android.sdk.api.session.room.notification.RoomNotificationState
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -212,6 +214,9 @@ import timber.log.Timber
 import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
+
+private const val WALLPAPER_DOODLES = 0
+private const val WALLPAPER_PLAIN = 1
 
 @AndroidEntryPoint
 class TimelineFragment :
@@ -327,6 +332,7 @@ class TimelineFragment :
         setupToolbar(views.roomToolbar)
                 .allowBack()
         setupRecyclerView()
+        applyChatWallpaperPreference()
         setupNotificationView()
         setupJumpToReadMarkerView()
         setupActiveCallView()
@@ -850,6 +856,25 @@ class TimelineFragment :
                 navigator.openInviteUsersToRoom(requireActivity(), timelineArgs.roomId)
                 true
             }
+            R.id.room_notifications -> {
+                muteRoomNotifications()
+                true
+            }
+            R.id.share_my_contact -> {
+                shareText(
+                        requireContext(),
+                        getString(R.string.telegram_my_matrix_contact, session.myUserId)
+                )
+                true
+            }
+            R.id.set_wallpaper -> {
+                showChatWallpaperPicker()
+                true
+            }
+            R.id.delete_chat -> {
+                confirmLeaveRoom()
+                true
+            }
             R.id.timeline_setting -> {
                 navigator.openRoomProfile(requireActivity(), timelineArgs.roomId)
                 true
@@ -940,6 +965,76 @@ class TimelineFragment :
                 con.startActivity(intent)
             }
         }
+    }
+
+    private fun chatWallpaperPreferences() =
+            requireContext().getSharedPreferences("telegram_chat_wallpaper", android.content.Context.MODE_PRIVATE)
+
+    private fun chatWallpaperPreferenceKey() = "room:${timelineArgs.roomId}"
+
+    private fun applyChatWallpaperPreference() {
+        val wallpaper = chatWallpaperPreferences().getInt(chatWallpaperPreferenceKey(), WALLPAPER_DOODLES)
+        if (wallpaper == WALLPAPER_PLAIN) {
+            views.timelineRecyclerView.setBackgroundColor(
+                    ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_chat_background)
+            )
+        } else {
+            views.timelineRecyclerView.setBackgroundResource(R.drawable.bg_telegram_chat_doodles)
+        }
+    }
+
+    private fun showChatWallpaperPicker() {
+        val values = arrayOf(
+                getString(R.string.telegram_wallpaper_doodles),
+                getString(R.string.telegram_wallpaper_plain)
+        )
+        val current = chatWallpaperPreferences().getInt(chatWallpaperPreferenceKey(), WALLPAPER_DOODLES)
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.telegram_wallpaper_choose_title)
+                .setSingleChoiceItems(values, current) { dialog, which ->
+                    chatWallpaperPreferences().edit()
+                            .putInt(chatWallpaperPreferenceKey(), which)
+                            .apply()
+                    applyChatWallpaperPreference()
+                    dialog.dismiss()
+                }
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .setNeutralButton(R.string.telegram_wallpaper_reset) { _, _ ->
+                    chatWallpaperPreferences().edit().remove(chatWallpaperPreferenceKey()).apply()
+                    applyChatWallpaperPreference()
+                }
+                .show()
+    }
+
+    private fun muteRoomNotifications() {
+        val room = session.getRoom(timelineArgs.roomId) ?: return
+        lifecycleScope.launch {
+            try {
+                room.roomPushRuleService().setRoomNotificationState(RoomNotificationState.MUTE)
+                if (isAdded) showSnackWithMessage(getString(R.string.telegram_notifications_muted))
+            } catch (failure: Throwable) {
+                if (isAdded) showSnackWithMessage(errorFormatter.toHumanReadable(failure))
+            }
+        }
+    }
+
+    private fun confirmLeaveRoom() {
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.telegram_delete_chat)
+                .setMessage(R.string.telegram_delete_chat_confirmation)
+                .setNegativeButton(CommonStrings.action_cancel, null)
+                .setPositiveButton(R.string.telegram_delete_chat) { _, _ ->
+                    lifecycleScope.launch {
+                        try {
+                            session.roomService().leaveRoom(timelineArgs.roomId)
+                        } catch (failure: Throwable) {
+                            if (isAdded) {
+                                showSnackWithMessage(errorFormatter.toHumanReadable(failure))
+                            }
+                        }
+                    }
+                }
+                .show()
     }
 
     private fun handleSearchAction() = withState(timelineViewModel) { state ->

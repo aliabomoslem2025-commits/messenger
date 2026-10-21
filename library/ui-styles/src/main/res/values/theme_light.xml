@@ -28,12 +28,16 @@
         <item name="vctr_waiting_background_color">@color/vctr_waiting_background_color_light</item>
         <item name="vctr_chat_effect_snow_background">@color/vctr_chat_effect_snow_background_light</item>
         <item name="vctr_chat_background">@color/vctr_chat_background_light</item>
+        <item name="vctr_chat_wallpaper_doodle">@color/telegram_chat_wallpaper_doodle_light</item>
         <item name="vctr_room_list_background">@color/vctr_room_list_background_light</item>
+        <item name="vctr_telegram_search_surface">@color/telegram_search_surface_light</item>
+        <item name="vctr_telegram_tab_selected_background">@color/telegram_tab_selected_light</item>
         <item name="vctr_messenger_actionbar_background">@color/vctr_messenger_actionbar_background_light</item>
         <item name="vctr_telegram_send_accent">@color/telegram_brand_green</item>
         <item name="vctr_toolbar_background">@color/element_background_light</item>
         <item name="vctr_message_bubble_inbound">@color/vctr_message_bubble_inbound_light</item>
         <item name="vctr_message_bubble_outbound">@color/vctr_message_bubble_outbound_light</item>
+        <item name="vctr_message_bubble_outbound_text">@android:color/white</item>
         <item name="vctr_badge_color_border">@color/vctr_badge_color_border_light</item>
 
         <!-- room message colors -->

@@ -37,6 +37,8 @@ import im.vector.app.features.qrcode.QrCodeScannerEvents
 import im.vector.app.features.qrcode.QrCodeScannerFragment
 import im.vector.app.features.qrcode.QrCodeScannerViewModel
 import im.vector.app.features.qrcode.QrScannerArgs
+import im.vector.app.features.roomdirectory.createroom.CreateRoomActivity
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import im.vector.app.features.userdirectory.PendingSelection
 import im.vector.app.features.userdirectory.UserListFragment
 import im.vector.app.features.userdirectory.UserListFragmentArgs
@@ -56,6 +58,9 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
     private val qrViewModel: QrCodeScannerViewModel by viewModel()
 
     private lateinit var sharedActionViewModel: UserListSharedActionViewModel
+
+    private val isGroupCreation: Boolean
+        get() = intent?.getBooleanExtra(EXTRA_GROUP_CREATION, false) == true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,10 +86,10 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
                     views.container,
                     UserListFragment::class.java,
                     UserListFragmentArgs(
-                            title = getString(CommonStrings.fab_menu_create_chat),
-                            menuResId = R.menu.vector_create_direct_room,
+                            title = getString(if (isGroupCreation) R.string.telegram_new_group else CommonStrings.fab_menu_create_chat),
+                            menuResId = if (isGroupCreation) R.menu.vector_create_group else R.menu.vector_create_direct_room,
                             submitMenuItemId = R.id.action_create_direct_room,
-                            single3pidSelection = true,
+                            single3pidSelection = !isGroupCreation,
                     )
             )
         }
@@ -102,6 +107,7 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
                     Toast.makeText(this, CommonStrings.cannot_dm_self, Toast.LENGTH_SHORT).show()
                     finish()
                 }
+                is CreateDirectRoomViewEvents.GroupMembersSelected -> openGroupCreation(it)
             }
         }
 
@@ -150,16 +156,28 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
         }
     }
 
+    private fun openGroupCreation(event: CreateDirectRoomViewEvents.GroupMembersSelected) {
+        val intent = CreateRoomActivity.getIntent(
+                context = this,
+                initialJoinRule = RoomJoinRules.INVITE,
+                isGroup = true,
+                initialInvitedUserIds = event.userIds,
+                initialInvitedThreePids = event.threePids
+        )
+        startActivity(intent)
+        finish()
+    }
+
     private fun handleOnMenuItemSubmitClick(action: UserListSharedAction.OnMenuItemSubmitClick) {
         val unknownUsers = action.selections.filter { it is PendingSelection.UserPendingSelection && it.isUnknownUser }
         if (unknownUsers.isEmpty()) {
-            viewModel.handle(CreateDirectRoomAction.PrepareRoomWithSelectedUsers(action.selections))
+            viewModel.handle(CreateDirectRoomAction.PrepareRoomWithSelectedUsers(action.selections, isGroupCreation))
         } else {
             MaterialAlertDialogBuilder(this)
                     .setTitle(CommonStrings.dialog_title_confirmation)
                     .setMessage(getString(CommonStrings.create_room_unknown_users_dialog_content, unknownUsers.joinToString("\n • ", " • ") { it.getMxId() }))
                     .setPositiveButton(CommonStrings.create_room_unknown_users_dialog_submit) { _, _ ->
-                        viewModel.handle(CreateDirectRoomAction.PrepareRoomWithSelectedUsers(action.selections))
+                        viewModel.handle(CreateDirectRoomAction.PrepareRoomWithSelectedUsers(action.selections, isGroupCreation))
                     }
                     .setNegativeButton(CommonStrings.action_cancel, null)
                     .show()
@@ -218,8 +236,12 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
 
     companion object {
 
-        fun getIntent(context: Context): Intent {
-            return Intent(context, CreateDirectRoomActivity::class.java)
+        private const val EXTRA_GROUP_CREATION = "EXTRA_GROUP_CREATION"
+
+        fun getIntent(context: Context, isGroupCreation: Boolean = false): Intent {
+            return Intent(context, CreateDirectRoomActivity::class.java).apply {
+                putExtra(EXTRA_GROUP_CREATION, isGroupCreation)
+            }
         }
     }
 }

@@ -7,19 +7,48 @@
     <item
         android:id="@+id/timeline_setting"
         android:icon="@drawable/ic_settings_x"
-        android:title="@string/settings"
+        android:title="@string/telegram_chat_info"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/room_notifications"
+        android:icon="@drawable/ic_room_profile_notification"
+        android:title="@string/telegram_mute_notifications"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/share_my_contact"
+        android:icon="@drawable/ic_user_round"
+        android:title="@string/telegram_share_my_contact"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/set_wallpaper"
+        android:icon="@drawable/ic_room_profile_uploads"
+        android:title="@string/telegram_set_wallpaper"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/delete_chat"
+        android:icon="@drawable/ic_trash"
+        android:title="@string/telegram_delete_chat"
+        app:iconTint="?attr/colorError"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/search"
         android:icon="@drawable/ic_home_search"
         android:title="@string/search"
-        app:iconTint="@android:color/white"
-        app:showAsAction="ifRoom" />
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/invite"
+        android:icon="@drawable/ic_room_profile_member_list"
         android:title="@string/action_invite"
+        app:iconTint="?vctr_content_secondary"
         app:showAsAction="never" />
 
     <!-- We always want to show this item as an icon -->
@@ -29,7 +58,7 @@
         android:title="@string/action_video_call"
         android:visible="false"
         app:iconTint="@android:color/white"
-        app:showAsAction="always"
+        app:showAsAction="never"
         tools:visible="true" />
 
     <!-- We always want to show this item as an icon -->
@@ -39,7 +68,7 @@
         android:title="@string/action_voice_call"
         android:visible="false"
         app:iconTint="@android:color/white"
-        app:showAsAction="always"
+        app:showAsAction="never"
         tools:visible="true" />
 
     <!-- We always want to show this item as an icon -->
@@ -49,7 +78,7 @@
         android:visible="false"
         app:actionLayout="@layout/view_thread_notification_badge"
         app:iconTint="?colorPrimary"
-        app:showAsAction="always"
+        app:showAsAction="never"
         tools:visible="true" />
 
     <item

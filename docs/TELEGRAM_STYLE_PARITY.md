@@ -119,6 +119,18 @@ Validated source revision: [f8fd8a2](https://github.com/aliabomoslem2025-commits
 - The checked-in Gradle Wrapper remains **8.13** and these workflows use **JDK 21**.
 - These results prove automated build/unit-test/lint success for that commit. They do **not** prove visual pixel parity, emulator/device behavior, live Matrix sync, message send/retry, cross-client reaction sync, encrypted-media playback, or TalkBack behavior.
 
+### Screenshot-driven chat and creation pass (implementation committed; CI/device acceptance pending)
+
+- Replaced the flat light chat canvas with a very low-contrast, original doodle wallpaper vector behind the timeline. The wallpaper is scoped to the timeline surface and has theme-aware light/dark/black line colors.
+- Matched outgoing text bubbles to Telegram's blue surface. Message-body text and timestamps inside outgoing bubbles now use a white text token; incoming content still uses the normal theme text color. The change is applied by the message-bubble renderer rather than globally.
+- Rounded the chat toolbar and composer, placed the attachment action inside the composer capsule, and added a send-button pop/collapse transition that resets correctly when animations are disabled or interrupted.
+- Reaction count labels now bounce briefly when the underlying Matrix reaction count changes; the existing reaction selection animation, haptics, event callbacks, and SDK add/remove operations remain intact.
+- Added a real per-room local wallpaper choice (doodles/plain) stored in app preferences. This setting is local to the current account/device and does not pretend to be a Matrix-synced room state.
+- Expanded the chat overflow with Matrix-backed mute notifications, search, user/room details, invite, share-my-Matrix-ID via the Android share sheet, per-room wallpaper selection, and a confirmed leave-room action labelled “Delete Chat”. “Clear history” is deliberately not exposed as if it were universally available: a Matrix client cannot reliably erase every participant’s room history with one generic action.
+- Added a four-tab floating home navigation wired to the real Matrix chat list/filter, device contacts book, settings, and signed-in user profile flows.
+- “New Group” now selects multiple users first, then creates a private Matrix room and invites the selected Matrix users/third-party identifiers in the actual create-room request. “New Channel” uses a public Matrix room flow. Matrix does not define a separate Telegram channel room type, so the implementation is a public room and still requires a valid room alias.
+- These are source-level changes. Automated Gradle build/test/lint and device checks must pass before treating the changes as accepted; screenshot resemblance and action behavior are not claimed as 100% until verified on device.
+
 ### Remaining acceptance gates before claiming 100% Telegram parity
 
 - [ ] Capture side-by-side screenshots of running Telegram and Messenger at the same device, density, font scale, theme, and content for room list, chat header, grouped messages, replies/edits/forwards, reactions, context menus, composer/recording, media, and profile screens; fix the differences revealed by those screenshots.

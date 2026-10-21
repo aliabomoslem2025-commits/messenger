@@ -70,7 +70,9 @@ class CreateRoomViewModel @AssistedInject constructor(
                 .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_RESTRICTED)
         val createRestricted = restrictedSupport == HomeServerCapabilities.RoomCapabilitySupport.SUPPORTED
 
-        val defaultJoinRules = if (parentSpaceId != null && createRestricted) {
+        // Channel entry requests PUBLIC explicitly; otherwise preserve the established
+        // private/restricted defaults for normal group-room creation.
+        val defaultJoinRules = initialState.initialJoinRule ?: if (parentSpaceId != null && createRestricted) {
             RoomJoinRules.RESTRICTED
         } else {
             RoomJoinRules.INVITE
@@ -232,6 +234,8 @@ class CreateRoomViewModel @AssistedInject constructor(
 
         val createRoomParams = CreateRoomParams()
                 .apply {
+                    invitedUserIds.addAll(state.initialInvitedUserIds)
+                    invite3pids.addAll(state.initialInvitedThreePids)
                     name = state.roomName.takeIf { it.isNotBlank() }
                     topic = state.roomTopic.takeIf { it.isNotBlank() }
                     avatarUri = state.avatarUri

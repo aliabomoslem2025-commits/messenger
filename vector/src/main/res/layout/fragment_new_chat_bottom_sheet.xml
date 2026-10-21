@@ -14,7 +14,7 @@
         android:drawablePadding="16dp"
         android:paddingHorizontal="16dp"
         android:paddingVertical="16dp"
-        android:text="@string/start_chat"
+        android:text="@string/telegram_new_message"
         android:textColor="?vctr_content_primary"
         android:textSize="16sp"
         app:drawableStartCompat="@drawable/ic_chat" />
@@ -28,10 +28,25 @@
         android:drawablePadding="16dp"
         android:paddingHorizontal="16dp"
         android:paddingVertical="16dp"
-        android:text="@string/create_room"
+        android:text="@string/telegram_new_group"
         android:textColor="?vctr_content_primary"
         android:textSize="16sp"
         app:drawableStartCompat="@drawable/ic_room_add" />
+
+    <TextView
+        android:id="@+id/create_channel"
+        style="@style/Widget.Vector.TextView.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?selectableItemBackground"
+        android:drawablePadding="16dp"
+        android:minHeight="56dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="16dp"
+        android:text="@string/telegram_new_channel"
+        android:textColor="?vctr_content_primary"
+        android:textSize="16sp"
+        app:drawableStartCompat="@drawable/ic_public_room" />
 
     <TextView
         android:id="@+id/explore_rooms"

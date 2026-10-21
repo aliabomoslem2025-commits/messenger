@@ -323,6 +323,19 @@ class DefaultNavigator @Inject constructor(
         context.startActivity(intent)
     }
 
+    override fun openCreateGroup(context: Context) {
+        context.startActivity(CreateDirectRoomActivity.getIntent(context, isGroupCreation = true))
+    }
+
+    override fun openCreateChannel(context: Context) {
+        val intent = CreateRoomActivity.getIntent(
+                context = context,
+                isChannel = true,
+                initialJoinRule = org.matrix.android.sdk.api.session.room.model.RoomJoinRules.PUBLIC
+        )
+        context.startActivity(intent)
+    }
+
     override fun openCreateDirectRoom(context: Context) {
         when (val currentSpace = spaceStateHandler.getCurrentSpace()) {
             null -> CreateDirectRoomActivity.getIntent(context)

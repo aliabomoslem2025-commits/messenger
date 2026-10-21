@@ -24,6 +24,7 @@ import im.vector.app.features.roomdirectory.RoomDirectorySharedActionViewModel
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 
 /**
  * Simple container for [CreateRoomFragment].
@@ -82,7 +83,12 @@ class CreateRoomActivity : VectorBaseActivity<ActivitySimpleBinding>() {
                 initialName: String = "",
                 isSpace: Boolean = false,
                 openAfterCreate: Boolean = true,
-                currentSpaceId: String? = null
+                currentSpaceId: String? = null,
+                initialJoinRule: RoomJoinRules? = null,
+                isChannel: Boolean = false,
+                isGroup: Boolean = false,
+                initialInvitedUserIds: List<String> = emptyList(),
+                initialInvitedThreePids: List<String> = emptyList()
         ): Intent {
             return Intent(context, CreateRoomActivity::class.java).apply {
                 putExtra(
@@ -90,7 +96,12 @@ class CreateRoomActivity : VectorBaseActivity<ActivitySimpleBinding>() {
                         initialName = initialName,
                         isSpace = isSpace,
                         openAfterCreate = openAfterCreate,
-                        parentSpaceId = currentSpaceId
+                        parentSpaceId = currentSpaceId,
+                        initialJoinRule = initialJoinRule,
+                        isChannel = isChannel,
+                        isGroup = isGroup,
+                        initialInvitedUserIds = initialInvitedUserIds,
+                        initialInvitedThreePids = initialInvitedThreePids
                 )
                 )
             }

@@ -12,4 +12,5 @@ import im.vector.app.core.platform.VectorViewEvents
 sealed class CreateDirectRoomViewEvents : VectorViewEvents {
     object InvalidCode : CreateDirectRoomViewEvents()
     object DmSelf : CreateDirectRoomViewEvents()
+    data class GroupMembersSelected(val userIds: List<String>, val threePids: List<String>) : CreateDirectRoomViewEvents()
 }

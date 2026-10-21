@@ -19,6 +19,7 @@ data class CreateRoomViewState(
         val roomName: String = "",
         val roomTopic: String = "",
         val roomJoinRules: RoomJoinRules = RoomJoinRules.INVITE,
+        val initialJoinRule: RoomJoinRules? = null,
         val isEncrypted: Boolean? = null,
         val defaultEncrypted: Map<RoomJoinRules, Boolean> = emptyMap(),
         val showAdvanced: Boolean = false,
@@ -31,14 +32,22 @@ data class CreateRoomViewState(
         val supportsRestricted: Boolean = false,
         val aliasLocalPart: String? = null,
         val isSubSpace: Boolean = false,
-        val openAfterCreate: Boolean = true
+        val openAfterCreate: Boolean = true,
+        val isGroup: Boolean = false,
+        val initialInvitedUserIds: List<String> = emptyList(),
+        val initialInvitedThreePids: List<String> = emptyList()
 ) : MavericksState {
 
     constructor(args: CreateRoomArgs) : this(
             roomName = args.initialName,
+            roomJoinRules = args.initialJoinRule ?: RoomJoinRules.INVITE,
+            initialJoinRule = args.initialJoinRule,
             parentSpaceId = args.parentSpaceId,
             isSubSpace = args.isSpace,
-            openAfterCreate = args.openAfterCreate
+            openAfterCreate = args.openAfterCreate,
+            isGroup = args.isGroup,
+            initialInvitedUserIds = args.initialInvitedUserIds,
+            initialInvitedThreePids = args.initialInvitedThreePids
     )
 
     /**

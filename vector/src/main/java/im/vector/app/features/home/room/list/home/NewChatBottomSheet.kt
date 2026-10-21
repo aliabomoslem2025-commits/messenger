@@ -39,7 +39,12 @@ class NewChatBottomSheet : VectorBaseBottomSheetDialogFragment<FragmentNewChatBo
 
         views.createRoom.debouncedClicks {
             dismiss()
-            navigator.openCreateRoom(requireActivity())
+            navigator.openCreateGroup(requireActivity())
+        }
+
+        views.createChannel.debouncedClicks {
+            dismiss()
+            navigator.openCreateChannel(requireActivity())
         }
 
         views.exploreRooms.debouncedClicks {

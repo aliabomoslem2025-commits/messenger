@@ -16,6 +16,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
@@ -96,6 +97,7 @@ class MessageBubbleView @JvmOverloads constructor(
                 ?.setPadding()
                 ?.setMargins()
                 ?.setAdditionalTopSpace()
+                ?.setMessageTextColor()
                 ?: Timber.v("Can't render messageLayout $messageLayout")
     }
 
@@ -119,6 +121,23 @@ class MessageBubbleView @JvmOverloads constructor(
         rippleMaskDrawable.shapeAppearanceModel = shapeAppearanceModel
     }
 
+    /**
+     * Telegram's outgoing blue bubbles use white text. Apply this only to the
+     * actual message body, not globally, so incoming messages, system notices,
+     * settings and unrelated Matrix screens retain their normal text palette.
+     */
+    private fun TimelineMessageLayout.Bubble.setMessageTextColor() = apply {
+        val messageText = views.viewStubContainer.root.findViewById<TextView>(R.id.messageTextView)
+        if (messageText != null) {
+            val textColorAttribute = if (isIncoming) {
+                im.vector.lib.ui.styles.R.attr.vctr_content_primary
+            } else {
+                im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+            }
+            messageText.setTextColor(ThemeUtils.getColor(context, textColorAttribute))
+        }
+    }
+
     private fun TimelineMessageLayout.Bubble.setConstraints() = apply {
         ConstraintSet().apply {
             clone(views.bubbleView)
@@ -139,7 +158,11 @@ class MessageBubbleView @JvmOverloads constructor(
             views.messageOverlayView.isVisible = true
             (views.messageOverlayView.background as? GradientDrawable)?.cornerRadii = cornersRadius.toFloatArray()
         } else {
-            val timeColor = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
+            val timeColor = if (!isIncoming && timestampInsideMessage) {
+                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text)
+            } else {
+                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
+            }
             views.messageTimeView.setTextColor(timeColor)
             views.messageOverlayView.isVisible = false
         }

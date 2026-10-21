@@ -19,6 +19,7 @@ import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.Toast
@@ -137,6 +138,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         get() = vectorPreferences.showEmojiKeyboard()
 
     private var lockSendButton = false
+    private var sendButtonAnimationGeneration = 0
 
     private lateinit var attachmentsHelper: AttachmentsHelper
     private lateinit var attachmentTypeSelector: AttachmentTypeSelectorView
@@ -490,24 +492,67 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun handleSendButtonVisibilityChanged(event: MessageComposerViewEvents.AnimateSendButtonVisibility) {
         val sendButton = composer.sendButton
+        val generation = ++sendButtonAnimationGeneration
         sendButton.animate().cancel()
+
+        if (!requireContext().isAnimationEnabled()) {
+            // Reduced-motion mode must never leave a transparent/scaled recycled button.
+            sendButton.alpha = 1f
+            sendButton.scaleX = 1f
+            sendButton.scaleY = 1f
+            sendButton.translationY = 0f
+            sendButton.isVisible = event.isVisible
+            return
+        }
 
         if (event.isVisible) {
             sendButton.isVisible = true
-            if (requireContext().isAnimationEnabled()) {
-                sendButton.alpha = 0f
-                sendButton.animate()
-                        .alpha(1f)
-                        .setDuration(150L)
-                        .start()
-            } else {
-                // Reduced-motion mode must not leave the send action transparent.
-                sendButton.alpha = 1f
-            }
+            sendButton.alpha = 0f
+            sendButton.scaleX = 0.72f
+            sendButton.scaleY = 0.72f
+            sendButton.translationY = 4f * resources.displayMetrics.density
+            sendButton.animate()
+                    .alpha(1f)
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .translationY(0f)
+                    .setDuration(190L)
+                    .setInterpolator(OvershootInterpolator(1.15f))
+                    .withEndAction {
+                        if (generation == sendButtonAnimationGeneration) {
+                            sendButton.alpha = 1f
+                            sendButton.scaleX = 1f
+                            sendButton.scaleY = 1f
+                            sendButton.translationY = 0f
+                        }
+                    }
+                    .start()
         } else {
-            // Cancel an in-flight fade before hiding, then restore the reusable view's alpha.
-            sendButton.alpha = 1f
-            sendButton.isInvisible = true
+            if (!sendButton.isVisible) {
+                sendButton.alpha = 1f
+                sendButton.scaleX = 1f
+                sendButton.scaleY = 1f
+                sendButton.translationY = 0f
+                sendButton.isInvisible = true
+                return
+            }
+
+            sendButton.animate()
+                    .alpha(0f)
+                    .scaleX(0.78f)
+                    .scaleY(0.78f)
+                    .translationY(3f * resources.displayMetrics.density)
+                    .setDuration(115L)
+                    .withEndAction {
+                        if (generation == sendButtonAnimationGeneration) {
+                            sendButton.isInvisible = true
+                            sendButton.alpha = 1f
+                            sendButton.scaleX = 1f
+                            sendButton.scaleY = 1f
+                            sendButton.translationY = 0f
+                        }
+                    }
+                    .start()
         }
     }
 
