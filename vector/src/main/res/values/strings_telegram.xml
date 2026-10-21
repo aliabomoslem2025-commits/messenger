@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="telegram_search_chats">Search Chats</string>
+    <string name="telegram_home_title">Telegram</string>
     <string name="telegram_new_message">New Message</string>
     <string name="telegram_new_group">New Group</string>
     <string name="telegram_new_channel">New Channel</string>
