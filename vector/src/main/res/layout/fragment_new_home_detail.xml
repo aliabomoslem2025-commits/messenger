@@ -300,7 +300,7 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_contacts"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 />
 
         </LinearLayout>
@@ -341,8 +341,8 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_settings"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp"
-                android:textStyle="medium" />
+                android:textSize="12sp"
+                />
 
         </LinearLayout>
 
@@ -381,8 +381,8 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_profile"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp"
-                android:textStyle="medium" />
+                android:textSize="12sp"
+                />
 
         </LinearLayout>
 
@@ -410,8 +410,6 @@
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/newLayoutCreateChatButton"
         style="@style/Widget.Vector.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_width="44dp"
         android:layout_height="44dp"
         android:layout_marginEnd="16dp"
