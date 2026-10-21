@@ -13,4 +13,13 @@
     <string name="telegram_next">Next</string>
     <string name="telegram_chat_info">Chat info</string>
     <string name="telegram_mute_notifications">Mute notifications</string>
+    <string name="telegram_set_wallpaper">Set Wallpaper</string>
+    <string name="telegram_share_my_contact">Share my contact</string>
+    <string name="telegram_my_matrix_contact">My Matrix ID: %1$s</string>
+    <string name="telegram_delete_chat">Delete Chat</string>
+    <string name="telegram_delete_chat_confirmation">Leave this room and remove it from your chat list on this account?</string>
+    <string name="telegram_wallpaper_choose_title">Chat wallpaper</string>
+    <string name="telegram_wallpaper_doodles">Telegram-style doodles</string>
+    <string name="telegram_wallpaper_plain">Plain background</string>
+    <string name="telegram_wallpaper_reset">Use default wallpaper</string>
 </resources>
