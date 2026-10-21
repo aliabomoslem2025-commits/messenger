@@ -16,6 +16,7 @@ import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.list.RoomListListener
 import im.vector.app.features.home.room.list.RoomSummaryItemFactory
 import im.vector.app.features.home.room.list.RoomSummaryPlaceHolderItem_
+import im.vector.app.features.home.room.list.RoomSummaryItem_
 import im.vector.app.features.settings.FontScalePreferences
 import org.matrix.android.sdk.api.session.room.ResultBoundaries
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
@@ -100,7 +101,9 @@ class HomeFilteredRoomsController @Inject constructor(
                     displayMode = RoomListDisplayMode.ROOMS,
                     listener = listener,
                     singleLineLastEvent = shouldUseSingleLine
-            )
+            ).also { model ->
+                (model as? RoomSummaryItem_)?.hideMessagePreview(true)
+            }
         }
     }
 }
