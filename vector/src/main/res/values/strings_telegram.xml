@@ -3,6 +3,7 @@
     <string name="telegram_search_chats">Search Chats</string>
     <string name="telegram_home_menu">Open menu</string>
     <string name="telegram_open_camera">Open camera</string>
+    <string name="telegram_camera_unavailable">No camera app is available on this device.</string>
     <string name="telegram_filter_all_chats">All Chats</string>
     <string name="telegram_filter_unread">Unread</string>
     <string name="telegram_filter_favourites">Favorites</string>
