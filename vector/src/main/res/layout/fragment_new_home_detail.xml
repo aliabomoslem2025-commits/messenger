@@ -70,8 +70,7 @@
                 android:background="?vctr_room_list_background"
                 app:collapsedTitleTextColor="?vctr_content_primary"
                 app:contentScrim="?vctr_room_list_background"
-                app:expandedTitleTextColor="?vctr_content_primary"
-                >
+                app:expandedTitleTextColor="?vctr_content_primary">
 
                 <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/toolbar"
@@ -80,9 +79,7 @@
                     android:background="?vctr_room_list_background"
                     android:elevation="0dp"
                     app:layout_collapseMode="pin"
-                    tools:title="@string/all_chats">
-
-                </com.google.android.material.appbar.MaterialToolbar>
+                    tools:title="@string/telegram_home_title" />
 
                 <ImageView
                     android:id="@+id/debug_button"
@@ -99,11 +96,7 @@
 
             </com.google.android.material.appbar.CollapsingToolbarLayout>
 
-        </com.google.android.material.appbar.AppBarLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="ma            <!-- Persistent search field from the Telegram chat-list reference. -->
+            <!-- Pinned search field, matching Telegram's chat list. -->
             <LinearLayout
                 android:id="@+id/telegramHomeSearchContainer"
                 android:layout_width="match_parent"
@@ -143,13 +136,12 @@
 
             </LinearLayout>
 
-            <!-- Pinned Telegram-like folder filters; these operate on Matrix room queries. -->
+            <!-- A single segmented pill; tabs retain their real Matrix filters. -->
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/telegramHomeTabs"
                 android:layout_width="match_parent"
                 android:layout_height="42dp"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="0dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/bg_telegram_filter_track"
@@ -162,7 +154,11 @@
                 app:tabSelectedTextColor="@color/telegram_accent_blue"
                 app:tabTextColor="?vctr_content_secondary" />
 
-tch_parent"
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="vertical"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
