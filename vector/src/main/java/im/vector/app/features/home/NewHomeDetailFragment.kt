@@ -28,7 +28,6 @@ import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -340,28 +339,23 @@ class NewHomeDetailFragment :
         })
 
         homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
-            val filters = headers.filtersList
+            // The reference home screen has a two-segment capsule, not Element's
+            // four-filter strip. Both segments remain wired to real Matrix room filters.
+            val filters = listOf(HomeRoomFilter.ALL, HomeRoomFilter.PEOPlE)
             isSyncingTelegramHomeTabs = true
             try {
                 tabs.removeAllTabs()
-                if (filters.isNullOrEmpty()) {
-                    tabs.isVisible = false
-                } else {
-                    tabs.isVisible = true
-                    filters.forEach { filter ->
-                        val label = when (filter) {
-                            HomeRoomFilter.ALL -> R.string.telegram_filter_all_chats
-                            HomeRoomFilter.UNREADS -> R.string.telegram_filter_unread
-                            HomeRoomFilter.FAVOURITES -> R.string.telegram_filter_favourites
-                            HomeRoomFilter.PEOPlE -> R.string.telegram_filter_people
-                        }
-                        tabs.addTab(tabs.newTab().setText(label).setTag(filter), false)
-                    }
-                    val selectedIndex = filters.indexOf(headers.currentFilter)
-                    if (selectedIndex >= 0) {
-                        tabs.getTabAt(selectedIndex)?.select()
-                    }
+                tabs.isVisible = true
+                filters.forEach { filter ->
+                    tabs.addTab(
+                            tabs.newTab()
+                                    .setText(R.string.telegram_filter_all_chats)
+                                    .setTag(filter),
+                            false
+                    )
                 }
+                val selectedFilter = headers.currentFilter.takeIf { it in filters } ?: HomeRoomFilter.ALL
+                tabs.getTabAt(filters.indexOf(selectedFilter))?.select()
             } finally {
                 isSyncingTelegramHomeTabs = false
             }
@@ -506,7 +500,6 @@ class NewHomeDetailFragment :
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
         val title = spaceSummary?.displayName ?: getString(R.string.telegram_home_title)
         views.toolbar.title = title
-        views.collapsingToolbar.title = title
     }
 
     private fun setupKeysBackupBanner() {
@@ -584,14 +577,8 @@ class NewHomeDetailFragment :
     }
 
     private fun setupDebugButton() {
-        views.debugButton.debouncedClicks {
-            sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
-            navigator.openDebug(requireActivity())
-        }
-
-        views.appBarLayout.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-            views.debugButton.isVisible = verticalOffset == 0 && buildMeta.isDebug && vectorPreferences.developerMode()
-        })
+        // Developer shortcuts must not leak into the user-facing Telegram-style header.
+        views.debugButton.isGone = true
     }
 
     /* ==========================================================================================
