@@ -504,7 +504,9 @@ class NewHomeDetailFragment :
     }
 
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
-        views.collapsingToolbar.title = (spaceSummary?.displayName ?: getString(CommonStrings.all_chats))
+        val title = spaceSummary?.displayName ?: getString(R.string.telegram_home_title)
+        views.toolbar.title = title
+        views.collapsingToolbar.title = title
     }
 
     private fun setupKeysBackupBanner() {
