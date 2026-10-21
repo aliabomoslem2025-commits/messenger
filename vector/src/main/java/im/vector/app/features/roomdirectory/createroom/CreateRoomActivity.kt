@@ -82,7 +82,8 @@ class CreateRoomActivity : VectorBaseActivity<ActivitySimpleBinding>() {
                 initialName: String = "",
                 isSpace: Boolean = false,
                 openAfterCreate: Boolean = true,
-                currentSpaceId: String? = null
+                currentSpaceId: String? = null,
+                isChannel: Boolean = false
         ): Intent {
             return Intent(context, CreateRoomActivity::class.java).apply {
                 putExtra(
@@ -90,7 +91,8 @@ class CreateRoomActivity : VectorBaseActivity<ActivitySimpleBinding>() {
                         initialName = initialName,
                         isSpace = isSpace,
                         openAfterCreate = openAfterCreate,
-                        parentSpaceId = currentSpaceId
+                        parentSpaceId = currentSpaceId,
+                        isChannel = isChannel
                 )
                 )
             }
