@@ -5,4 +5,8 @@
     <string name="telegram_new_group">New Group</string>
     <string name="telegram_new_channel">New Channel</string>
     <string name="telegram_create_channel_title">Create Channel</string>
+    <string name="telegram_tab_chats">Chats</string>
+    <string name="telegram_tab_contacts">Contacts</string>
+    <string name="telegram_tab_settings">Settings</string>
+    <string name="telegram_tab_profile">Profile</string>
 </resources>
