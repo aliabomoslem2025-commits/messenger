@@ -353,24 +353,23 @@ class NewHomeDetailFragment :
         })
 
         homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
-            val filters = headers.filtersList
+            // Match the screenshot: two equal-looking All Chats segments, each still
+            // wired to a real Matrix filter instead of a decorative, non-functional tab.
+            val filters = listOf(HomeRoomFilter.ALL, HomeRoomFilter.PEOPlE)
             isSyncingTelegramHomeTabs = true
             try {
                 tabs.removeAllTabs()
-                if (filters.isNullOrEmpty()) {
-                    tabs.isVisible = false
-                } else {
-                    tabs.isVisible = true
-                    filters.forEach { filter ->
-                        // Telegram calls the default folder "All Chats" rather than Element's generic "All".
-                        val titleRes = if (filter == HomeRoomFilter.ALL) CommonStrings.all_chats else filter.titleRes
-                        tabs.addTab(tabs.newTab().setText(titleRes).setTag(filter), false)
-                    }
-                    val selectedIndex = filters.indexOf(headers.currentFilter)
-                    if (selectedIndex >= 0) {
-                        tabs.getTabAt(selectedIndex)?.select()
-                    }
+                tabs.isVisible = true
+                filters.forEach { filter ->
+                    tabs.addTab(
+                            tabs.newTab()
+                                    .setText(CommonStrings.all_chats)
+                                    .setTag(filter),
+                            false
+                    )
                 }
+                val selectedIndex = filters.indexOf(headers.currentFilter).takeIf { it >= 0 } ?: 0
+                tabs.getTabAt(selectedIndex)?.select()
             } finally {
                 isSyncingTelegramHomeTabs = false
             }
@@ -542,13 +541,10 @@ class NewHomeDetailFragment :
 
     private fun setupToolbar() {
         setupToolbar(views.toolbar)
-        // CollapsingToolbarLayout owns the visible title and places it at the toolbar's
-        // content inset. Keep the child Toolbar title empty so the two title layers do
-        // not overlap or push "Telegram" to the old navigation-icon inset.
-        views.toolbar.title = ""
+        // One fixed toolbar with a single title matches the Telegram chat-list header.
+        views.toolbar.title = getString(R.string.telegram_home_title)
         views.toolbar.navigationIcon = null
         views.toolbar.setNavigationOnClickListener(null)
-        views.collapsingToolbar.title = getString(R.string.telegram_home_title)
     }
 
     private fun setupMigrationBanner() {
