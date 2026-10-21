@@ -51,9 +51,30 @@ class CreateDirectRoomViewModel @AssistedInject constructor(
 
     override fun handle(action: CreateDirectRoomAction) {
         when (action) {
-            is CreateDirectRoomAction.PrepareRoomWithSelectedUsers -> onSubmitInvitees(action.selections)
+            is CreateDirectRoomAction.PrepareRoomWithSelectedUsers -> {
+                if (action.isGroupCreation) {
+                    returnGroupMembersForCreation(action.selections)
+                } else {
+                    onSubmitInvitees(action.selections)
+                }
+            }
             is CreateDirectRoomAction.CreateRoomAndInviteSelectedUsers -> onCreateRoomWithInvitees()
             is CreateDirectRoomAction.QrScannedAction -> onCodeParsed(action)
+        }
+    }
+
+    private fun returnGroupMembersForCreation(selections: Set<PendingSelection>) {
+        val userIds = selections
+                .filterIsInstance<PendingSelection.UserPendingSelection>()
+                .map { it.user.userId }
+                .distinct()
+        val threePids = selections
+                .filterIsInstance<PendingSelection.ThreePidPendingSelection>()
+                .map { it.threePid }
+                .distinct()
+
+        if (userIds.isNotEmpty() || threePids.isNotEmpty()) {
+            _viewEvents.post(CreateDirectRoomViewEvents.GroupMembersSelected(userIds, threePids))
         }
     }
 
