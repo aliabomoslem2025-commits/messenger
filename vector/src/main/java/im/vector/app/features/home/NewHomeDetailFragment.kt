@@ -359,6 +359,11 @@ class NewHomeDetailFragment :
             } finally {
                 isSyncingTelegramHomeTabs = false
             }
+            // If older persisted preferences point to an Element-only filter, move the
+            // real Matrix list to All Chats rather than merely changing the highlight.
+            if (headers.currentFilter !in filters) {
+                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
+            }
         }
     }
 
