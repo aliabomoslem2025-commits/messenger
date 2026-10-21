@@ -85,14 +85,15 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
         val reactions = reactionsSummary.reactions
         val eventId = baseAttributes.informationData.eventId
         val reactionSignature = reactions.orEmpty().map { "${it.key}:${it.count}:${it.addedByMe}:${it.synced}" }
+        val transitionRoot = holder.view as? ViewGroup
         val canAnimateReactionChanges = holder.renderedReactionEventId == eventId &&
                 holder.renderedReactionSignature != reactionSignature &&
-                holder.reactionsContainer.isLaidOut &&
-                holder.reactionsContainer.isVisible &&
-                !reactions.isNullOrEmpty() &&
+                transitionRoot?.isLaidOut == true &&
                 holder.view.context.isAnimationEnabled()
-        if (canAnimateReactionChanges) {
-            TransitionManager.beginDelayedTransition(holder.reactionsContainer, AutoTransition().apply { duration = 180L })
+        if (canAnimateReactionChanges && transitionRoot != null) {
+            // Animate the first reaction appearing as well as count/selection updates.
+            // Scope the transition to this message row so sibling messages never move.
+            TransitionManager.beginDelayedTransition(transitionRoot, AutoTransition().apply { duration = 180L })
         }
         holder.renderedReactionEventId = eventId
         holder.renderedReactionSignature = reactionSignature
