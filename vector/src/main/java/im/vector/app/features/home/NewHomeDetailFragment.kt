@@ -280,11 +280,15 @@ class NewHomeDetailFragment :
         withState(viewModel) { state ->
             state.myMatrixItem?.let { avatarRenderer.render(it, views.telegramTabProfileIcon) }
         }
+        // Telegram's Chats tab means all joined conversations, not Element's People-only view.
+        viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.ROOMS)))
+        homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
 
         views.telegramTabChats.debouncedClicks {
             selectTab(views.telegramTabChats)
+            views.toolbar.title = getString(R.string.telegram_home_title)
             views.telegramHomeSearchInput.text?.clear()
-            viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.PEOPLE)))
+            viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.ROOMS)))
             homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
         }
 
