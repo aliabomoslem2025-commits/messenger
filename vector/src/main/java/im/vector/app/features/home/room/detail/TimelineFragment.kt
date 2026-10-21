@@ -850,6 +850,14 @@ class TimelineFragment :
                 navigator.openInviteUsersToRoom(requireActivity(), timelineArgs.roomId)
                 true
             }
+            R.id.room_notifications -> {
+                navigator.openRoomProfile(
+                        context = requireActivity(),
+                        roomId = timelineArgs.roomId,
+                        directAccess = RoomProfileActivity.EXTRA_DIRECT_ACCESS_ROOM_NOTIFICATIONS
+                )
+                true
+            }
             R.id.timeline_setting -> {
                 navigator.openRoomProfile(requireActivity(), timelineArgs.roomId)
                 true
