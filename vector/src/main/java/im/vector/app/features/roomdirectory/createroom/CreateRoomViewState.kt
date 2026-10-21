@@ -31,14 +31,16 @@ data class CreateRoomViewState(
         val supportsRestricted: Boolean = false,
         val aliasLocalPart: String? = null,
         val isSubSpace: Boolean = false,
-        val openAfterCreate: Boolean = true
+        val openAfterCreate: Boolean = true,
+        val isChannel: Boolean = false
 ) : MavericksState {
 
     constructor(args: CreateRoomArgs) : this(
             roomName = args.initialName,
             parentSpaceId = args.parentSpaceId,
             isSubSpace = args.isSpace,
-            openAfterCreate = args.openAfterCreate
+            openAfterCreate = args.openAfterCreate,
+            isChannel = args.isChannel
     )
 
     /**
