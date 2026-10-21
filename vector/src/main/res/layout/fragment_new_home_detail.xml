@@ -62,42 +62,29 @@
             android:background="?vctr_room_list_background"
             android:elevation="0dp">
 
-            <com.google.android.material.appbar.CollapsingToolbarLayout
-                android:id="@+id/collapsing_toolbar"
-                style="?attr/collapsingToolbarLayoutMediumStyle"
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="56dp"
+                android:layout_marginTop="26dp"
                 android:background="?vctr_room_list_background"
-                app:collapsedTitleTextColor="?vctr_content_primary"
-                app:contentScrim="?vctr_room_list_background"
-                app:expandedTitleTextColor="?vctr_content_primary"
-                >
+                android:elevation="0dp"
+                app:contentInsetStart="20dp"
+                app:contentInsetEnd="12dp"
+                app:titleTextAppearance="@style/TelegramHomeTitle"
+                tools:title="@string/telegram_home_title" />
 
-                <com.google.android.material.appbar.MaterialToolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:background="?vctr_room_list_background"
-                    android:elevation="0dp"
-                    app:layout_collapseMode="pin"
-                    tools:title="@string/telegram_home_title">
-
-                </com.google.android.material.appbar.MaterialToolbar>
-
-                <ImageView
-                    android:id="@+id/debug_button"
-                    style="@style/VectorDebug"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_gravity="bottom|end"
-                    android:layout_marginStart="12dp"
-                    android:importantForAccessibility="no"
-                    android:scaleType="center"
-                    android:src="@drawable/ic_settings_x"
-                    app:tint="?colorPrimary"
-                    tools:ignore="MissingPrefix" />
-
-            </com.google.android.material.appbar.CollapsingToolbarLayout>
+            <ImageView
+                android:id="@+id/debug_button"
+                style="@style/VectorDebug"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:visibility="gone"
+                android:importantForAccessibility="no"
+                android:scaleType="center"
+                android:src="@drawable/ic_settings_x"
+                app:tint="?colorPrimary"
+                tools:ignore="MissingPrefix" />
 
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -143,7 +130,7 @@
                     android:singleLine="true"
                     android:textColor="?vctr_content_primary"
                     android:textColorHint="?vctr_content_secondary"
-                    android:textSize="15sp" />
+                    android:textSize="16sp" />
 
             </LinearLayout>
 
@@ -151,13 +138,13 @@
             <com.google.android.material.tabs.TabLayout
                 android:id="@+id/telegramHomeTabs"
                 android:layout_width="match_parent"
-                android:layout_height="38dp"
+                android:layout_height="36dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
-                android:layout_marginBottom="6dp"
+                android:layout_marginBottom="8dp"
                 android:background="@drawable/bg_telegram_home_filters"
                 android:elevation="3dp"
-                android:padding="3dp"
+                android:padding="2dp"
                 android:visibility="gone"
                 app:tabBackground="@drawable/bg_telegram_filter_tab"
                 app:tabGravity="fill"
@@ -212,9 +199,9 @@
     <LinearLayout
         android:id="@+id/telegramBottomNavigation"
         android:layout_width="0dp"
-        android:layout_height="52dp"
-        android:layout_marginStart="44dp"
-        android:layout_marginEnd="44dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="48dp"
         android:layout_marginBottom="28dp"
         android:background="@drawable/bg_telegram_bottom_navigation"
         android:elevation="6dp"
@@ -411,9 +398,9 @@
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/newLayoutCreateChatButton"
         style="@style/Widget.Vector.FloatingActionButton"
-        android:layout_width="44dp"
+        android:layout_width="48dp"
         android:layout_height="44dp"
-        android:layout_marginEnd="16dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="12dp"
         android:contentDescription="@string/a11y_create_message"
         android:src="@drawable/ic_fab_add_chat"
