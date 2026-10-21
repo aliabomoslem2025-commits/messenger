@@ -141,7 +141,7 @@
                 android:layout_height="36dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="5dp"
                 android:background="@drawable/bg_telegram_home_filters"
                 android:elevation="3dp"
                 android:padding="2dp"
