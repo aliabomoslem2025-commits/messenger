@@ -79,8 +79,7 @@
                     android:layout_height="?attr/actionBarSize"
                     android:background="?vctr_messenger_actionbar_background"
                     android:elevation="0dp"
-                    android:theme="@style/ThemeOverlay.MaterialComponents.Light"
-                    app:layout_collapseMode="pin"
+                        app:layout_collapseMode="pin"
                     app:navigationIcon="@drawable/ic_telegram_menu"
                     app:navigationIconTint="?vctr_content_primary"
                     tools:title="@string/all_chats">
