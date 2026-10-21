@@ -102,7 +102,10 @@ class HomeFilteredRoomsController @Inject constructor(
                     listener = listener,
                     singleLineLastEvent = shouldUseSingleLine
             ).also { model ->
-                (model as? RoomSummaryItem_)?.hideMessagePreview(true)
+                (model as? RoomSummaryItem_)?.apply {
+                    hideMessagePreview(true)
+                    hideRoomDivider(true)
+                }
             }
         }
     }
