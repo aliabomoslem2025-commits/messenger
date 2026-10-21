@@ -177,7 +177,7 @@ class CreateDirectRoomActivity : SimpleFragmentActivity() {
                     .setTitle(CommonStrings.dialog_title_confirmation)
                     .setMessage(getString(CommonStrings.create_room_unknown_users_dialog_content, unknownUsers.joinToString("\n • ", " • ") { it.getMxId() }))
                     .setPositiveButton(CommonStrings.create_room_unknown_users_dialog_submit) { _, _ ->
-                        viewModel.handle(CreateDirectRoomAction.PrepareRoomWithSelectedUsers(action.selections))
+                        viewModel.handle(CreateDirectRoomAction.PrepareRoomWithSelectedUsers(action.selections, isGroupCreation))
                     }
                     .setNegativeButton(CommonStrings.action_cancel, null)
                     .show()
