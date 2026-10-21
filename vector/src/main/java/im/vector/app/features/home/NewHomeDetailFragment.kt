@@ -253,8 +253,8 @@ class NewHomeDetailFragment :
 
     /**
      * Keep the floating four-item navigation tied to real Element/Matrix destinations.
-     * Contacts opens the existing Matrix user picker; profile opens the signed-in
-     * user's profile. No placeholder tabs or fake screen content are introduced.
+     * Contacts opens the device contacts book; profile opens the signed-in user's
+     * Matrix profile. No placeholder tabs or fake screen content are introduced.
      */
     private fun setupTelegramBottomNavigation() {
         val tabs = listOf(
