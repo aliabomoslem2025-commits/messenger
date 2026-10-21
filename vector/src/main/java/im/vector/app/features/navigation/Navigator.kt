@@ -86,7 +86,7 @@ interface Navigator {
 
     fun openMatrixToBottomSheet(fragmentActivity: FragmentActivity, link: String, origin: OriginOfMatrixTo)
 
-    fun openCreateRoom(context: Context, initialName: String = "", openAfterCreate: Boolean = true)
+    fun openCreateRoom(context: Context, initialName: String = "", openAfterCreate: Boolean = true, isChannel: Boolean = false)
 
     fun openCreateDirectRoom(context: Context)
 
