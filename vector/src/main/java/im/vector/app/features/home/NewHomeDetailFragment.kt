@@ -110,6 +110,8 @@ class NewHomeDetailFragment :
     private val newChatBottomSheet = NewChatBottomSheet()
     private val spaceListBottomSheet = SpaceListBottomSheet()
 
+    private var spacesUnreadLabel: String? = null
+
     private var hasUnreadRooms = false
         set(value) {
             if (value != field) {
@@ -144,7 +146,10 @@ class NewHomeDetailFragment :
             val isRoomList = state.currentTab is HomeTab.RoomList
             menu.findItem(R.id.menu_home_mark_all_as_read).isVisible = isRoomList && hasUnreadRooms
             menu.findItem(R.id.menu_home_dialpad).isVisible = state.showDialPadTab
-            menu.findItem(R.id.menu_home_spaces).isVisible = isRoomList
+            val spacesItem = menu.findItem(R.id.menu_home_spaces)
+            spacesItem.isVisible = isRoomList
+            val spacesTitle = getString(R.string.a11y_open_spaces)
+            spacesItem.title = spacesUnreadLabel?.let { "$spacesTitle ($it)" } ?: spacesTitle
 
             val searchItem = menu.findItem(R.id.menu_home_search)
             searchItem.isVisible = isRoomList
@@ -243,7 +248,15 @@ class NewHomeDetailFragment :
                 }
 
         newHomeDetailViewModel.onEach { viewState ->
-            refreshUnreadCounterBadge(viewState.spacesNotificationCounterBadgeState)
+            spacesUnreadLabel = when (val badgeState = viewState.spacesNotificationCounterBadgeState) {
+                is UnreadCounterBadgeView.State.Count -> badgeState.count
+                        .takeIf { it > 0 }
+                        ?.let { count -> if (count > 99) "99+" else count.toString() }
+                is UnreadCounterBadgeView.State.Text -> badgeState.text.takeIf { it.isNotBlank() }
+            }
+            // Spaces is now in the toolbar menu; keep its unread signal there instead of
+            // drawing a detached badge where the hidden floating action button used to be.
+            invalidateOptionsMenu()
         }
     }
 
@@ -519,10 +532,6 @@ class NewHomeDetailFragment :
         )
         views.homeVerifyDevice.isVisible = it.showVerifyDeviceBanner
         hasUnreadRooms = it.hasUnreadMessages
-    }
-
-    private fun refreshUnreadCounterBadge(badgeState: UnreadCounterBadgeView.State) {
-        views.spacesUnreadCounterBadge.render(badgeState)
     }
 
     override fun onTapToReturnToCall() {
