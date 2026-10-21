@@ -86,11 +86,11 @@
                 app:tint="?colorPrimary"
                 tools:ignore="MissingPrefix" />
 
-            <!-- Pinned search field, matching Telegram's chat list. -->
+            <!-- Pinned search field, sized to the reference chat-list screenshot. -->
             <LinearLayout
                 android:id="@+id/telegramHomeSearchContainer"
                 android:layout_width="match_parent"
-                android:layout_height="40dp"
+                android:layout_height="38dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="10dp"
@@ -126,24 +126,33 @@
 
             </LinearLayout>
 
-            <!-- A single segmented pill; tabs retain their real Matrix filters. -->
-            <com.google.android.material.tabs.TabLayout
-                android:id="@+id/telegramHomeTabs"
+            <!-- Outer pill and inset selected segment follow the Telegram reference. -->
+            <FrameLayout
+                android:id="@+id/telegramHomeTabsTrack"
                 android:layout_width="match_parent"
-                android:layout_height="36dp"
+                android:layout_height="34dp"
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginBottom="8dp"
                 android:background="@drawable/bg_telegram_filter_track"
                 android:elevation="2dp"
-                app:tabBackground="@drawable/bg_telegram_home_tab"
-                app:tabGravity="fill"
-                app:tabIndicatorHeight="0dp"
-                app:tabMinHeight="32dp"
-                app:tabMode="fixed"
-                app:tabRippleColor="@android:color/transparent"
-                app:tabSelectedTextColor="@color/telegram_accent_blue"
-                app:tabTextColor="?vctr_content_secondary" />
+                android:padding="4dp">
+
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/telegramHomeTabs"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent"
+                    app:tabBackground="@drawable/bg_telegram_home_tab"
+                    app:tabGravity="fill"
+                    app:tabIndicatorHeight="0dp"
+                    app:tabMinHeight="26dp"
+                    app:tabMode="fixed"
+                    app:tabRippleColor="@android:color/transparent"
+                    app:tabSelectedTextColor="@color/telegram_accent_blue"
+                    app:tabTextColor="?vctr_content_secondary" />
+
+            </FrameLayout>
 
         </com.google.android.material.appbar.AppBarLayout>
 
