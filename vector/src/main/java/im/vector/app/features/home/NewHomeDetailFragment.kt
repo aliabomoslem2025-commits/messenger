@@ -194,6 +194,14 @@ class NewHomeDetailFragment :
             onSpaceChange(selectedSpace)
         }
 
+        viewModel.onEach(HomeDetailViewState::myMatrixItem) { matrixItem ->
+            if (matrixItem != null) {
+                avatarRenderer.render(matrixItem, views.telegramTabProfileIcon)
+            } else {
+                views.telegramTabProfileIcon.setImageResource(R.drawable.ic_user_round)
+            }
+        }
+
         viewModel.observeViewEvents { viewEvent ->
             when (viewEvent) {
                 HomeDetailViewEvents.CallStarted -> Unit
