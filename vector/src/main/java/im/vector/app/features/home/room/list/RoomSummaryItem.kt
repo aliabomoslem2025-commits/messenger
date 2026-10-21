@@ -50,6 +50,10 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     @EpoxyAttribute
     var displayMode: RoomListDisplayMode = RoomListDisplayMode.PEOPLE
 
+    /** Hides the preview line for the Telegram-style home chat list only. */
+    @EpoxyAttribute
+    var compactTelegramHome: Boolean = false
+
     @EpoxyAttribute
     lateinit var subtitle: String
 
@@ -102,6 +106,12 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         super.bind(holder)
 
         renderDisplayMode(holder)
+        if (compactTelegramHome) {
+            // The reference home list shows one clean name/date row, not Element's
+            // second-line event preview. Live typing feedback remains visible.
+            holder.subtitleView.visibility = View.GONE
+            holder.lastEventTimeView.isVisible = lastEventTime.isNotBlank()
+        }
         holder.rootView.onClick(itemClickListener)
         holder.rootView.setOnLongClickListener {
             it.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
