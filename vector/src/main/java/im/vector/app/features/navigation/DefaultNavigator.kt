@@ -323,6 +323,10 @@ class DefaultNavigator @Inject constructor(
         context.startActivity(intent)
     }
 
+    override fun openCreateGroup(context: Context) {
+        context.startActivity(CreateDirectRoomActivity.getIntent(context, isGroupCreation = true))
+    }
+
     override fun openCreateChannel(context: Context) {
         val intent = CreateRoomActivity.getIntent(
                 context = context,
