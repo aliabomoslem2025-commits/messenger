@@ -518,14 +518,7 @@ class NewHomeDetailFragment :
                 vectorPreferences.developerShowDebugInfo()
         )
         views.homeVerifyDevice.isVisible = it.showVerifyDeviceBanner
-        refreshAvatar()
         hasUnreadRooms = it.hasUnreadMessages
-    }
-
-    private fun refreshAvatar() {
-        // This toolbar slot is the navigation affordance in the Telegram-style home.
-        // The actual account avatar is rendered in HomeDrawerFragment from the Matrix session.
-        views.avatar.setImageResource(R.drawable.ic_telegram_menu)
     }
 
     private fun refreshUnreadCounterBadge(badgeState: UnreadCounterBadgeView.State) {
