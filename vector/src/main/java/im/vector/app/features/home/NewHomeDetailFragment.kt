@@ -9,6 +9,7 @@ package im.vector.app.features.home
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -19,6 +20,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -136,6 +138,10 @@ class NewHomeDetailFragment :
             }
             R.id.menu_home_spaces -> {
                 spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
+                true
+            }
+            R.id.menu_home_open_drawer -> {
+                sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
                 true
             }
             R.id.menu_home_search -> true // The persistent search input handles the query.
@@ -271,6 +277,9 @@ class NewHomeDetailFragment :
         }
 
         selectTab(views.telegramTabChats)
+        withState(viewModel) { state ->
+            state.myMatrixItem?.let { avatarRenderer.render(it, views.telegramTabProfileIcon) }
+        }
 
         views.telegramTabChats.debouncedClicks {
             selectTab(views.telegramTabChats)
@@ -374,6 +383,19 @@ class NewHomeDetailFragment :
             newChatBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, NewChatBottomSheet.TAG)
         }
 
+        // The smaller camera shortcut opens the platform camera without fabricating a Matrix upload.
+        views.telegramCameraFab.debouncedClicks {
+            val cameraIntent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
+            runCatching {
+                startActivity(cameraIntent)
+            }.onFailure {
+                Toast.makeText(
+                        requireContext(),
+                        R.string.telegram_camera_unavailable,
+                        Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     private fun showFABs() {
@@ -389,6 +411,7 @@ class NewHomeDetailFragment :
     override fun onDestroyView() {
         homeSearchTextWatcher?.let { watcher -> views.telegramHomeSearchInput.removeTextChangedListener(watcher) }
         homeSearchTextWatcher = null
+        avatarRenderer.clear(views.telegramTabProfileIcon)
         currentCallsViewPresenter.unBind()
         super.onDestroyView()
     }
@@ -471,8 +494,11 @@ class NewHomeDetailFragment :
         )
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
-        views.collapsingToolbar.title = (spaceSummary?.displayName ?: getString(CommonStrings.all_chats))
+        // Space switching remains available from the menu; the main-screen brand stays stable.
+        views.toolbar.title = getString(R.string.telegram_home_title)
+        views.collapsingToolbar.title = ""
     }
 
     private fun setupKeysBackupBanner() {
@@ -501,16 +527,10 @@ class NewHomeDetailFragment :
     private fun setupToolbar() {
         setupToolbar(views.toolbar)
         views.toolbar.title = getString(R.string.telegram_home_title)
-
-        views.collapsingToolbar.debouncedClicks(::openSpaceSettings)
-        views.toolbar.debouncedClicks(::openSpaceSettings)
-
-        views.toolbar.setNavigationIcon(R.drawable.ic_telegram_menu)
-        views.toolbar.setNavigationContentDescription(R.string.a11y_open_drawer)
-        views.toolbar.setNavigationOnClickListener {
-            // Match Telegram's hamburger behavior; account/settings remain in the drawer.
-            sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
-        }
+        // Keep the title left-aligned; the reference screen has only the overflow menu on the right.
+        views.toolbar.navigationIcon = null
+        views.toolbar.setNavigationOnClickListener(null)
+        views.collapsingToolbar.title = ""
     }
 
     private fun setupMigrationBanner() {
