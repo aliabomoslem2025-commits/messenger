@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="telegram_create_destination_title">New message</string>
+    <string name="telegram_create_group">New Group</string>
+    <string name="telegram_create_channel">New Channel</string>
+    <string name="telegram_create_group_channel">New Group or Channel</string>
+    <string name="telegram_browse_public_rooms">Browse Public Rooms</string>
+    <string name="telegram_channel_name_section">Channel name</string>
+    <string name="telegram_channel_name_hint">Enter a channel name</string>
+    <string name="telegram_channel_description_section">Description</string>
+    <string name="telegram_channel_description_hint">Enter a description (optional)</string>
+</resources>
