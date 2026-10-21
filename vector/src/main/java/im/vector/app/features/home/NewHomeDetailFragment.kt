@@ -293,8 +293,7 @@ class NewHomeDetailFragment :
 
         views.telegramTabChats.debouncedClicks {
             selectTab(views.telegramTabChats)
-            views.toolbar.title = ""
-            views.toolbar.title = getString(R.string.telegram_home_title)
+                views.toolbar.title = getString(R.string.telegram_home_title)
             views.telegramHomeSearchInput.text?.clear()
             viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.ROOMS)))
             homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
@@ -302,8 +301,7 @@ class NewHomeDetailFragment :
 
         views.telegramTabContacts.debouncedClicks {
             selectTab(views.telegramTabContacts)
-            views.toolbar.title = ""
-            views.toolbar.title = getString(R.string.telegram_tab_contacts)
+                views.toolbar.title = getString(R.string.telegram_tab_contacts)
             childFragmentManager.commitTransaction {
                 replace(R.id.roomListContainer, ContactsBookFragment())
                 addToBackStack("telegram_contacts")
@@ -314,8 +312,7 @@ class NewHomeDetailFragment :
             val contactsVisible = childFragmentManager.findFragmentById(R.id.roomListContainer) is ContactsBookFragment
             // FragmentManager outlives this view; don't access view binding after onDestroyView.
             if (!contactsVisible && isAdded && view != null) {
-                views.toolbar.title = ""
-                views.toolbar.title = getString(R.string.telegram_home_title)
+                        views.toolbar.title = getString(R.string.telegram_home_title)
                 selectTab(views.telegramTabChats)
             }
         }
@@ -516,7 +513,6 @@ class NewHomeDetailFragment :
     @Suppress("UNUSED_PARAMETER")
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
         // Space switching remains available from the menu; the main-screen brand stays stable.
-        views.toolbar.title = ""
         views.toolbar.title = getString(R.string.telegram_home_title)
     }
 
