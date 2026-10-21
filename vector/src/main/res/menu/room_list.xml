@@ -4,6 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <item
+        android:id="@+id/menu_home_open_drawer"
+        android:icon="@drawable/ic_telegram_menu"
+        android:title="@string/telegram_open_menu"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_home_mark_all_as_read"
         android:icon="@drawable/ic_material_done"
         android:title="@string/action_mark_all_as_read" />

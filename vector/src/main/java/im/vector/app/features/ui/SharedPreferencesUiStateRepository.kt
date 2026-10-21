@@ -34,7 +34,8 @@ class SharedPreferencesUiStateRepository @Inject constructor(
             else -> if (vectorPreferences.labAddNotificationTab()) {
                 RoomListDisplayMode.NOTIFICATIONS
             } else {
-                RoomListDisplayMode.PEOPLE
+                // The Telegram-style home starts on All Chats rather than People-only.
+                RoomListDisplayMode.ROOMS
             }
         }
     }

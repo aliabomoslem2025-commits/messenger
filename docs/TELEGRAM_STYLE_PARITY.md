@@ -131,6 +131,16 @@ Validated source revision: [f8fd8a2](https://github.com/aliabomoslem2025-commits
 - “New Group” now selects multiple users first, then creates a private Matrix room and invites the selected Matrix users/third-party identifiers in the actual create-room request. “New Channel” uses a public Matrix room flow. Matrix does not define a separate Telegram channel room type, so the implementation is a public room and still requires a valid room alias.
 - These are source-level changes. Automated Gradle build/test/lint and device checks must pass before treating the changes as accepted; screenshot resemblance and action behavior are not claimed as 100% until verified on device.
 
+### Main chat-list parity pass (new branch; Android CI/device acceptance pending)
+
+- The home screen toolbar no longer displays the Element-style hamburger beside the title. The title stays as “Telegram”; drawer access remains available from the overflow menu.
+- The developer overlay is hidden on the home surface so it cannot intrude into the screenshot-matched header.
+- The home header now uses a fixed 56dp toolbar with a 26dp inset below the status-bar content, a 20sp bold “Telegram” title, and the reference's horizontal content insets. The 40dp search pill starts directly below that bar at 10dp side margins. The two-segment filter capsule is always visible, uses the screenshot's exact “All Chats” label on both segments, and keeps each segment wired to a real Matrix filter; unsupported persisted Element-only filters are normalized back to All Chats.
+- The default saved home display mode and the Chats tab now show all joined Matrix rooms rather than People-only rooms. Filtering and search still act on the existing Matrix room query/state.
+- The home list uses a single chronological stream instead of a duplicate horizontal recent-chat carousel. Home list rows hide message previews and separators for the supplied visual reference, while other room-list contexts retain normal previews. Avatar/title/date/unread/typing states remain sourced from the real room summary.
+- The lower navigation was tightened and made text-led with the account avatar kept in Profile, while the camera shortcut and new-message action are separate floating buttons. The camera shortcut opens the native camera; it does not claim to publish a Telegram Story or create a fake Matrix upload.
+- These are source changes on `telegram-home-screen-parity-2026-10`. The new PR must pass Android assembly, unit tests and lint, followed by on-device comparison. The previous main-branch CI result listed above does not validate this newer commit.
+
 ### Remaining acceptance gates before claiming 100% Telegram parity
 
 - [ ] Capture side-by-side screenshots of running Telegram and Messenger at the same device, density, font scale, theme, and content for room list, chat header, grouped messages, replies/edits/forwards, reactions, context menus, composer/recording, media, and profile screens; fix the differences revealed by those screenshots.

@@ -9,6 +9,7 @@ package im.vector.app.features.home
 
 import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -19,13 +20,13 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -138,6 +139,10 @@ class NewHomeDetailFragment :
                 spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
                 true
             }
+            R.id.menu_home_open_drawer -> {
+                sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
+                true
+            }
             R.id.menu_home_search -> true // The persistent search input handles the query.
             else -> false
         }
@@ -187,6 +192,14 @@ class NewHomeDetailFragment :
 
         viewModel.onEach(HomeDetailViewState::selectedSpace) { selectedSpace ->
             onSpaceChange(selectedSpace)
+        }
+
+        viewModel.onEach(HomeDetailViewState::myMatrixItem) { matrixItem ->
+            if (matrixItem != null) {
+                avatarRenderer.render(matrixItem, views.telegramTabProfileIcon)
+            } else {
+                views.telegramTabProfileIcon.setImageResource(R.drawable.ic_user_round)
+            }
         }
 
         viewModel.observeViewEvents { viewEvent ->
@@ -271,17 +284,24 @@ class NewHomeDetailFragment :
         }
 
         selectTab(views.telegramTabChats)
+        withState(viewModel) { state ->
+            state.myMatrixItem?.let { avatarRenderer.render(it, views.telegramTabProfileIcon) }
+        }
+        // Telegram's Chats tab means all joined conversations, not Element's People-only view.
+        viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.ROOMS)))
+        homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
 
         views.telegramTabChats.debouncedClicks {
             selectTab(views.telegramTabChats)
+                views.toolbar.title = getString(R.string.telegram_home_title)
             views.telegramHomeSearchInput.text?.clear()
-            viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.PEOPLE)))
+            viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.ROOMS)))
             homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
         }
 
         views.telegramTabContacts.debouncedClicks {
             selectTab(views.telegramTabContacts)
-            views.toolbar.title = getString(R.string.telegram_tab_contacts)
+                views.toolbar.title = getString(R.string.telegram_tab_contacts)
             childFragmentManager.commitTransaction {
                 replace(R.id.roomListContainer, ContactsBookFragment())
                 addToBackStack("telegram_contacts")
@@ -292,7 +312,7 @@ class NewHomeDetailFragment :
             val contactsVisible = childFragmentManager.findFragmentById(R.id.roomListContainer) is ContactsBookFragment
             // FragmentManager outlives this view; don't access view binding after onDestroyView.
             if (!contactsVisible && isAdded && view != null) {
-                views.toolbar.title = getString(R.string.telegram_home_title)
+                        views.toolbar.title = getString(R.string.telegram_home_title)
                 selectTab(views.telegramTabChats)
             }
         }
@@ -330,21 +350,26 @@ class NewHomeDetailFragment :
         })
 
         homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
-            val filters = headers.filtersList
+            // Match the screenshot: two equal-looking All Chats segments, each still
+            // wired to a real Matrix filter instead of a decorative, non-functional tab.
+            val filters = listOf(HomeRoomFilter.ALL, HomeRoomFilter.PEOPlE)
             isSyncingTelegramHomeTabs = true
             try {
                 tabs.removeAllTabs()
-                if (filters.isNullOrEmpty()) {
-                    tabs.isVisible = false
-                } else {
-                    tabs.isVisible = true
-                    filters.forEach { filter ->
-                        tabs.addTab(tabs.newTab().setText(filter.titleRes).setTag(filter), false)
-                    }
-                    val selectedIndex = filters.indexOf(headers.currentFilter)
-                    if (selectedIndex >= 0) {
-                        tabs.getTabAt(selectedIndex)?.select()
-                    }
+                tabs.isVisible = true
+                filters.forEach { filter ->
+                    tabs.addTab(
+                            tabs.newTab()
+                                    .setText(R.string.telegram_filter_all_chats)
+                                    .setTag(filter),
+                            false
+                    )
+                }
+                val selectedIndex = filters.indexOf(headers.currentFilter)
+                tabs.getTabAt(selectedIndex.takeIf { it >= 0 } ?: 0)?.select()
+                if (selectedIndex < 0) {
+                    // Migrate persisted Element-only filters back to a supported Matrix query.
+                    homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
                 }
             } finally {
                 isSyncingTelegramHomeTabs = false
@@ -374,6 +399,19 @@ class NewHomeDetailFragment :
             newChatBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, NewChatBottomSheet.TAG)
         }
 
+        // The smaller camera shortcut opens the platform camera without fabricating a Matrix upload.
+        views.telegramCameraFab.debouncedClicks {
+            val cameraIntent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA)
+            runCatching {
+                startActivity(cameraIntent)
+            }.onFailure {
+                Toast.makeText(
+                        requireContext(),
+                        R.string.telegram_camera_unavailable,
+                        Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
     }
 
     private fun showFABs() {
@@ -389,6 +427,7 @@ class NewHomeDetailFragment :
     override fun onDestroyView() {
         homeSearchTextWatcher?.let { watcher -> views.telegramHomeSearchInput.removeTextChangedListener(watcher) }
         homeSearchTextWatcher = null
+        avatarRenderer.clear(views.telegramTabProfileIcon)
         currentCallsViewPresenter.unBind()
         super.onDestroyView()
     }
@@ -471,8 +510,10 @@ class NewHomeDetailFragment :
         )
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
-        views.collapsingToolbar.title = (spaceSummary?.displayName ?: getString(CommonStrings.all_chats))
+        // Space switching remains available from the menu; the main-screen brand stays stable.
+        views.toolbar.title = getString(R.string.telegram_home_title)
     }
 
     private fun setupKeysBackupBanner() {
@@ -500,17 +541,10 @@ class NewHomeDetailFragment :
 
     private fun setupToolbar() {
         setupToolbar(views.toolbar)
+        // One fixed toolbar with a single title matches the Telegram chat-list header.
         views.toolbar.title = getString(R.string.telegram_home_title)
-
-        views.collapsingToolbar.debouncedClicks(::openSpaceSettings)
-        views.toolbar.debouncedClicks(::openSpaceSettings)
-
-        views.toolbar.setNavigationIcon(R.drawable.ic_telegram_menu)
-        views.toolbar.setNavigationContentDescription(R.string.a11y_open_drawer)
-        views.toolbar.setNavigationOnClickListener {
-            // Match Telegram's hamburger behavior; account/settings remain in the drawer.
-            sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
-        }
+        views.toolbar.navigationIcon = null
+        views.toolbar.setNavigationOnClickListener(null)
     }
 
     private fun setupMigrationBanner() {
@@ -548,21 +582,10 @@ class NewHomeDetailFragment :
                 }
     }
 
-    private fun openSpaceSettings() = withState(viewModel) { viewState ->
-        viewState.selectedSpace?.let {
-            sharedActionViewModel.post(HomeActivitySharedAction.ShowSpaceSettings(it.roomId))
-        }
-    }
-
     private fun setupDebugButton() {
-        views.debugButton.debouncedClicks {
-            sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
-            navigator.openDebug(requireActivity())
-        }
-
-        views.appBarLayout.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-            views.debugButton.isVisible = verticalOffset == 0 && buildMeta.isDebug && vectorPreferences.developerMode()
-        })
+        // Do not let the developer overlay alter the production-matched home toolbar.
+        // Debug tools remain available from their dedicated diagnostic entry points.
+        views.debugButton.isGone = true
     }
 
     /* ==========================================================================================

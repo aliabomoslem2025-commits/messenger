@@ -13,6 +13,7 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -98,6 +99,15 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
     @EpoxyAttribute
     var useSingleLineForLastEvent: Boolean = false
 
+    /**
+     * Used only by the Telegram-style home list; other room lists keep the standard preview.
+     */
+    @EpoxyAttribute
+    var hideMessagePreview: Boolean = false
+
+    @EpoxyAttribute
+    var hideRoomDivider: Boolean = false
+
     override fun bind(holder: Holder) {
         super.bind(holder)
 
@@ -115,6 +125,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         )
         holder.unreadCounterBadgeView.render(UnreadCounterBadgeView.State.Count(unreadNotificationCount, showHighlighted))
         holder.draftView.isVisible = hasDraft
+        holder.dividerView.isVisible = !hideRoomDivider
         avatarRenderer.render(matrixItem, holder.avatarImageView)
         holder.roomAvatarDecorationImageView.render(encryptionTrustLevel)
         holder.roomAvatarPublicDecorationImageView.isVisible = izPublic
@@ -139,14 +150,20 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         holder.lastEventTimeView.text = lastEventTime
         holder.lastEventTimeView.isVisible = lastEventTime.isNotBlank()
         holder.typingView.setTextOrHide(typingMessage)
-        holder.subtitleView.isInvisible = holder.typingView.isVisible
+        if (hideMessagePreview) {
+            // Match the supplied home screenshot: display contact/name and date only,
+            // but retain live typing state as a meaningful, real-time indicator.
+            holder.subtitleView.isGone = true
+        } else {
+            holder.subtitleView.isVisible = !holder.typingView.isVisible
+        }
     }
 
     private fun renderForFilteredDisplayMode(holder: Holder) {
         // A holder can be recycled across display modes; clear default-list-only views
         // to avoid showing an old timestamp or typing indicator in a filtered result.
         holder.subtitleView.text = subtitle
-        holder.subtitleView.isVisible = true
+        holder.subtitleView.isVisible = !hideMessagePreview
         holder.lastEventTimeView.isVisible = false
         holder.typingView.isVisible = false
     }
@@ -183,6 +200,7 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         val typingView by bind<TextView>(R.id.roomTypingView)
         val draftView by bind<ImageView>(R.id.roomDraftBadge)
         val lastEventTimeView by bind<TextView>(R.id.roomLastEventTimeView)
+        val dividerView by bind<View>(R.id.roomDividerView)
         val avatarCheckedImageView by bind<ImageView>(R.id.roomAvatarCheckedImageView)
         val avatarImageView by bind<ImageView>(R.id.roomAvatarImageView)
         val roomAvatarDecorationImageView by bind<ShieldImageView>(R.id.roomAvatarDecorationImageView)
