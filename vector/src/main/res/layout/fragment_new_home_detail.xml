@@ -292,7 +292,7 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_contacts"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
 
@@ -332,7 +332,7 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_settings"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
 
@@ -358,8 +358,7 @@
                 android:contentDescription="@string/telegram_tab_profile"
                 android:duplicateParentState="true"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_user_round"
-                android:tint="@color/telegram_bottom_tab_tint" />
+                android:src="@drawable/ic_user_round" />
 
             <TextView
                 android:id="@+id/telegramTabProfileLabel"
@@ -371,7 +370,7 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_profile"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
 
         </LinearLayout>
 
