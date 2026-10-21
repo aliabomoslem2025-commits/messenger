@@ -8,6 +8,8 @@
 package im.vector.app.features.home.room.detail.timeline.item
 
 import android.annotation.SuppressLint
+import android.transition.AutoTransition
+import android.transition.TransitionManager
 import android.graphics.Typeface
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +27,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.extensions.getDrawableAsSpannable
 import im.vector.app.core.ui.views.ShieldImageView
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
@@ -80,6 +83,19 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
 
     private fun renderReactions(holder: H, reactionsSummary: ReactionsSummaryData) {
         val reactions = reactionsSummary.reactions
+        val eventId = baseAttributes.informationData.eventId
+        val reactionSignature = reactions.orEmpty().map { "${it.key}:${it.count}:${it.addedByMe}:${it.synced}" }
+        val canAnimateReactionChanges = holder.renderedReactionEventId == eventId &&
+                holder.renderedReactionSignature != reactionSignature &&
+                holder.reactionsContainer.isLaidOut &&
+                holder.reactionsContainer.isVisible &&
+                !reactions.isNullOrEmpty() &&
+                holder.view.context.isAnimationEnabled()
+        if (canAnimateReactionChanges) {
+            TransitionManager.beginDelayedTransition(holder.reactionsContainer, AutoTransition().apply { duration = 180L })
+        }
+        holder.renderedReactionEventId = eventId
+        holder.renderedReactionSignature = reactionSignature
         if (!shouldShowReactionAtBottom() || reactions.isNullOrEmpty()) {
             holder.reactionsContainer.isVisible = false
         } else {
@@ -149,6 +165,9 @@ abstract class AbsBaseMessageItem<H : AbsBaseMessageItem.Holder>(@LayoutRes layo
     }
 
     abstract class Holder(@IdRes stubId: Int) : BaseEventItem.BaseHolder(stubId) {
+        var renderedReactionEventId: String? = null
+        var renderedReactionSignature: List<String> = emptyList()
+
         val dimensionConverter by lazy {
             DimensionConverter(view.resources)
         }
