@@ -48,6 +48,7 @@ import im.vector.app.features.call.SharedKnownCallsViewModel
 import im.vector.app.features.call.VectorCallActivity
 import im.vector.app.features.call.dialpad.PstnDialActivity
 import im.vector.app.features.call.webrtc.WebRtcCallManager
+import im.vector.app.features.contactsbook.ContactsBookFragment
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.elementx.MigrationBannerAction
 import im.vector.app.features.elementx.MigrationBannerState
@@ -280,7 +281,19 @@ class NewHomeDetailFragment :
 
         views.telegramTabContacts.debouncedClicks {
             selectTab(views.telegramTabContacts)
-            navigator.openCreateDirectRoom(requireContext())
+            views.toolbar.title = getString(R.string.telegram_tab_contacts)
+            childFragmentManager.commitTransaction {
+                replace(R.id.roomListContainer, ContactsBookFragment())
+                addToBackStack("telegram_contacts")
+            }
+        }
+
+        childFragmentManager.addOnBackStackChangedListener {
+            val contactsVisible = childFragmentManager.findFragmentById(R.id.roomListContainer) is ContactsBookFragment
+            if (!contactsVisible && isAdded) {
+                views.toolbar.title = getString(R.string.telegram_home_title)
+                selectTab(views.telegramTabChats)
+            }
         }
 
         views.telegramTabSettings.debouncedClicks {
