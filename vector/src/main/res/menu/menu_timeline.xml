@@ -16,6 +16,26 @@
         android:title="@string/telegram_mute_notifications"
         app:iconTint="?vctr_content_secondary"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/share_my_contact"
+        android:icon="@drawable/ic_user_round"
+        android:title="@string/telegram_share_my_contact"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/set_wallpaper"
+        android:icon="@drawable/ic_room_profile_uploads"
+        android:title="@string/telegram_set_wallpaper"
+        app:iconTint="?vctr_content_secondary"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/delete_chat"
+        android:icon="@drawable/ic_trash"
+        android:title="@string/telegram_delete_chat"
+        app:iconTint="?attr/colorError"
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/search"
