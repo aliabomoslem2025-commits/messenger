@@ -11,4 +11,6 @@
     <string name="telegram_tab_settings">Settings</string>
     <string name="telegram_tab_profile">Profile</string>
     <string name="telegram_next">Next</string>
+    <string name="telegram_chat_info">Chat info</string>
+    <string name="telegram_mute_notifications">Mute notifications</string>
 </resources>
