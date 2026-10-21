@@ -244,7 +244,6 @@
         android:layout_height="1dp"
         android:layout_marginStart="82dp"
         android:background="?vctr_list_separator_system"
-        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/roomNameView"
