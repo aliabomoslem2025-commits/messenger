@@ -25,6 +25,7 @@ import com.airbnb.epoxy.OnModelBuildFinishedListener
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.epoxy.LayoutManagerStateRestorer
@@ -274,7 +275,24 @@ class RoomListFragment :
     }
 
     override fun fabOpenRoomDirectory() {
-        navigator.openRoomDirectory(requireActivity(), "")
+        showCreateDestinationMenu()
+    }
+
+    private fun showCreateDestinationMenu() {
+        MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.telegram_create_destination_title)
+                .setItems(arrayOf(
+                        getString(R.string.telegram_create_group),
+                        getString(R.string.telegram_create_channel),
+                        getString(R.string.telegram_browse_public_rooms)
+                )) { _, selected ->
+                    when (selected) {
+                        0 -> navigator.openCreateRoom(requireActivity())
+                        1 -> navigator.openCreateRoom(requireActivity(), isChannel = true)
+                        2 -> navigator.openRoomDirectory(requireActivity(), "")
+                    }
+                }
+                .show()
     }
 
     private fun setupRecyclerView() {
