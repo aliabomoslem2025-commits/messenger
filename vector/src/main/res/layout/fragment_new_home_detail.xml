@@ -52,14 +52,14 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/telegramBottomNavigation"
         app:layout_constraintTop_toBottomOf="@id/syncStateView">
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?vctr_messenger_actionbar_background"
+            android:background="?vctr_room_list_background"
             android:elevation="0dp">
 
             <com.google.android.material.appbar.CollapsingToolbarLayout
@@ -68,9 +68,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?vctr_messenger_actionbar_background"
-                app:collapsedTitleTextColor="@android:color/white"
-                app:contentScrim="?vctr_messenger_actionbar_background"
-                app:expandedTitleTextColor="@android:color/white"
+                app:collapsedTitleTextColor="?vctr_content_primary"
+                app:contentScrim="?vctr_room_list_background"
+                app:expandedTitleTextColor="?vctr_content_primary"
                 >
 
                 <com.google.android.material.appbar.MaterialToolbar
@@ -79,10 +79,10 @@
                     android:layout_height="?attr/actionBarSize"
                     android:background="?vctr_messenger_actionbar_background"
                     android:elevation="0dp"
-                    android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+                    android:theme="@style/ThemeOverlay.MaterialComponents.Light"
                     app:layout_collapseMode="pin"
                     app:navigationIcon="@drawable/ic_telegram_menu"
-                    app:navigationIconTint="@android:color/white"
+                    app:navigationIconTint="?vctr_content_primary"
                     tools:title="@string/all_chats">
 
                 </com.google.android.material.appbar.MaterialToolbar>
@@ -256,7 +256,7 @@
                 android:text="@string/telegram_tab_chats"
                 android:textColor="@color/telegram_bottom_tab_tint"
                 android:textSize="13sp"
-                android:textStyle="medium" />
+                android:fontFamily="sans-serif-medium" />
 
         </LinearLayout>
 
