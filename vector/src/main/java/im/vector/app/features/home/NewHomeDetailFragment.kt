@@ -348,7 +348,9 @@ class NewHomeDetailFragment :
                 } else {
                     tabs.isVisible = true
                     filters.forEach { filter ->
-                        tabs.addTab(tabs.newTab().setText(filter.titleRes).setTag(filter), false)
+                        // Telegram calls the default folder "All Chats" rather than Element's generic "All".
+                        val titleRes = if (filter == HomeRoomFilter.ALL) CommonStrings.all_chats else filter.titleRes
+                        tabs.addTab(tabs.newTab().setText(titleRes).setTag(filter), false)
                     }
                     val selectedIndex = filters.indexOf(headers.currentFilter)
                     if (selectedIndex >= 0) {
