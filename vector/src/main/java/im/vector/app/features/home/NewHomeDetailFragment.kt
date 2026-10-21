@@ -27,7 +27,6 @@ import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -572,12 +571,6 @@ class NewHomeDetailFragment :
                         }
                     }
                 }
-    }
-
-    private fun openSpaceSettings() = withState(viewModel) { viewState ->
-        viewState.selectedSpace?.let {
-            sharedActionViewModel.post(HomeActivitySharedAction.ShowSpaceSettings(it.roomId))
-        }
     }
 
     private fun setupDebugButton() {
