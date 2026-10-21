@@ -157,7 +157,7 @@ class NewHomeDetailFragment :
             menu.findItem(R.id.menu_home_dialpad).isVisible = state.showDialPadTab
             val spacesItem = menu.findItem(R.id.menu_home_spaces)
             spacesItem.isVisible = isRoomList
-            val spacesTitle = getString(R.string.a11y_open_spaces)
+            val spacesTitle = getString(CommonStrings.a11y_open_spaces)
             spacesItem.title = spacesUnreadLabel?.let { "$spacesTitle ($it)" } ?: spacesTitle
 
             // Search is a persistent input below the toolbar, not an overflow action.
