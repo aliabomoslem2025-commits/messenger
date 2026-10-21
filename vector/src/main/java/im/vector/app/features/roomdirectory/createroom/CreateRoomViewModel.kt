@@ -234,6 +234,8 @@ class CreateRoomViewModel @AssistedInject constructor(
 
         val createRoomParams = CreateRoomParams()
                 .apply {
+                    invitedUserIds.addAll(state.initialInvitedUserIds)
+                    invite3pids.addAll(state.initialInvitedThreePids)
                     name = state.roomName.takeIf { it.isNotBlank() }
                     topic = state.roomTopic.takeIf { it.isNotBlank() }
                     avatarUri = state.avatarUri
