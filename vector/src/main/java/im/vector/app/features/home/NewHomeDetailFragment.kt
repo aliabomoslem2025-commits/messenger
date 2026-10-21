@@ -368,8 +368,12 @@ class NewHomeDetailFragment :
                             false
                     )
                 }
-                val selectedIndex = filters.indexOf(headers.currentFilter).takeIf { it >= 0 } ?: 0
-                tabs.getTabAt(selectedIndex)?.select()
+                val selectedIndex = filters.indexOf(headers.currentFilter)
+                tabs.getTabAt(selectedIndex.takeIf { it >= 0 } ?: 0)?.select()
+                if (selectedIndex < 0) {
+                    // Migrate persisted Element-only filters back to a supported Matrix query.
+                    homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
+                }
             } finally {
                 isSyncingTelegramHomeTabs = false
             }
