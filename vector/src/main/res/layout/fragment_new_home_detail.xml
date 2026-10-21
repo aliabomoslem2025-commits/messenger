@@ -71,7 +71,7 @@
                 app:collapsedTitleTextColor="@android:color/white"
                 app:contentScrim="?vctr_messenger_actionbar_background"
                 app:expandedTitleTextColor="@android:color/white"
-                app:layout_scrollFlags="scroll|exitUntilCollapsed">
+                >
 
                 <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/toolbar"
