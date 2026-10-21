@@ -34,10 +34,9 @@
             android:background="@drawable/bg_telegram_chat_header"
             android:clipToOutline="true"
             android:elevation="2dp"
-            android:theme="@style/ThemeOverlay.MaterialComponents.Light"
             android:transitionName="toolbar"
             app:navigationIconTint="?vctr_content_primary"
-            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light">
+            >
 
             <include
                 android:id="@+id/includeThreadToolbar"
