@@ -158,7 +158,11 @@ class MessageBubbleView @JvmOverloads constructor(
             views.messageOverlayView.isVisible = true
             (views.messageOverlayView.background as? GradientDrawable)?.cornerRadii = cornersRadius.toFloatArray()
         } else {
-            val timeColor = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
+            val timeColor = if (!isIncoming && timestampInsideMessage) {
+                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text)
+            } else {
+                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
+            }
             views.messageTimeView.setTextColor(timeColor)
             views.messageOverlayView.isVisible = false
         }
