@@ -9,6 +9,8 @@ package im.vector.app.features.home
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -17,7 +19,6 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.widget.SearchView
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -98,7 +99,7 @@ class NewHomeDetailFragment :
     private val homeRoomListViewModel: HomeRoomListViewModel by activityViewModel()
 
     private var isSyncingTelegramHomeTabs = false
-    private var configuredHomeSearchView: SearchView? = null
+    private var homeSearchTextWatcher: TextWatcher? = null
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
     private val migrationBannerViewModel: MigrationBannerViewModel by activityViewModel()
@@ -151,36 +152,8 @@ class NewHomeDetailFragment :
             val spacesTitle = getString(R.string.a11y_open_spaces)
             spacesItem.title = spacesUnreadLabel?.let { "$spacesTitle ($it)" } ?: spacesTitle
 
-            val searchItem = menu.findItem(R.id.menu_home_search)
-            searchItem.isVisible = isRoomList
-            val searchView = searchItem.actionView as? SearchView
-            if (searchView != null) {
-                searchView.queryHint = getString(CommonStrings.search)
-                if (configuredHomeSearchView !== searchView) {
-                    configuredHomeSearchView = searchView
-                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                        override fun onQueryTextSubmit(query: String?): Boolean {
-                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(query.orEmpty()))
-                            searchView.clearFocus()
-                            return true
-                        }
-
-                        override fun onQueryTextChange(newText: String?): Boolean {
-                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(newText.orEmpty()))
-                            return true
-                        }
-                    })
-                    searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-                        override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
-
-                        override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                            searchView.setQuery("", false)
-                            homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(""))
-                            return true
-                        }
-                    })
-                }
-            }
+            // Search is a persistent input below the toolbar, not an overflow action.
+            menu.findItem(R.id.menu_home_search).isVisible = false
         }
     }
 
@@ -202,6 +175,8 @@ class NewHomeDetailFragment :
         setupDebugButton()
         setupFabs()
         setupObservers()
+
+        setupTelegramHomeSearch()
 
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)
@@ -258,6 +233,20 @@ class NewHomeDetailFragment :
             // drawing a detached badge where the hidden floating action button used to be.
             invalidateOptionsMenu()
         }
+    }
+
+    private fun setupTelegramHomeSearch() {
+        val input = views.telegramHomeSearchInput
+        homeSearchTextWatcher?.let(input::removeTextChangedListener)
+        val watcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) = Unit
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                homeRoomListViewModel.handle(HomeRoomListAction.SearchRooms(s?.toString().orEmpty()))
+            }
+            override fun afterTextChanged(s: Editable?) = Unit
+        }
+        homeSearchTextWatcher = watcher
+        input.addTextChangedListener(watcher)
     }
 
     private fun setupTelegramHomeTabs() {
@@ -332,6 +321,8 @@ class NewHomeDetailFragment :
     }
 
     override fun onDestroyView() {
+        homeSearchTextWatcher?.let { watcher -> views.telegramHomeSearchInput.removeTextChangedListener(watcher) }
+        homeSearchTextWatcher = null
         currentCallsViewPresenter.unBind()
         super.onDestroyView()
     }
