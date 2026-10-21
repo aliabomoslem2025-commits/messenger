@@ -137,7 +137,7 @@ class NewHomeDetailFragment :
                 spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
                 true
             }
-            R.id.menu_home_search -> true // Expanded SearchView handles the query.
+            R.id.menu_home_search -> true // The persistent search input handles the query.
             else -> false
         }
     }
@@ -177,6 +177,7 @@ class NewHomeDetailFragment :
         setupObservers()
 
         setupTelegramHomeSearch()
+        setupTelegramBottomNavigation()
 
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)
@@ -247,6 +248,57 @@ class NewHomeDetailFragment :
         }
         homeSearchTextWatcher = watcher
         input.addTextChangedListener(watcher)
+    }
+
+    /**
+     * Keep the floating four-item navigation tied to real Element/Matrix destinations.
+     * Contacts opens the existing Matrix user picker; profile opens the signed-in
+     * user's profile. No placeholder tabs or fake screen content are introduced.
+     */
+    private fun setupTelegramBottomNavigation() {
+        val tabs = listOf(
+                views.telegramTabChats,
+                views.telegramTabContacts,
+                views.telegramTabSettings,
+                views.telegramTabProfile
+        )
+
+        fun selectTab(selected: View) {
+            tabs.forEach { tab ->
+                tab.isSelected = tab.id == selected.id
+            }
+        }
+
+        selectTab(views.telegramTabChats)
+
+        views.telegramTabChats.debouncedClicks {
+            selectTab(views.telegramTabChats)
+            views.telegramHomeSearchInput.text?.clear()
+            viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.PEOPLE)))
+            homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
+        }
+
+        views.telegramTabContacts.debouncedClicks {
+            selectTab(views.telegramTabContacts)
+            navigator.openCreateDirectRoom(requireContext())
+        }
+
+        views.telegramTabSettings.debouncedClicks {
+            selectTab(views.telegramTabSettings)
+            navigator.openSettings(requireContext())
+        }
+
+        views.telegramTabProfile.debouncedClicks {
+            selectTab(views.telegramTabProfile)
+            withState(viewModel) { state ->
+                val ownUserId = state.myMatrixItem?.id
+                if (ownUserId.isNullOrBlank()) {
+                    navigator.openSettings(requireContext())
+                } else {
+                    navigator.openRoomMemberProfile(ownUserId, null, requireContext())
+                }
+            }
+        }
     }
 
     private fun setupTelegramHomeTabs() {
@@ -434,6 +486,7 @@ class NewHomeDetailFragment :
 
     private fun setupToolbar() {
         setupToolbar(views.toolbar)
+        views.toolbar.title = getString(R.string.telegram_home_title)
 
         views.collapsingToolbar.debouncedClicks(::openSpaceSettings)
         views.toolbar.debouncedClicks(::openSpaceSettings)
