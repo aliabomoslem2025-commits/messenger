@@ -85,7 +85,10 @@ class CreateRoomActivity : VectorBaseActivity<ActivitySimpleBinding>() {
                 openAfterCreate: Boolean = true,
                 currentSpaceId: String? = null,
                 initialJoinRule: RoomJoinRules? = null,
-                isChannel: Boolean = false
+                isChannel: Boolean = false,
+                isGroup: Boolean = false,
+                initialInvitedUserIds: List<String> = emptyList(),
+                initialInvitedThreePids: List<String> = emptyList()
         ): Intent {
             return Intent(context, CreateRoomActivity::class.java).apply {
                 putExtra(
@@ -95,7 +98,10 @@ class CreateRoomActivity : VectorBaseActivity<ActivitySimpleBinding>() {
                         openAfterCreate = openAfterCreate,
                         parentSpaceId = currentSpaceId,
                         initialJoinRule = initialJoinRule,
-                        isChannel = isChannel
+                        isChannel = isChannel,
+                        isGroup = isGroup,
+                        initialInvitedUserIds = initialInvitedUserIds,
+                        initialInvitedThreePids = initialInvitedThreePids
                 )
                 )
             }
