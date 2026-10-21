@@ -9,6 +9,7 @@ package im.vector.app.features.roomdirectory.createroom
 
 import com.airbnb.epoxy.TypedEpoxyController
 import com.airbnb.mvrx.Fail
+import im.vector.app.R
 import com.airbnb.mvrx.Loading
 import im.vector.app.core.epoxy.dividerItem
 import im.vector.app.core.epoxy.profiles.buildProfileAction
@@ -51,13 +52,13 @@ class CreateRoomController @Inject constructor(
         }
         settingsSectionTitleItem {
             id("nameSection")
-            titleResId(CommonStrings.create_room_name_section)
+            titleResId(if (viewState.isChannel) R.string.telegram_channel_name_section else CommonStrings.create_room_name_section)
         }
         formEditTextItem {
             id("name")
             enabled(enableFormElement)
             value(viewState.roomName)
-            hint(host.stringProvider.getString(CommonStrings.create_room_name_hint))
+            hint(host.stringProvider.getString(if (viewState.isChannel) R.string.telegram_channel_name_hint else CommonStrings.create_room_name_hint))
             autoCapitalize(true)
 
             onTextChange { text ->
@@ -66,14 +67,14 @@ class CreateRoomController @Inject constructor(
         }
         settingsSectionTitleItem {
             id("topicSection")
-            titleResId(CommonStrings.create_room_topic_section)
+            titleResId(if (viewState.isChannel) R.string.telegram_channel_description_section else CommonStrings.create_room_topic_section)
         }
         formEditTextItem {
             id("topic")
             enabled(enableFormElement)
             value(viewState.roomTopic)
             singleLine(false)
-            hint(host.stringProvider.getString(CommonStrings.create_room_topic_hint))
+            hint(host.stringProvider.getString(if (viewState.isChannel) R.string.telegram_channel_description_hint else CommonStrings.create_room_topic_hint))
 
             onTextChange { text ->
                 host.listener?.onTopicChange(text)
