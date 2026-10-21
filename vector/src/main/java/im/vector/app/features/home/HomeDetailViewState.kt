@@ -21,7 +21,7 @@ data class HomeDetailViewState(
         val selectedSpace: RoomSummary? = null,
         val myMatrixItem: MatrixItem? = null,
         val asyncRooms: Async<List<RoomSummary>> = Uninitialized,
-        val currentTab: HomeTab = HomeTab.RoomList(RoomListDisplayMode.PEOPLE),
+        val currentTab: HomeTab = HomeTab.RoomList(RoomListDisplayMode.ROOMS),
         val notificationCountCatchup: Int = 0,
         val notificationHighlightCatchup: Boolean = false,
         val notificationCountPeople: Int = 0,
