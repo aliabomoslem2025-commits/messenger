@@ -502,8 +502,8 @@ class NewHomeDetailFragment :
     @Suppress("UNUSED_PARAMETER")
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
         // Space switching remains available from the menu; the main-screen brand stays stable.
-        views.toolbar.title = getString(R.string.telegram_home_title)
-        views.collapsingToolbar.title = ""
+        views.toolbar.title = ""
+        views.collapsingToolbar.title = getString(R.string.telegram_home_title)
     }
 
     private fun setupKeysBackupBanner() {
@@ -531,11 +531,13 @@ class NewHomeDetailFragment :
 
     private fun setupToolbar() {
         setupToolbar(views.toolbar)
-        views.toolbar.title = getString(R.string.telegram_home_title)
-        // Keep the title left-aligned; the reference screen has only the overflow menu on the right.
+        // CollapsingToolbarLayout owns the visible title and places it at the toolbar's
+        // content inset. Keep the child Toolbar title empty so the two title layers do
+        // not overlap or push "Telegram" to the old navigation-icon inset.
+        views.toolbar.title = ""
         views.toolbar.navigationIcon = null
         views.toolbar.setNavigationOnClickListener(null)
-        views.collapsingToolbar.title = ""
+        views.collapsingToolbar.title = getString(R.string.telegram_home_title)
     }
 
     private fun setupMigrationBanner() {
