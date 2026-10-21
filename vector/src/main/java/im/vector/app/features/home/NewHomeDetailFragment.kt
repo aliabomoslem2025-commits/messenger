@@ -363,7 +363,7 @@ class NewHomeDetailFragment :
                 filters.forEach { filter ->
                     tabs.addTab(
                             tabs.newTab()
-                                    .setText(CommonStrings.all_chats)
+                                    .setText(R.string.telegram_filter_all_chats)
                                     .setTag(filter),
                             false
                     )
