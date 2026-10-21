@@ -581,14 +581,9 @@ class NewHomeDetailFragment :
     }
 
     private fun setupDebugButton() {
-        views.debugButton.debouncedClicks {
-            sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
-            navigator.openDebug(requireActivity())
-        }
-
-        views.appBarLayout.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-            views.debugButton.isVisible = verticalOffset == 0 && buildMeta.isDebug && vectorPreferences.developerMode()
-        })
+        // Do not let the developer overlay alter the production-matched home toolbar.
+        // Debug tools remain available from their dedicated diagnostic entry points.
+        views.debugButton.isGone = true
     }
 
     /* ==========================================================================================
