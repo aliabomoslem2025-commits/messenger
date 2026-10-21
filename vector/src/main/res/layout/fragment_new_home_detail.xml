@@ -350,8 +350,8 @@
 
             <ImageView
                 android:id="@+id/telegramTabProfileIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
                 android:contentDescription="@string/telegram_tab_profile"
                 android:duplicateParentState="true"
                 android:importantForAccessibility="no"
