@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
 import org.matrix.android.sdk.api.session.room.alias.RoomAliasError
@@ -235,7 +236,20 @@ class CreateRoomViewModel @AssistedInject constructor(
         val createRoomParams = CreateRoomParams()
                 .apply {
                     invitedUserIds.addAll(state.initialInvitedUserIds)
-                    invite3pids.addAll(state.initialInvitedThreePids)
+                    invite3pids.addAll(state.initialInvitedThreePids.mapNotNull { encoded ->
+                        val separator = encoded.indexOf(':')
+                        if (separator <= 0 || separator == encoded.lastIndex) {
+                            null
+                        } else {
+                            val medium = encoded.substring(0, separator)
+                            val value = encoded.substring(separator + 1)
+                            when (medium) {
+                                "email" -> ThreePid.Email(value)
+                                "msisdn" -> ThreePid.Msisdn(value)
+                                else -> null
+                            }
+                        }
+                    })
                     name = state.roomName.takeIf { it.isNotBlank() }
                     topic = state.roomTopic.takeIf { it.isNotBlank() }
                     avatarUri = state.avatarUri
