@@ -17,6 +17,11 @@
         app:showAsAction="always|collapseActionView" />
 
     <item
+        android:id="@+id/menu_home_open_drawer"
+        android:title="@string/telegram_home_menu"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/menu_home_spaces"
         android:icon="@drawable/ic_space_icons"
         android:title="@string/a11y_open_spaces"
