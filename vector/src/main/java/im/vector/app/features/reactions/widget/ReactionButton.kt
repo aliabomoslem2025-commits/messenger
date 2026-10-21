@@ -123,7 +123,6 @@ class ReactionButton @JvmOverloads constructor(
      * receipt and encryption-state rebinding cannot make the message flicker.
      */
     private fun animateReactionCountChange() {
-        if (!this::views.isInitialized) return
         val countView = views.reactionCount
         countView.animate().cancel()
         countView.scaleX = 1f
