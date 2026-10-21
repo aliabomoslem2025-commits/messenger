@@ -27,6 +27,7 @@ import im.vector.app.core.dialogs.GalleryOrCameraDialogHelperFactory
 import im.vector.app.core.extensions.cleanup
 import im.vector.app.core.extensions.configureWith
 import im.vector.app.core.platform.OnBackPressed
+import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.databinding.FragmentCreateRoomBinding
 import im.vector.app.features.analytics.plan.ViewRoom
@@ -49,7 +50,9 @@ data class CreateRoomArgs(
         val initialName: String,
         val parentSpaceId: String? = null,
         val isSpace: Boolean = false,
-        val openAfterCreate: Boolean = true
+        val openAfterCreate: Boolean = true,
+        val initialJoinRule: RoomJoinRules? = null,
+        val isChannel: Boolean = false
 ) : Parcelable
 
 @AndroidEntryPoint
@@ -87,7 +90,11 @@ class CreateRoomFragment :
         setupWaitingView()
         setupRecyclerView()
         setupToolbar(views.createRoomToolbar)
-                .setTitle(if (args.isSpace) CommonStrings.create_new_space else CommonStrings.create_new_room)
+                .setTitle(when {
+                    args.isSpace -> CommonStrings.create_new_space
+                    args.isChannel -> R.string.telegram_create_channel_title
+                    else -> CommonStrings.create_new_room
+                })
                 .allowBack(useCross = true)
         viewModel.observeViewEvents {
             when (it) {
