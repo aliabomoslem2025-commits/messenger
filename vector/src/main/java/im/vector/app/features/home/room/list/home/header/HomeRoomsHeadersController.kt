@@ -64,9 +64,8 @@ class HomeRoomsHeadersController @Inject constructor(
             addInviteCounter(host.invitesClickListener, data.invitesCount)
         }
 
-        data.recents?.let {
-            addRecents(host, it)
-        }
+        // The Telegram-style home screen is a single chronological chat list.
+        // Do not duplicate the same rooms in an Element-style horizontal recents carousel.
     }
 
     private fun addInviteCounter(invitesClickListener: (() -> Unit)?, invitesCount: Int) {
