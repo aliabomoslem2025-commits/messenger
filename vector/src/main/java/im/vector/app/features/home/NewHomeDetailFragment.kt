@@ -290,7 +290,8 @@ class NewHomeDetailFragment :
 
         childFragmentManager.addOnBackStackChangedListener {
             val contactsVisible = childFragmentManager.findFragmentById(R.id.roomListContainer) is ContactsBookFragment
-            if (!contactsVisible && isAdded) {
+            // FragmentManager outlives this view; don't access view binding after onDestroyView.
+            if (!contactsVisible && isAdded && view != null) {
                 views.toolbar.title = getString(R.string.telegram_home_title)
                 selectTab(views.telegramTabChats)
             }
