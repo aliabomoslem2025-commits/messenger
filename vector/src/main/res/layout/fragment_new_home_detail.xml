@@ -292,8 +292,7 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_contacts"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp"
-                android:textStyle="medium" />
+                android:textSize="13sp" />
 
         </LinearLayout>
 
@@ -333,8 +332,7 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_settings"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp"
-                android:textStyle="medium" />
+                android:textSize="13sp" />
 
         </LinearLayout>
 
@@ -373,8 +371,7 @@
                 android:maxLines="1"
                 android:text="@string/telegram_tab_profile"
                 android:textColor="@color/telegram_bottom_tab_tint"
-                android:textSize="13sp"
-                android:textStyle="medium" />
+                android:textSize="13sp" />
 
         </LinearLayout>
 
@@ -383,9 +380,9 @@
 
     <ImageButton
         android:id="@+id/telegramCameraButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="4dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="0dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/bg_telegram_camera_button"
         android:contentDescription="@string/telegram_open_camera"
@@ -407,6 +404,8 @@
         android:src="@drawable/ic_fab_add_chat"
         android:visibility="gone"
         app:backgroundTint="@color/telegram_accent_blue"
+        app:fabSize="mini"
+        app:maxImageSize="30dp"
         app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/telegramBottomNavigation"
         app:layout_constraintEnd_toEndOf="parent"
