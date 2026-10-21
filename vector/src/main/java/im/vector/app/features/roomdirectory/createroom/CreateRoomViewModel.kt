@@ -27,6 +27,7 @@ import im.vector.app.features.raw.wellknown.isE2EByDefault
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.MatrixPatterns.getServerName
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
@@ -70,10 +71,10 @@ class CreateRoomViewModel @AssistedInject constructor(
                 .isFeatureSupported(HomeServerCapabilities.ROOM_CAP_RESTRICTED)
         val createRestricted = restrictedSupport == HomeServerCapabilities.RoomCapabilitySupport.SUPPORTED
 
-        val defaultJoinRules = if (parentSpaceId != null && createRestricted) {
-            RoomJoinRules.RESTRICTED
-        } else {
-            RoomJoinRules.INVITE
+        val defaultJoinRules = when {
+            initialState.isChannel -> RoomJoinRules.PUBLIC
+            parentSpaceId != null && createRestricted -> RoomJoinRules.RESTRICTED
+            else -> RoomJoinRules.INVITE
         }
 
         setState {
@@ -157,7 +158,9 @@ class CreateRoomViewModel @AssistedInject constructor(
             CreateRoomViewState(
                     isEncrypted = adminE2EByDefault,
                     hsAdminHasDisabledE2E = !adminE2EByDefault,
-                    parentSpaceId = this.parentSpaceId
+                    parentSpaceId = this.parentSpaceId,
+                    roomJoinRules = if (this.isChannel) RoomJoinRules.PUBLIC else RoomJoinRules.INVITE,
+                    isChannel = this.isChannel
             )
         }
 
@@ -244,6 +247,12 @@ class CreateRoomViewModel @AssistedInject constructor(
                         // to prevent the rooms accidentally/maliciously clogging up with messages from random members of the space.
                         powerLevelContentOverride = PowerLevelsContent(
                                 eventsDefault = 100
+                        )
+                    } else if (state.isChannel) {
+                        // Public channel members may react, but only moderators can publish messages.
+                        // Keep m.reaction on Matrix default permissions and restrict m.room.message only.
+                        powerLevelContentOverride = PowerLevelsContent(
+                                events = mapOf(EventType.MESSAGE to 50)
                         )
                     }
 
