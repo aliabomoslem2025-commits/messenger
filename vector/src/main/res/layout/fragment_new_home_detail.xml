@@ -62,39 +62,29 @@
             android:background="?vctr_room_list_background"
             android:elevation="0dp">
 
-            <com.google.android.material.appbar.CollapsingToolbarLayout
-                android:id="@+id/collapsing_toolbar"
-                style="?attr/collapsingToolbarLayoutMediumStyle"
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?vctr_room_list_background"
-                app:collapsedTitleTextColor="?vctr_content_primary"
-                app:contentScrim="?vctr_room_list_background"
-                app:expandedTitleTextColor="?vctr_content_primary">
+                android:elevation="0dp"
+                app:contentInsetStart="20dp"
+                app:contentInsetEnd="8dp"
+                app:titleTextAppearance="@style/TelegramHomeTitle"
+                tools:title="@string/telegram_home_title" />
 
-                <com.google.android.material.appbar.MaterialToolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="?attr/actionBarSize"
-                    android:background="?vctr_room_list_background"
-                    android:elevation="0dp"
-                    app:layout_collapseMode="pin"
-                    tools:title="@string/telegram_home_title" />
-
-                <ImageView
-                    android:id="@+id/debug_button"
-                    style="@style/VectorDebug"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:layout_gravity="bottom|end"
-                    android:layout_marginStart="12dp"
-                    android:importantForAccessibility="no"
-                    android:scaleType="center"
-                    android:src="@drawable/ic_settings_x"
-                    app:tint="?colorPrimary"
-                    tools:ignore="MissingPrefix" />
-
-            </com.google.android.material.appbar.CollapsingToolbarLayout>
+            <!-- Kept in the binding for compatibility, but never shown on the Telegram home screen. -->
+            <ImageView
+                android:id="@+id/debug_button"
+                style="@style/VectorDebug"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:visibility="gone"
+                android:importantForAccessibility="no"
+                android:scaleType="center"
+                android:src="@drawable/ic_settings_x"
+                app:tint="?colorPrimary"
+                tools:ignore="MissingPrefix" />
 
             <!-- Pinned search field, matching Telegram's chat list. -->
             <LinearLayout
