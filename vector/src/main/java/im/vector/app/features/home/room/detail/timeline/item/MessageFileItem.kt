@@ -62,6 +62,13 @@ abstract class MessageFileItem : AbsMessageItem<MessageFileItem.Holder>() {
         }
 
         holder.filenameView.text = filename
+        val messageLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
+        val filenameColor = if (messageLayout != null && !messageLayout.isIncoming) {
+            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_content_primary
+        }
+        holder.filenameView.setTextColor(ThemeUtils.getColor(holder.view.context, filenameColor))
 
         if (attributes.informationData.sendState.isSending()) {
             holder.fileImageView.setImageResource(iconRes)

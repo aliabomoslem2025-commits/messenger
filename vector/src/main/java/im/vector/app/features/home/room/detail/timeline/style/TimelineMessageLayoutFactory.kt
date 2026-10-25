@@ -10,8 +10,6 @@ package im.vector.app.features.home.room.detail.timeline.style
 import android.content.res.Resources
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
-import im.vector.app.core.resources.LocaleProvider
-import im.vector.app.core.resources.isRTL
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.session.Session
@@ -27,7 +25,6 @@ import javax.inject.Inject
 class TimelineMessageLayoutFactory @Inject constructor(
         private val session: Session,
         private val layoutSettingsProvider: TimelineLayoutSettingsProvider,
-        private val localeProvider: LocaleProvider,
         private val resources: Resources,
         private val vectorPreferences: VectorPreferences
 ) {
@@ -74,10 +71,6 @@ class TimelineMessageLayoutFactory @Inject constructor(
 
     private val groupedCornerRadius: Float by lazy {
         resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_grouped_corner_radius).toFloat()
-    }
-
-    private val isRTL: Boolean by lazy {
-        localeProvider.isRTL()
     }
 
     fun create(params: TimelineItemFactoryParams): TimelineMessageLayout {
@@ -183,12 +176,13 @@ class TimelineMessageLayoutFactory @Inject constructor(
             isFirstFromThisSender: Boolean,
             isLastFromThisSender: Boolean
     ): TimelineMessageLayout.Bubble.CornersRadius {
-        // Telegram-inspired grouped bubbles keep a small rounded inner corner rather than
-        // collapsing it to a hard 0dp angle. Sender grouping and RTL mirroring are unchanged.
+        // The chat chrome is intentionally LTR (including for Persian/Arabic locales).
+        // Keep grouped-bubble corners on that fixed horizontal axis; paragraph direction
+        // is resolved independently by the message TextView..
         val groupedTopRadius = if (isFirstFromThisSender) cornerRadius else groupedCornerRadius
         val groupedBottomRadius = if (isLastFromThisSender) cornerRadius else groupedCornerRadius
 
-        return if ((isIncoming && !isRTL) || (!isIncoming && isRTL)) {
+        return if (isIncoming) {
             TimelineMessageLayout.Bubble.CornersRadius(
                     topStartRadius = groupedTopRadius,
                     topEndRadius = cornerRadius,

@@ -139,3 +139,23 @@ Validated source revision: [f8fd8a2](https://github.com/aliabomoslem2025-commits
 - [ ] Verify Persian-only, Latin-only, mixed-script, URL, timestamp, multiline, edited-message, and media-caption rendering at multiple font scales with TalkBack enabled.
 
 Remote source editing cannot substitute for screenshot comparison or hands-on Matrix acceptance. Do not describe this as 100% parity until these gates pass.
+
+
+### Conversation header/composer fidelity pass (source changes; verification pending, 2026-10-25)
+
+- Restored a full-width 56dp conversation toolbar instead of an inset floating card; returned avatar sizing and title margins to a compact Android messenger header while retaining Matrix presence and room-security indicators.
+- Set the room title/subtitle to 18sp/14sp, matching Telegram Android's ActionBar sizing when a subtitle is visible in portrait mode (verified in the reference ActionBar implementation).
+- Set plain/rich composer paragraph direction to first-strong-with-LTR-fallback and made header title alignment text-direction-aware, while keeping the screen chrome LTR.
+- Locked the conversation screen's layout direction to LTR so Persian locale does not mirror toolbar, composer, or bubble placement; message text still resolves paragraph direction independently from its first strong character.
+- Corrected the plain composer layout to follow Telegram Android's control order: emoji control at the leading edge of the input, editable text in the middle, attachment action at the trailing edge, and the send action outside the input capsule. The emoji control uses the existing attachment-size dimension token for a usable hit target.
+- Fixed bubble text palette ordering: send-state binding could overwrite the outgoing bubble's theme-aware readable text color. The bubble renderer now exposes a focused color refresh, invoked after send-state binding without altering Matrix send state, sending callbacks, or the Timeline source of truth.
+- This pass has not yet been compiled or exercised on a device. Build/test results, screenshot comparison, RTL behavior, and live Matrix send/retry behavior remain acceptance gates; no pixel-parity claim is made.
+
+### Screenshot-reference conversation pass (implementation committed; CI/device validation pending)
+
+- Changed the chat-only light canvas to Telegram-like lime green (`#D9EBA9`) with low-contrast doodles (`#C5DD8C`); dark mode now uses a near-black canvas with subdued doodles. Other screens retain their existing theme tokens.
+- Wrapped the room identity area in an inset rounded capsule and added circular surfaces to the existing toolbar back/overflow controls, retaining their navigation/menu listeners. The status and navigation bar colors follow the active chat surface and are restored when leaving the screen.
+- Switched the chat send-action accent to the defined Telegram blue resource in light/dark/black themes; the separate product logo green remains unchanged.
+- Shifted outgoing message delivery state into the bubble's right footer area, reserved space after the timestamp, and used the outgoing bubble's white text token for the timestamp/check indicator. The Matrix send-state view/model remains authoritative.
+- No screenshot comparison or live-device verification has been performed from this editing session. Verify header overlap, menu target sizes, multi-line message footer layout, media overlays, status/navigation bar icon contrast, and send-state transitions before accepting the visual pass.
+
