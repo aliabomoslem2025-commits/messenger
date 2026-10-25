@@ -30,4 +30,5 @@
     <string name="telegram_wallpaper_doodles">Telegram-style doodles</string>
     <string name="telegram_wallpaper_plain">Plain background</string>
     <string name="telegram_wallpaper_reset">Use default wallpaper</string>
+    <string name="telegram_message_read_status">Read</string>
 </resources>
