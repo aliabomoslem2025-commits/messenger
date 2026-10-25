@@ -4,9 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="12dp"
-    android:layout_marginTop="4dp"
     android:layout_marginEnd="12dp"
-    android:layout_marginBottom="4dp"
     android:minHeight="78dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
@@ -14,7 +12,7 @@
     android:paddingTop="12dp"
     android:paddingEnd="14dp"
     android:paddingBottom="12dp"
-    android:background="@drawable/bg_telegram_settings_card"
+    android:background="@android:color/transparent"
     android:foreground="?attr/selectableItemBackground"
     tools:viewBindingIgnore="true">
 
