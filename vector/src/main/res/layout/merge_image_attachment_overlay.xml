@@ -135,6 +135,20 @@
         app:tint="?colorOnPrimary"
         tools:ignore="MissingPrefix" />
 
+    <TextView
+        android:id="@+id/overlayCurrentTimeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="0:00"
+        android:textColor="?colorOnPrimary"
+        android:textSize="12sp"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
+        app:layout_constraintStart_toEndOf="@id/overlayPlayPauseButton"
+        app:layout_constraintTop_toTopOf="@id/overlayBottomBackground" />
+
     <SeekBar
         android:id="@+id/overlaySeekBar"
         android:layout_width="0dp"
@@ -145,7 +159,21 @@
         android:progressBackgroundTint="?colorOnPrimary"
         android:thumbTint="?colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
+        app:layout_constraintEnd_toStartOf="@id/overlayDurationText"
+        app:layout_constraintStart_toEndOf="@id/overlayCurrentTimeText"
+        app:layout_constraintTop_toTopOf="@id/overlayBottomBackground" />
+
+    <TextView
+        android:id="@+id/overlayDurationText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:fontFamily="sans-serif-medium"
+        android:text="0:00"
+        android:textColor="?colorOnPrimary"
+        android:textSize="12sp"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toBottomOf="@id/overlayBottomBackground"
         app:layout_constraintEnd_toEndOf="@id/overlayBottomBackground"
-        app:layout_constraintStart_toEndOf="@id/overlayPlayPauseButton"
         app:layout_constraintTop_toTopOf="@id/overlayBottomBackground" />
 </merge>
