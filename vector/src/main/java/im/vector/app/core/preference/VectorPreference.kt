@@ -14,6 +14,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ImageView
@@ -76,6 +77,16 @@ open class VectorPreference : Preference {
             notifyChanged()
         }
 
+    /**
+     * Optional colored rounded tile behind the root-settings icon.
+     * Null keeps the regular Element preference appearance.
+     */
+    var iconBackgroundColor: Int? = null
+        set(value) {
+            field = value
+            notifyChanged()
+        }
+
     var currentHighlightAnimator: Animator? = null
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
@@ -92,16 +103,6 @@ open class VectorPreference : Preference {
             }
 
             summary?.setTypeface(null, mTypeface)
-
-            if (tintIcon) {
-                // Tint icons (See #1786)
-                val icon = holder.findViewById(android.R.id.icon) as? ImageView
-
-                icon?.let {
-                    val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                    ImageViewCompat.setImageTintList(it, ColorStateList.valueOf(color))
-                }
-            }
 
             // cancel existing animation (find a way to resume if happens during anim?)
             currentHighlightAnimator?.cancel()
@@ -136,6 +137,29 @@ open class VectorPreference : Preference {
         }
 
         super.onBindViewHolder(holder)
+
+        val icon = holder.findViewById(android.R.id.icon) as? ImageView
+        icon?.let { imageView ->
+            val tileColor = iconBackgroundColor
+            if (tileColor != null) {
+                val density = resources.displayMetrics.density
+                imageView.background = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = 11f * density
+                    setColor(tileColor)
+                }
+                val inset = (9f * density).toInt()
+                imageView.setPadding(inset, inset, inset, inset)
+                ImageViewCompat.setImageTintList(imageView, ColorStateList.valueOf(Color.WHITE))
+            } else if (tintIcon) {
+                val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                ImageViewCompat.setImageTintList(imageView, ColorStateList.valueOf(color))
+            } else {
+                imageView.background = null
+                imageView.setPadding(0, 0, 0, 0)
+                ImageViewCompat.setImageTintList(imageView, null)
+            }
+        }
     }
 
     /**
