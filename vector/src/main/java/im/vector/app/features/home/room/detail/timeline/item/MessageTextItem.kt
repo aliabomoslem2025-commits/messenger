@@ -21,6 +21,7 @@ import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
+import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
@@ -93,7 +94,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         if (useBigFont) {
             messageView.textSize = 44F
         } else {
-            messageView.textSize = 15.5F
+            messageView.textSize = 16F
         }
         if (searchForPills) {
             message?.charSequence?.findPillsAndProcess(coroutineScope) {
@@ -110,6 +111,14 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.onClick(attributes.itemClickListener)
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
+        // Bubble styling runs during the base bind, but renderSendState() above also
+        // applies Element's send-state text tint. Reapply the bubble palette last so
+        // outbound Telegram-blue bubbles retain readable white text without changing
+        // the underlying Matrix send state or callbacks.
+        val bubbleLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
+        if (bubbleLayout != null) {
+            (holder.view as? MessageBubbleView)?.renderMessageLayout(bubbleLayout)
+        }
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
     }
 
