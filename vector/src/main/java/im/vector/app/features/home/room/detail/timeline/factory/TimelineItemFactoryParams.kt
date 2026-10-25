@@ -22,6 +22,8 @@ data class TimelineItemFactoryParams(
         val nextDisplayableEvent: TimelineEvent? = null,
         val partialState: TimelineEventController.PartialState = TimelineEventController.PartialState(),
         val lastSentEventIdWithoutReadReceipts: String? = null,
+        val eventIndex: Int = -1,
+        val lastReadEventIndex: Int? = null,
         val callback: TimelineEventController.Callback? = null,
         val reactionsSummaryEvents: ReactionsSummaryEvents? = null,
         val eventsGroup: TimelineEventsGroup? = null
