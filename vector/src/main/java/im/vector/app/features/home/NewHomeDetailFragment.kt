@@ -269,11 +269,14 @@ class NewHomeDetailFragment :
                 views.telegramTabSettings,
                 views.telegramTabProfile
         )
-        val homeSearchInitiallyVisible = views.telegramHomeSearchInput.isVisible
-        val homeTabsInitiallyVisible = views.telegramHomeTabsTrack.isVisible
-        val cameraInitiallyVisible = views.telegramCameraButton.isVisible
-        val createChatInitiallyVisible = views.newLayoutCreateChatButton.isVisible
-        val openSpacesInitiallyVisible = views.newLayoutOpenSpacesButton.isVisible
+        val homeChromeViews = listOf(
+                views.telegramHomeSearchInput,
+                views.telegramHomeTabsTrack,
+                views.telegramCameraButton,
+                views.newLayoutCreateChatButton,
+                views.newLayoutOpenSpacesButton
+        )
+        var savedHomeChromeVisibility: Map<View, Int>? = null
 
         fun selectTab(selected: View) {
             tabs.forEach { tab ->
@@ -282,11 +285,17 @@ class NewHomeDetailFragment :
         }
 
         fun setHomeChromeVisible(visible: Boolean) {
-            views.telegramHomeSearchInput.isVisible = visible && homeSearchInitiallyVisible
-            views.telegramHomeTabsTrack.isVisible = visible && homeTabsInitiallyVisible
-            views.telegramCameraButton.isVisible = visible && cameraInitiallyVisible
-            views.newLayoutCreateChatButton.isVisible = visible && createChatInitiallyVisible
-            views.newLayoutOpenSpacesButton.isVisible = visible && openSpacesInitiallyVisible
+            if (visible) {
+                savedHomeChromeVisibility?.forEach { (view, oldVisibility) ->
+                    view.visibility = oldVisibility
+                }
+                savedHomeChromeVisibility = null
+            } else {
+                if (savedHomeChromeVisibility == null) {
+                    savedHomeChromeVisibility = homeChromeViews.associateWith { it.visibility }
+                }
+                homeChromeViews.forEach { it.isVisible = false }
+            }
         }
 
         fun showHomeTab() {
