@@ -409,6 +409,18 @@ class TimelineEventController @Inject constructor(
         Timber.v("Preprocess events took $preprocessEventsTiming ms")
         var numberOfEventsToBuild = 0
         val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(readReceiptsCache.receiptsByEvent())
+        // In a direct room, a receipt on event N means the recipient has read
+        // this event and the preceding events in the current ordered timeline chunk.
+        // Only non-local, non-thread receipts count as a Telegram-style double tick.
+        val lastReadEventIndex = if (partialState.roomSummary?.isDirect == true) {
+            currentSnapshot.indexOfLast { timelineEvent ->
+                timelineEvent.readReceipts.any { receipt ->
+                    receipt.roomMember.userId != session.myUserId && receipt.threadId == null
+                }
+            }.takeIf { it >= 0 }
+        } else {
+            null
+        }
         (0 until modelCache.size).forEach { position ->
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
@@ -441,6 +453,8 @@ class TimelineEventController @Inject constructor(
                         nextDisplayableEvent = nextDisplayableEvent,
                         partialState = partialState,
                         lastSentEventIdWithoutReadReceipts = lastSentEventWithoutReadReceipts,
+                        eventIndex = position,
+                        lastReadEventIndex = lastReadEventIndex,
                         callback = callback,
                         eventsGroup = timelineEventsGroup,
                         reactionsSummaryEvents = ReactionsSummaryEvents(
