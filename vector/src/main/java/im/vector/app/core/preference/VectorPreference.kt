@@ -87,6 +87,20 @@ open class VectorPreference : Preference {
             notifyChanged()
         }
 
+    /** Position of this row in a grouped Telegram-style settings card (-1 disables it). */
+    var telegramCardIndex: Int = -1
+        set(value) {
+            field = value
+            notifyChanged()
+        }
+
+    /** Number of visible rows in the grouped settings card. */
+    var telegramCardCount: Int = 0
+        set(value) {
+            field = value
+            notifyChanged()
+        }
+
     var currentHighlightAnimator: Animator? = null
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
@@ -137,6 +151,27 @@ open class VectorPreference : Preference {
         }
 
         super.onBindViewHolder(holder)
+
+        if (telegramCardIndex >= 0 && telegramCardCount > 0) {
+            val density = resources.displayMetrics.density
+            val radius = 18f * density
+            val isFirst = telegramCardIndex == 0
+            val isLast = telegramCardIndex == telegramCardCount - 1
+            val topLeft = if (isFirst) radius else 0f
+            val topRight = if (isFirst) radius else 0f
+            val bottomRight = if (isLast) radius else 0f
+            val bottomLeft = if (isLast) radius else 0f
+            itemView.background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadii = floatArrayOf(
+                        topLeft, topLeft,
+                        topRight, topRight,
+                        bottomRight, bottomRight,
+                        bottomLeft, bottomLeft,
+                )
+                setColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_room_list_background))
+            }
+        }
 
         val icon = holder.findViewById(android.R.id.icon) as? ImageView
         icon?.let { imageView ->
