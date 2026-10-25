@@ -448,8 +448,11 @@ class TimelineEventController @Inject constructor(
                         nextDisplayableEvent = nextDisplayableEvent,
                         partialState = partialState,
                         lastSentEventIdWithoutReadReceipts = lastSentEventWithoutReadReceipts,
-                        isReadByOther = event.root.senderId == session.myUserId &&
+                        isReadByOther = timeline?.isLive != false &&
+                                partialState.roomSummary?.isDirect == true &&
+                                event.root.senderId == session.myUserId &&
                                 newestReadReceiptPosition?.let { position >= it } == true,
+                        isLiveTimeline = timeline?.isLive != false,
                         callback = callback,
                         eventsGroup = timelineEventsGroup,
                         reactionsSummaryEvents = ReactionsSummaryEvents(
