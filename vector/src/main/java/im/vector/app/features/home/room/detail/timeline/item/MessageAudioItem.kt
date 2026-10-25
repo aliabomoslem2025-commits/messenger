@@ -47,6 +47,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute
     var izLocalFile = false
 
+    @EpoxyAttribute
+    var isDownloaded: Boolean = false
+
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var onSeek: ((percentage: Float) -> Unit)? = null
 
@@ -67,8 +70,24 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.rootLayout, null)
+        holder.isFileDownloaded = isDownloaded || izLocalFile
+        holder.audioDownloadProgress.isVisible = false
+        holder.audioDownloadProgress.progress = 0
+        holder.audioPlaybackControlButton.background = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent))
+        }
+        holder.audioPlaybackControlButton.imageTintList = ColorStateList.valueOf(Color.WHITE)
+        if (!holder.isFileDownloaded) {
+            holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
+            holder.audioPlaybackControlButton.contentDescription =
+                    holder.view.context.getString(R.string.telegram_voice_download_message)
+        }
         bindViewAttributes(holder)
         bindUploadState(holder)
+        if (!attributes.informationData.sendState.hasFailed() && !holder.isFileDownloaded && mxcUrl.isNotBlank()) {
+            contentDownloadStateTrackerBinder.bindAudio(mxcUrl, holder)
+        }
         applyLayoutTint(holder)
         bindSeekBar(holder)
         holder.audioPlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
@@ -168,9 +187,15 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     }
 
     private fun renderIdleState(holder: Holder) {
-        holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
-        holder.audioPlaybackControlButton.contentDescription =
-                holder.view.context.getString(CommonStrings.a11y_play_audio_message, filename)
+        if (holder.isFileDownloaded) {
+            holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+            holder.audioPlaybackControlButton.contentDescription =
+                    holder.view.context.getString(CommonStrings.a11y_play_audio_message, filename)
+        } else {
+            holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
+            holder.audioPlaybackControlButton.contentDescription =
+                    holder.view.context.getString(R.string.telegram_voice_download_message)
+        }
         holder.audioPlaybackTime.text = formatPlaybackTime(duration)
         holder.audioSeekBar.progress = 0
     }
@@ -216,6 +241,8 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val mainLayout by bind<ViewGroup>(R.id.messageMainInnerLayout)
         val filenameView by bind<TextView>(R.id.messageFilenameView)
         val audioPlaybackControlButton by bind<ImageButton>(R.id.audioPlaybackControlButton)
+        val audioDownloadProgress by bind<android.widget.ProgressBar>(R.id.audioDownloadProgress)
+        var isFileDownloaded: Boolean = false
         val audioPlaybackTime by bind<TextView>(R.id.audioPlaybackTime)
         val progressLayout by bind<ViewGroup>(R.id.messageFileUploadProgressLayout)
         val fileSize by bind<TextView>(R.id.fileSize)
