@@ -21,6 +21,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.core.glide.GlideApp
 import im.vector.app.core.utils.DimensionConverter
+import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadOverlayBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
@@ -47,6 +48,12 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute
     lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
+
+    @EpoxyAttribute
+    lateinit var contentDownloadOverlayBinder: ContentDownloadOverlayBinder
+
+    @EpoxyAttribute
+    var mxcDownloadUrl: String? = null
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -83,12 +90,24 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         } else {
             View.GONE
         }
+
+        val downloadUrl = mxcDownloadUrl
+        if (playable && !downloadUrl.isNullOrBlank()) {
+            contentDownloadOverlayBinder.bind(
+                    attributes.informationData.eventId,
+                    downloadUrl,
+                    holder.downloadProgress
+            )
+        } else {
+            holder.downloadProgress.isVisible = false
+        }
     }
 
     override fun unbind(holder: Holder) {
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
         contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
+        contentDownloadOverlayBinder.unbind(attributes.informationData.eventId)
         holder.imageView.setOnClickListener(null)
         holder.imageView.setOnLongClickListener(null)
         super.unbind(holder)
@@ -100,6 +119,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)
         val imageView by bind<ImageView>(R.id.messageThumbnailView)
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
+        val downloadProgress by bind<android.widget.ProgressBar>(R.id.messageMediaDownloadProgress)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
     }
 
