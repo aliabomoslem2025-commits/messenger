@@ -96,7 +96,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
         messageView.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
         if (useBigFont) {
-            messageView.textSize = 44F
+            messageView.textSize = 64F
         } else {
             messageView.textSize = 16F
         }
