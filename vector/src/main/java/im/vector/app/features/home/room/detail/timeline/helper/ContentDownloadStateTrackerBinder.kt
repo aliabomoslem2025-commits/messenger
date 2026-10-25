@@ -49,6 +49,19 @@ class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSe
         }
     }
 
+    fun bindAudio(
+            mxcUrl: String,
+            holder: MessageAudioItem.Holder,
+    ) {
+        if (mxcUrl.isBlank()) return
+        activeSessionHolder.getSafeActiveSession()?.also { session ->
+            val tracker = session.contentDownloadProgressTracker()
+            val listener = AudioContentDownloadUpdater(holder)
+            updateListeners[mxcUrl] = listener
+            tracker.track(mxcUrl, listener)
+        }
+    }
+
     fun unbind(mxcUrl: String) {
         activeSessionHolder.getSafeActiveSession()?.also { session ->
             val downloadStateTracker = session.contentDownloadProgressTracker()
@@ -136,6 +149,67 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
         holder.fileDownloadProgress.isIndeterminate = false
         holder.fileDownloadProgress.progress = 0
         holder.fileImageView.setImageResource(R.drawable.ic_paperclip)
+    }
+}
+
+private class AudioContentDownloadUpdater(
+        private val holder: MessageAudioItem.Holder,
+) : StoppableContentDownloadListener {
+
+    override fun onDownloadStateUpdate(state: ContentDownloadStateTracker.State) {
+        when (state) {
+            ContentDownloadStateTracker.State.Idle -> {
+                holder.audioDownloadProgress.isVisible = false
+                if (!holder.isFileDownloaded) showDownloadAction()
+            }
+            is ContentDownloadStateTracker.State.Downloading -> {
+                holder.audioDownloadProgress.isVisible = true
+                holder.audioDownloadProgress.isIndeterminate = state.indeterminate || state.total <= 0L
+                if (holder.audioDownloadProgress.isIndeterminate) {
+                    holder.audioDownloadProgress.progress = 0
+                } else {
+                    holder.audioDownloadProgress.progress =
+                            (100.0 * state.current.toDouble() / state.total.toDouble()).toInt().coerceIn(0, 100)
+                }
+                showDownloadAction()
+            }
+            ContentDownloadStateTracker.State.Decrypting -> {
+                holder.audioDownloadProgress.isVisible = true
+                holder.audioDownloadProgress.isIndeterminate = true
+                showDownloadAction()
+            }
+            ContentDownloadStateTracker.State.Success -> {
+                stop()
+                holder.isFileDownloaded = true
+                showPlaybackAction()
+            }
+            is ContentDownloadStateTracker.State.Failure -> {
+                stop()
+                holder.isFileDownloaded = false
+                showDownloadAction()
+            }
+        }
+    }
+
+    override fun stop() {
+        holder.audioDownloadProgress.isVisible = false
+        holder.audioDownloadProgress.isIndeterminate = false
+        holder.audioDownloadProgress.progress = 0
+    }
+
+    private fun showDownloadAction() {
+        holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
+        holder.audioPlaybackControlButton.contentDescription =
+                holder.view.context.getString(R.string.telegram_voice_download_message)
+    }
+
+    private fun showPlaybackAction() {
+        holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+        holder.audioPlaybackControlButton.contentDescription =
+                holder.view.context.getString(
+                        im.vector.lib.strings.CommonStrings.a11y_play_audio_message,
+                        holder.filenameView.text?.toString().orEmpty(),
+                )
     }
 }
 
