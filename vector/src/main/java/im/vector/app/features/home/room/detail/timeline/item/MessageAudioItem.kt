@@ -152,6 +152,14 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
                         else im.vector.lib.ui.styles.R.attr.vctr_content_secondary
                 )
         )
+        val seekColorAttribute = if (outgoingBubble) {
+            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent
+        }
+        val seekColor = ThemeUtils.getColor(context, seekColorAttribute)
+        holder.audioSeekBar.progressTintList = ColorStateList.valueOf(seekColor)
+        holder.audioSeekBar.thumbTintList = ColorStateList.valueOf(seekColor)
     }
 
     private fun bindSeekBar(holder: Holder) {
