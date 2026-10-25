@@ -50,6 +50,9 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     var izLocalFile = false
 
     @EpoxyAttribute
+    var isDownloaded: Boolean = false
+
+    @EpoxyAttribute
     lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
 
     @EpoxyAttribute
@@ -67,12 +70,31 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.voiceLayout, null)
+        holder.isFileDownloaded = isDownloaded || izLocalFile
+        holder.voiceDownloadProgress.isVisible = false
+        holder.voiceDownloadProgress.progress = 0
+        holder.voicePlaybackControlButton.background = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.OVAL
+            setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent))
+        }
+        holder.voicePlaybackControlButton.imageTintList = ColorStateList.valueOf(Color.WHITE)
+        if (holder.isFileDownloaded) {
+            holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+            holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.a11y_play_voice_message)
+        } else {
+            holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
+            holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(R.string.telegram_voice_download_message)
+        }
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(attributes.informationData.eventId, izLocalFile, holder.progressLayout)
+            if (!holder.isFileDownloaded && !izLocalFile && mxcUrl.isNotBlank()) {
+                contentDownloadStateTrackerBinder.bindVoice(mxcUrl, holder)
+            }
         } else {
             holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_cross)
             holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.error_voice_message_unable_to_play)
             holder.progressLayout.isVisible = false
+            holder.voiceDownloadProgress.isVisible = false
         }
 
         holder.voicePlaybackWaveform.doOnPreDraw {
@@ -128,8 +150,13 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     private fun getTouchedPositionPercentage(motionEvent: MotionEvent, view: View) = (motionEvent.x / view.width).coerceIn(0f, 1f)
 
     private fun renderIdleState(holder: Holder, idleColor: Int, playedColor: Int) {
-        holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
-        holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.a11y_play_voice_message)
+        if (holder.isFileDownloaded) {
+            holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+            holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.a11y_play_voice_message)
+        } else {
+            holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
+            holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(R.string.telegram_voice_download_message)
+        }
         holder.voicePlaybackTime.text = formatPlaybackTime(duration)
         holder.voicePlaybackWaveform.updateColors(0f, playedColor, idleColor)
     }
@@ -165,6 +192,8 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         val voicePlaybackControlButton by bind<ImageButton>(R.id.voicePlaybackControlButton)
         val voicePlaybackTime by bind<TextView>(R.id.voicePlaybackTime)
         val voicePlaybackWaveform by bind<AudioWaveformView>(R.id.voicePlaybackWaveform)
+        val voiceDownloadProgress by bind<android.widget.ProgressBar>(R.id.voiceDownloadProgress)
+        var isFileDownloaded: Boolean = false
         val progressLayout by bind<ViewGroup>(R.id.messageFileUploadProgressLayout)
     }
 
