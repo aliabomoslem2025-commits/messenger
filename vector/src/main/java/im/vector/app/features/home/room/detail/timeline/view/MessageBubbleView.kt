@@ -202,7 +202,11 @@ class MessageBubbleView @JvmOverloads constructor(
      */
     private fun TimelineMessageLayout.Bubble.setTelegramSendStatePlacement() = apply {
         val endInset = DimensionConverter(resources).dpToPx(8)
+        views.messageSendStateImageView.setOutgoingBubbleTint(!isIncoming)
         if (isIncoming) {
+            views.eventSendingIndicator.indeterminateTintList = ColorStateList.valueOf(
+                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+            )
             views.messageSendStateImageView.updateLayoutParams<LayoutParams> {
                 removeRule(android.widget.RelativeLayout.ALIGN_END)
                 addRule(android.widget.RelativeLayout.ALIGN_PARENT_END)
@@ -230,7 +234,7 @@ class MessageBubbleView @JvmOverloads constructor(
             views.messageTimeView.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
                 marginEnd = DimensionConverter(resources).dpToPx(26)
             }
-            views.messageSendStateImageView.imageTintList = android.content.res.ColorStateList.valueOf(
+            views.eventSendingIndicator.indeterminateTintList = ColorStateList.valueOf(
                     ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text)
             )
         }
