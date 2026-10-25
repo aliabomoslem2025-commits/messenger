@@ -106,7 +106,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:constraint_referenced_ids="overlayBottomBackground,overlayBackButton,overlayPlayPauseButton,overlaySeekBar"
+        app:constraint_referenced_ids="overlayBottomBackground,overlayBackButton,overlayPlayPauseButton,overlaySeekBar,overlayCurrentTimeText,overlayDurationText"
         tools:visibility="visible" />
 
     <View
@@ -141,7 +141,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="2dp"
         android:fontFamily="sans-serif-medium"
-        android:text="0:00"
+        tools:text="0:00"
         android:textColor="?colorOnPrimary"
         android:textSize="12sp"
         android:contentDescription="@null"
@@ -169,7 +169,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:fontFamily="sans-serif-medium"
-        android:text="0:00"
+        tools:text="0:00"
         android:textColor="?colorOnPrimary"
         android:textSize="12sp"
         android:contentDescription="@null"
