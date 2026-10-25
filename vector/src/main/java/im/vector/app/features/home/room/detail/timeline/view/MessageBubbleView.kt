@@ -115,17 +115,17 @@ class MessageBubbleView @JvmOverloads constructor(
     }
 
     /**
-     * Telegram's outgoing blue bubbles use white text. Apply this only to the
-     * actual message body, not globally, so incoming messages, system notices,
-     * settings and unrelated Matrix screens retain their normal text palette.
-     */
-    /**
      * Reapply the bubble-specific text palette after send-state binding updates the TextView tint.
      */
     internal fun refreshBubbleTextColor(messageLayout: TimelineMessageLayout.Bubble) {
         messageLayout.setMessageTextColor()
     }
 
+    /**
+     * Telegram's outgoing blue bubbles use white text. Apply this only to the
+     * actual message body, not globally, so incoming messages, system notices,
+     * settings and unrelated Matrix screens retain their normal text palette.
+     */
     private fun TimelineMessageLayout.Bubble.setMessageTextColor() = apply {
         val messageText = views.viewStubContainer.root.findViewById<TextView>(R.id.messageTextView)
         if (messageText != null) {
