@@ -6,7 +6,7 @@
         android:right="4dp"
         android:bottom="4dp">
         <shape android:shape="oval">
-            <solid android:color="?vctr_room_list_background" />
+            <solid android:color="?vctr_message_bubble_inbound" />
         </shape>
     </item>
     <item android:drawable="?attr/selectableItemBackgroundBorderless" />
