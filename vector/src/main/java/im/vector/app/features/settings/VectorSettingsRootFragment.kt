@@ -43,14 +43,18 @@ class VectorSettingsRootFragment :
                 "settings_legals" to R.color.telegram_settings_violet
         )
 
-        for (i in 0 until preferenceScreen.preferenceCount) {
-            (preferenceScreen.getPreference(i) as? VectorPreference)?.let { preference ->
-                preference.layoutResource = R.layout.item_telegram_settings_preference
-                preference.tintIcon = false
-                preference.iconBackgroundColor = iconColors[preference.key]?.let {
-                    ContextCompat.getColor(requireContext(), it)
-                }
+        val visiblePreferences = (0 until preferenceScreen.preferenceCount)
+                .mapNotNull { preferenceScreen.getPreference(it) as? VectorPreference }
+                .filter { it.isVisible }
+
+        visiblePreferences.forEachIndexed { index, preference ->
+            preference.layoutResource = R.layout.item_telegram_settings_preference
+            preference.tintIcon = false
+            preference.iconBackgroundColor = iconColors[preference.key]?.let {
+                ContextCompat.getColor(requireContext(), it)
             }
+            preference.telegramCardIndex = index
+            preference.telegramCardCount = visiblePreferences.size
         }
     }
 
