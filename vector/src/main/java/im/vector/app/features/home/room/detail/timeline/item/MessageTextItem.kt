@@ -7,10 +7,13 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
 import android.text.Spanned
 import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewStub
+import android.view.animation.OvershootInterpolator
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.PrecomputedTextCompat
 import androidx.core.view.isVisible
@@ -112,6 +115,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.onClick(attributes.itemClickListener)
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
+        animateJumboEmojiIfNew(messageView)
         // Bubble styling runs during the base bind, but renderSendState() above also
         // applies Element's send-state text tint. Reapply the bubble palette last so
         // outbound Telegram-blue bubbles retain readable white text without changing
@@ -121,6 +125,43 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             (holder.view as? MessageBubbleView)?.refreshBubbleTextColor(bubbleLayout)
         }
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
+    }
+
+    /**
+     * Telegram gives standalone emoji messages a short spring-like entrance.
+     * Animate only a fresh jumbo-emoji event; tag the event ID so receipt/reaction
+     * rebinds do not replay the animation, and older history remains still.
+     */
+    private fun animateJumboEmojiIfNew(messageView: AppCompatTextView) {
+        if (!useBigFont) return
+        val eventId = attributes.informationData.eventId
+        if (messageView.getTag(R.id.tag_telegram_jumbo_emoji_event) == eventId) return
+        val createdAt = attributes.informationData.ageLocalTS ?: return
+        val age = System.currentTimeMillis() - createdAt
+        if (age !in 0L..3_500L) return
+
+        messageView.setTag(R.id.tag_telegram_jumbo_emoji_event, eventId)
+        messageView.post {
+            if (!messageView.isAttachedToWindow ||
+                    messageView.getTag(R.id.tag_telegram_jumbo_emoji_event) != eventId
+            ) return@post
+
+            messageView.animate().cancel()
+            messageView.scaleX = 1f
+            messageView.scaleY = 1f
+            messageView.translationY = 0f
+            val density = messageView.resources.displayMetrics.density
+            AnimatorSet().apply {
+                playTogether(
+                        ObjectAnimator.ofFloat(messageView, View.SCALE_X, 0.86f, 1.16f, 0.98f, 1f),
+                        ObjectAnimator.ofFloat(messageView, View.SCALE_Y, 0.86f, 1.16f, 0.98f, 1f),
+                        ObjectAnimator.ofFloat(messageView, View.TRANSLATION_Y, density * 4f, -density * 4f, density, 0f),
+                )
+                duration = 620L
+                interpolator = OvershootInterpolator(1.25f)
+                start()
+            }
+        }
     }
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {
