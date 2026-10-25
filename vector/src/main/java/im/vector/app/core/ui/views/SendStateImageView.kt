@@ -23,23 +23,43 @@ class SendStateImageView @JvmOverloads constructor(
         defStyleAttr: Int = 0
 ) : AppCompatImageView(context, attrs, defStyleAttr) {
 
+    private var currentSendState: SendStateDecoration = SendStateDecoration.NONE
+    private var useOutgoingBubbleTint: Boolean = false
+
     init {
         if (isInEditMode) {
             render(SendStateDecoration.SENT)
         }
     }
 
+    /**
+     * Message bubbles may use a saturated outgoing surface. Keep the icon/state
+     * itself Matrix-driven, but use the bubble's contrasting foreground for
+     * normal sending/sent indicators when the owning bubble is outgoing.
+     */
+    fun setOutgoingBubbleTint(enabled: Boolean) {
+        if (useOutgoingBubbleTint == enabled) return
+        useOutgoingBubbleTint = enabled
+        render(currentSendState)
+    }
+
     fun render(sendState: SendStateDecoration) {
+        currentSendState = sendState
+        val tintAttribute = if (useOutgoingBubbleTint) {
+            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_content_tertiary
+        }
         isInvisible = when (sendState) {
             SendStateDecoration.SENDING_NON_MEDIA -> {
                 setImageResource(R.drawable.ic_sending_message)
-                imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary))
+                imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(context, tintAttribute))
                 contentDescription = context.getString(CommonStrings.event_status_a11y_sending)
                 false
             }
             SendStateDecoration.SENT -> {
                 setImageResource(R.drawable.ic_message_sent)
-                imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary))
+                imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(context, tintAttribute))
                 contentDescription = context.getString(CommonStrings.event_status_a11y_sent)
                 false
             }
