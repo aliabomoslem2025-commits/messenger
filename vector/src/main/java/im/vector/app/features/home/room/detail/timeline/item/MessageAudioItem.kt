@@ -81,7 +81,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         if (!holder.isFileDownloaded) {
             holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
             holder.audioPlaybackControlButton.contentDescription =
-                    holder.view.context.getString(R.string.telegram_voice_download_message)
+                    holder.view.context.getString(R.string.telegram_audio_download_message)
         }
         bindViewAttributes(holder)
         bindUploadState(holder)
@@ -202,7 +202,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         } else {
             holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
             holder.audioPlaybackControlButton.contentDescription =
-                    holder.view.context.getString(R.string.telegram_voice_download_message)
+                    holder.view.context.getString(R.string.telegram_audio_download_message)
         }
         holder.audioPlaybackTime.text = formatPlaybackTime(duration)
         holder.audioSeekBar.progress = 0
