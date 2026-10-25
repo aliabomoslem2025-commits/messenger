@@ -73,7 +73,10 @@ class MessageInformationDataFactory @Inject constructor(
             getSendStateDecoration(
                     event = event,
                     lastSentEventWithoutReadReceipts = params.lastSentEventIdWithoutReadReceipts,
-                    isMedia = event.root.isAttachmentMessage()
+                    isMedia = event.root.isAttachmentMessage(),
+                    isDirectRoom = params.partialState.roomSummary?.isDirect == true,
+                    isReadByOther = params.lastReadEventIndex != null &&
+                            params.eventIndex >= 0 && params.eventIndex <= params.lastReadEventIndex
             )
         } else {
             SendStateDecoration.NONE
@@ -123,14 +126,20 @@ class MessageInformationDataFactory @Inject constructor(
     private fun getSendStateDecoration(
             event: TimelineEvent,
             lastSentEventWithoutReadReceipts: String?,
-            isMedia: Boolean
+            isMedia: Boolean,
+            isDirectRoom: Boolean,
+            isReadByOther: Boolean
     ): SendStateDecoration {
         val eventSendState = event.root.sendState
         return if (eventSendState.isSending()) {
             if (isMedia) SendStateDecoration.SENDING_MEDIA else SendStateDecoration.SENDING_NON_MEDIA
         } else if (eventSendState.hasFailed()) {
             SendStateDecoration.FAILED
+        } else if (isDirectRoom && eventSendState.isSent()) {
+            if (isReadByOther) SendStateDecoration.READ else SendStateDecoration.SENT
         } else if (lastSentEventWithoutReadReceipts == event.eventId) {
+            // Preserve the existing single-status-marker behavior in rooms where
+            // Telegram-style one-to-one read status does not apply (for example groups).
             SendStateDecoration.SENT
         } else {
             SendStateDecoration.NONE
