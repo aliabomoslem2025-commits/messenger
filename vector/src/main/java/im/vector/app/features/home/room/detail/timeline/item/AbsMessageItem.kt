@@ -43,8 +43,9 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         get() = attributes
 
     override fun isCacheable(): Boolean {
-        return attributes.informationData.sendStateDecoration != SendStateDecoration.SENT &&
-                attributes.informationData.sendStateDecoration != SendStateDecoration.READ
+        // Keep SENT items uncached so the model is rebuilt when a read receipt arrives.
+        // Once a message is READ its state is terminal and it can be cached again.
+        return attributes.informationData.sendStateDecoration != SendStateDecoration.SENT
     }
 
     @EpoxyAttribute
