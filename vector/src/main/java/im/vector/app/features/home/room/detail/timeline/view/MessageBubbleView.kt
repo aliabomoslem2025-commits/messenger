@@ -89,6 +89,7 @@ class MessageBubbleView @JvmOverloads constructor(
                 ?.toggleMessageOverlay()
                 ?.setPadding()
                 ?.setMargins()
+                ?.setTelegramSendStatePlacement()
                 ?.setAdditionalTopSpace()
                 ?.setMessageTextColor()
                 ?: Timber.v("Can't render messageLayout $messageLayout")
@@ -158,7 +159,7 @@ class MessageBubbleView @JvmOverloads constructor(
             views.messageOverlayView.isVisible = true
             (views.messageOverlayView.background as? GradientDrawable)?.cornerRadii = cornersRadius.toFloatArray()
         } else {
-            val timeColor = if (!isIncoming && timestampInsideMessage) {
+            val timeColor = if (!isIncoming) {
                 ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text)
             } else {
                 ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
