@@ -76,7 +76,7 @@ class MessageInformationDataFactory @Inject constructor(
                     isMedia = event.root.isAttachmentMessage(),
                     isDirectRoom = params.partialState.roomSummary?.isDirect == true,
                     isReadByOther = params.lastReadEventIndex != null &&
-                            params.eventIndex >= 0 && params.eventIndex <= params.lastReadEventIndex
+                            params.eventIndex >= 0 && params.eventIndex >= params.lastReadEventIndex
             )
         } else {
             SendStateDecoration.NONE
