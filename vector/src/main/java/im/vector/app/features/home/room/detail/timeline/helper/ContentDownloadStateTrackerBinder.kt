@@ -105,13 +105,17 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
     }
 
     private fun handleProgress(state: ContentDownloadStateTracker.State.Downloading) {
-        doHandleProgress(state.current, state.total)
+        doHandleProgress(state.current, state.total, state.indeterminate)
     }
 
-    private fun doHandleProgress(current: Long, total: Long) {
-        val percent = 100L * (current.toFloat() / total.toFloat())
-        holder.fileDownloadProgress.isIndeterminate = false
-        holder.fileDownloadProgress.progress = percent.toInt()
+    private fun doHandleProgress(current: Long, total: Long, indeterminate: Boolean) {
+        holder.fileDownloadProgress.isIndeterminate = indeterminate || total <= 0L
+        if (holder.fileDownloadProgress.isIndeterminate) {
+            holder.fileDownloadProgress.progress = 0
+        } else {
+            val percent = (100.0 * current.toDouble() / total.toDouble()).toInt().coerceIn(0, 100)
+            holder.fileDownloadProgress.progress = percent
+        }
         if (animatedDrawable == null) {
             animatedDrawable = AnimatedVectorDrawableCompat.create(holder.view.context, R.drawable.ic_download_anim)
             holder.fileImageView.setImageDrawable(animatedDrawable)
