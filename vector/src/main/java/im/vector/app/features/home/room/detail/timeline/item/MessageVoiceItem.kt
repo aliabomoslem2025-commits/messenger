@@ -73,11 +73,27 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         holder.isFileDownloaded = isDownloaded || izLocalFile
         holder.voiceDownloadProgress.isVisible = false
         holder.voiceDownloadProgress.progress = 0
+        val outgoingBubble = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
+        val actionColor = ThemeUtils.getColor(
+                holder.view.context,
+                if (outgoingBubble) im.vector.lib.ui.styles.R.attr.vctr_room_list_background
+                else im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent
+        )
+        val iconColor = ThemeUtils.getColor(
+                holder.view.context,
+                if (outgoingBubble) im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent
+                else im.vector.lib.ui.styles.R.attr.vctr_room_list_background
+        )
         holder.voicePlaybackControlButton.background = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.OVAL
-            setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent))
+            setColor(actionColor)
         }
-        holder.voicePlaybackControlButton.imageTintList = ColorStateList.valueOf(Color.WHITE)
+        holder.voicePlaybackControlButton.imageTintList = ColorStateList.valueOf(iconColor)
+        holder.voiceDownloadProgress.progressDrawable = androidx.core.content.ContextCompat.getDrawable(
+                holder.view.context,
+                if (outgoingBubble) R.drawable.bg_telegram_voice_download_progress_outgoing
+                else R.drawable.bg_telegram_voice_download_progress
+        )
         if (holder.isFileDownloaded) {
             holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
             holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(CommonStrings.a11y_play_voice_message)
