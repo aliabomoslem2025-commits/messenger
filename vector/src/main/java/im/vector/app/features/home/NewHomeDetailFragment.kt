@@ -306,7 +306,12 @@ class NewHomeDetailFragment :
 
         fun showSecondaryTab(titleRes: Int, selected: View) {
             setHomeChromeVisible(false)
-            views.toolbar.title = getString(titleRes)
+            // The Telegram settings reference uses icon actions instead of a "Settings" title.
+            views.toolbar.title = if (selected.id == views.telegramTabSettings.id) {
+                ""
+            } else {
+                getString(titleRes)
+            }
             selectTab(selected)
         }
 
