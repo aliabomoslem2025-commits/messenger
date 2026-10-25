@@ -11,4 +11,5 @@
     <string name="telegram_settings_legal_summary">Terms and legal information</string>
     <string name="telegram_message_status_read">Read by recipient</string>
     <string name="telegram_voice_download_message">Download voice message</string>
+    <string name="telegram_audio_download_message">Download audio</string>
 </resources>
