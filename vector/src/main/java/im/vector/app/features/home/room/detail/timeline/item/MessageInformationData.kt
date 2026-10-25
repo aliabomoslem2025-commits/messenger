@@ -108,6 +108,7 @@ enum class SendStateDecoration {
     SENDING_NON_MEDIA,
     SENDING_MEDIA,
     SENT,
+    READ,
     FAILED
 }
 

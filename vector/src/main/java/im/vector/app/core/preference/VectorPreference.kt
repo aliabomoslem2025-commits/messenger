@@ -14,6 +14,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.View
 import android.widget.ImageView
@@ -76,6 +77,30 @@ open class VectorPreference : Preference {
             notifyChanged()
         }
 
+    /**
+     * Optional colored rounded tile behind the root-settings icon.
+     * Null keeps the regular Element preference appearance.
+     */
+    var iconBackgroundColor: Int? = null
+        set(value) {
+            field = value
+            notifyChanged()
+        }
+
+    /** Position of this row in a grouped Telegram-style settings card (-1 disables it). */
+    var telegramCardIndex: Int = -1
+        set(value) {
+            field = value
+            notifyChanged()
+        }
+
+    /** Number of visible rows in the grouped settings card. */
+    var telegramCardCount: Int = 0
+        set(value) {
+            field = value
+            notifyChanged()
+        }
+
     var currentHighlightAnimator: Animator? = null
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
@@ -92,16 +117,6 @@ open class VectorPreference : Preference {
             }
 
             summary?.setTypeface(null, mTypeface)
-
-            if (tintIcon) {
-                // Tint icons (See #1786)
-                val icon = holder.findViewById(android.R.id.icon) as? ImageView
-
-                icon?.let {
-                    val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                    ImageViewCompat.setImageTintList(it, ColorStateList.valueOf(color))
-                }
-            }
 
             // cancel existing animation (find a way to resume if happens during anim?)
             currentHighlightAnimator?.cancel()
@@ -136,6 +151,50 @@ open class VectorPreference : Preference {
         }
 
         super.onBindViewHolder(holder)
+
+        if (telegramCardIndex >= 0 && telegramCardCount > 0) {
+            val density = context.resources.displayMetrics.density
+            val radius = 18f * density
+            val isFirst = telegramCardIndex == 0
+            val isLast = telegramCardIndex == telegramCardCount - 1
+            val topLeft = if (isFirst) radius else 0f
+            val topRight = if (isFirst) radius else 0f
+            val bottomRight = if (isLast) radius else 0f
+            val bottomLeft = if (isLast) radius else 0f
+            itemView.background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadii = floatArrayOf(
+                        topLeft, topLeft,
+                        topRight, topRight,
+                        bottomRight, bottomRight,
+                        bottomLeft, bottomLeft,
+                )
+                setColor(ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_room_list_background))
+            }
+        }
+
+        val icon = holder.findViewById(android.R.id.icon) as? ImageView
+        icon?.let { imageView ->
+            val tileColor = iconBackgroundColor
+            if (tileColor != null) {
+                val density = context.resources.displayMetrics.density
+                imageView.background = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = 11f * density
+                    setColor(tileColor)
+                }
+                val inset = (9f * density).toInt()
+                imageView.setPadding(inset, inset, inset, inset)
+                ImageViewCompat.setImageTintList(imageView, ColorStateList.valueOf(Color.WHITE))
+            } else if (tintIcon) {
+                val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                ImageViewCompat.setImageTintList(imageView, ColorStateList.valueOf(color))
+            } else {
+                imageView.background = null
+                imageView.setPadding(0, 0, 0, 0)
+                ImageViewCompat.setImageTintList(imageView, null)
+            }
+        }
     }
 
     /**

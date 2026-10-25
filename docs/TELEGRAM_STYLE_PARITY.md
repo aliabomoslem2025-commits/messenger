@@ -159,3 +159,15 @@ Remote source editing cannot substitute for screenshot comparison or hands-on Ma
 - Shifted outgoing message delivery state into the bubble's right footer area, reserved space after the timestamp, and used the outgoing bubble's white text token for the timestamp/check indicator. The Matrix send-state view/model remains authoritative.
 - No screenshot comparison or live-device verification has been performed from this editing session. Verify header overlap, menu target sizes, multi-line message footer layout, media overlays, status/navigation bar icon contrast, and send-state transitions before accepting the visual pass.
 
+
+
+### Media, receipts, jumbo emoji, and settings pass (source implementation; device validation pending)
+
+- Direct-message outgoing status is derived from the Matrix Timeline event send state and non-self, non-thread read receipts. A sent event uses one check; events up to the newest receipt position in the newest-first snapshot use a double-check. Group rooms retain Element's existing receipt/status behavior instead of displaying fabricated recipient reads.
+- The receipt position participates in Timeline cache invalidation so an advancing Matrix read receipt can update affected outgoing rows without changing the event send state.
+- Voice messages and regular audio attachments keep Element's existing Matrix playback, waveform, file-service cache checks, and click callbacks. The action is styled as a Telegram-blue circular button; the existing real download tracker drives a determinate ring while downloading, an indeterminate ring while decrypting/unknown length, and play/download icon switching on success/failure.
+- Waveform/seek colors now use the Telegram accent for incoming media and the outgoing bubble's contrasting foreground for outgoing media. Filename and audio metadata retain readable contrast on outgoing bubbles.
+- Fresh jumbo-emoji text messages receive a one-shot spring entrance animation guarded by event ID and local age, so recycled/rebound timeline rows do not continually replay it.
+- Root settings now use a shared rounded surface for the categories, a theme-aware settings canvas, colorful icon tiles, and summaries; every row continues to open its existing Element settings destination.
+- This is not a literal transplant of Telegram's private media-player/backend code: Telegram playback depends on Telegram's own file controller and animated assets. The Matrix app continues to use its own media/playback pipeline; this pass aligns the visuals and animation behavior around that pipeline.
+- Required acceptance checks: fresh Gplay/F-Droid APK builds, unit tests/lint, read-receipt transition test (single -> double tick in a DM), voice/audio download progress + retry, recycled jumbo-emoji rows, screenshot comparison of light/dark chat and settings, and RTL/font-scale test. Do not mark these passed until evidence is available.

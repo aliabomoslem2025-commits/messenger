@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="telegram_settings_general_summary">Profile and account details</string>
+    <string name="telegram_settings_notifications_summary">Sounds, alerts and notification preferences</string>
+    <string name="telegram_settings_preferences_summary">Appearance, theme, language and timeline options</string>
+    <string name="telegram_settings_calls_summary">Audio and video call options</string>
+    <string name="telegram_settings_security_summary">Encryption, sessions and privacy</string>
+    <string name="telegram_settings_labs_summary">Experimental features</string>
+    <string name="telegram_settings_advanced_summary">Advanced application settings</string>
+    <string name="telegram_settings_help_summary">Guides and application information</string>
+    <string name="telegram_settings_legal_summary">Terms and legal information</string>
+    <string name="telegram_message_status_read">Read by recipient</string>
+    <string name="telegram_voice_download_message">Download voice message</string>
+    <string name="telegram_audio_download_message">Download audio</string>
+</resources>
