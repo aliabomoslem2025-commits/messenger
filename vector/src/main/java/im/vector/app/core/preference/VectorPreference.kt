@@ -153,7 +153,7 @@ open class VectorPreference : Preference {
         super.onBindViewHolder(holder)
 
         if (telegramCardIndex >= 0 && telegramCardCount > 0) {
-            val density = resources.displayMetrics.density
+            val density = context.resources.displayMetrics.density
             val radius = 18f * density
             val isFirst = telegramCardIndex == 0
             val isLast = telegramCardIndex == telegramCardCount - 1
@@ -177,7 +177,7 @@ open class VectorPreference : Preference {
         icon?.let { imageView ->
             val tileColor = iconBackgroundColor
             if (tileColor != null) {
-                val density = resources.displayMetrics.density
+                val density = context.resources.displayMetrics.density
                 imageView.background = GradientDrawable().apply {
                     shape = GradientDrawable.RECTANGLE
                     cornerRadius = 11f * density
