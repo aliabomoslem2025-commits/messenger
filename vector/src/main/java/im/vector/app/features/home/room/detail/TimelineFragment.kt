@@ -1032,12 +1032,15 @@ class TimelineFragment :
 
     private fun applyChatWallpaperPreference() {
         val wallpaper = chatWallpaperPreferences().getInt(chatWallpaperPreferenceKey(), WALLPAPER_DOODLES)
+        val chatBackgroundColor = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_chat_background)
         if (wallpaper == WALLPAPER_PLAIN) {
-            views.timelineRecyclerView.setBackgroundColor(
-                    ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_chat_background)
-            )
+            // Apply the room's wallpaper choice to the whole conversation, including
+            // the space behind the toolbar and composer, not just the RecyclerView.
+            views.coordinatorLayout.setBackgroundColor(chatBackgroundColor)
+            views.timelineRecyclerView.setBackgroundColor(chatBackgroundColor)
         } else {
-            views.timelineRecyclerView.setBackgroundResource(R.drawable.bg_telegram_chat_doodles)
+            views.coordinatorLayout.setBackgroundResource(R.drawable.bg_telegram_chat_doodles)
+            views.timelineRecyclerView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
     }
 
