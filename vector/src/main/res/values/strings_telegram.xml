@@ -41,6 +41,8 @@
     <string name="telegram_settings_notifications_summary">Message and call notifications</string>
     <string name="telegram_settings_storage_title">Data &amp; Storage</string>
     <string name="telegram_settings_storage_summary">Media and download preferences</string>
+    <string name="telegram_settings_advanced_title">Advanced Settings</string>
+    <string name="telegram_settings_advanced_summary">More app options and diagnostics</string>
     <string name="telegram_settings_devices_title">Devices</string>
     <string name="telegram_settings_devices_summary">Manage this and other sessions</string>
     <string name="telegram_settings_language_title">Language</string>
