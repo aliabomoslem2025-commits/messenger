@@ -203,7 +203,7 @@ private class AudioContentDownloadUpdater(
     private fun showDownloadAction() {
         holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
         holder.audioPlaybackControlButton.contentDescription =
-                holder.view.context.getString(R.string.telegram_voice_download_message)
+                holder.view.context.getString(R.string.telegram_audio_download_message)
     }
 
     private fun showPlaybackAction() {
