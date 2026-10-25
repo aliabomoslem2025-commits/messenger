@@ -43,7 +43,8 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
         get() = attributes
 
     override fun isCacheable(): Boolean {
-        return attributes.informationData.sendStateDecoration != SendStateDecoration.SENT
+        return attributes.informationData.sendStateDecoration != SendStateDecoration.SENT &&
+                attributes.informationData.sendStateDecoration != SendStateDecoration.READ
     }
 
     @EpoxyAttribute
