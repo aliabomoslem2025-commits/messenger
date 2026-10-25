@@ -63,6 +63,12 @@ class SendStateImageView @JvmOverloads constructor(
                 contentDescription = context.getString(CommonStrings.event_status_a11y_sent)
                 false
             }
+            SendStateDecoration.READ -> {
+                setImageResource(R.drawable.ic_message_read)
+                imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(context, tintAttribute))
+                contentDescription = context.getString(R.string.telegram_message_status_read)
+                false
+            }
             SendStateDecoration.FAILED -> {
                 setImageResource(R.drawable.ic_sending_message_failed)
                 imageTintList = null
