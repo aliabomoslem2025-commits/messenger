@@ -26,14 +26,9 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/roomToolbar"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="4dp"
-            android:background="@drawable/bg_telegram_chat_header"
-            android:clipToOutline="true"
-            android:elevation="2dp"
+            android:layout_height="56dp"
+            android:background="?vctr_room_list_background"
+            android:elevation="0dp"
             android:transitionName="toolbar"
             app:navigationIconTint="?vctr_content_primary"
             >
