@@ -145,6 +145,7 @@ Remote source editing cannot substitute for screenshot comparison or hands-on Ma
 
 - Restored a full-width 56dp conversation toolbar instead of an inset floating card; returned avatar sizing and title margins to a compact Android messenger header while retaining Matrix presence and room-security indicators.
 - Set the room title/subtitle to 18sp/14sp, matching Telegram Android's ActionBar sizing when a subtitle is visible in portrait mode (verified in the reference ActionBar implementation).
+- Set plain/rich composer paragraph direction to first-strong-with-LTR-fallback and made header title alignment text-direction-aware, while keeping the screen chrome LTR.
 - Locked the conversation screen's layout direction to LTR so Persian locale does not mirror toolbar, composer, or bubble placement; message text still resolves paragraph direction independently from its first strong character.
 - Corrected the plain composer layout to follow Telegram Android's control order: emoji control at the leading edge of the input, editable text in the middle, attachment action at the trailing edge, and the send action outside the input capsule. The emoji control uses the existing attachment-size dimension token for a usable hit target.
 - Fixed bubble text palette ordering: send-state binding could overwrite the outgoing bubble's theme-aware readable text color. The bubble renderer now exposes a focused color refresh, invoked after send-state binding without altering Matrix send state, sending callbacks, or the Timeline source of truth.
