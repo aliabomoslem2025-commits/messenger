@@ -269,11 +269,36 @@ class NewHomeDetailFragment :
                 views.telegramTabSettings,
                 views.telegramTabProfile
         )
+        val homeSearchInitiallyVisible = views.telegramHomeSearchInput.isVisible
+        val homeTabsInitiallyVisible = views.telegramHomeTabsTrack.isVisible
+        val cameraInitiallyVisible = views.telegramCameraButton.isVisible
+        val createChatInitiallyVisible = views.newLayoutCreateChatButton.isVisible
+        val openSpacesInitiallyVisible = views.newLayoutOpenSpacesButton.isVisible
 
         fun selectTab(selected: View) {
             tabs.forEach { tab ->
                 tab.isSelected = tab.id == selected.id
             }
+        }
+
+        fun setHomeChromeVisible(visible: Boolean) {
+            views.telegramHomeSearchInput.isVisible = visible && homeSearchInitiallyVisible
+            views.telegramHomeTabsTrack.isVisible = visible && homeTabsInitiallyVisible
+            views.telegramCameraButton.isVisible = visible && cameraInitiallyVisible
+            views.newLayoutCreateChatButton.isVisible = visible && createChatInitiallyVisible
+            views.newLayoutOpenSpacesButton.isVisible = visible && openSpacesInitiallyVisible
+        }
+
+        fun showHomeTab() {
+            setHomeChromeVisible(true)
+            views.toolbar.title = getString(R.string.telegram_home_title)
+            selectTab(views.telegramTabChats)
+        }
+
+        fun showSecondaryTab(titleRes: Int, selected: View) {
+            setHomeChromeVisible(false)
+            views.toolbar.title = getString(titleRes)
+            selectTab(selected)
         }
 
         selectTab(views.telegramTabChats)
@@ -282,33 +307,66 @@ class NewHomeDetailFragment :
         }
 
         views.telegramTabChats.debouncedClicks {
-            selectTab(views.telegramTabChats)
+            // Restore the Matrix room list if Settings or Contacts is currently displayed.
+            if (childFragmentManager.backStackEntryCount > 0) {
+                childFragmentManager.popBackStackImmediate(
+                        null,
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
+            }
+            showHomeTab()
             views.telegramHomeSearchInput.text?.clear()
             viewModel.handle(HomeDetailAction.SwitchTab(HomeTab.RoomList(RoomListDisplayMode.PEOPLE)))
             homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
         }
 
         views.telegramTabContacts.debouncedClicks {
-            selectTab(views.telegramTabContacts)
-            views.toolbar.title = getString(R.string.telegram_tab_contacts)
-            childFragmentManager.commitTransaction {
-                replace(R.id.roomListContainer, ContactsBookFragment())
-                addToBackStack("telegram_contacts")
+            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is ContactsBookFragment) {
+                if (childFragmentManager.backStackEntryCount > 0) {
+                    childFragmentManager.popBackStackImmediate(
+                            null,
+                            androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                    )
+                }
+                showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                childFragmentManager.commitTransaction {
+                    replace(R.id.roomListContainer, ContactsBookFragment())
+                    addToBackStack("telegram_contacts")
+                }
+            } else {
+                showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
             }
         }
 
         childFragmentManager.addOnBackStackChangedListener {
-            val contactsVisible = childFragmentManager.findFragmentById(R.id.roomListContainer) is ContactsBookFragment
-            // FragmentManager outlives this view; don't access view binding after onDestroyView.
-            if (!contactsVisible && isAdded && view != null) {
-                views.toolbar.title = getString(R.string.telegram_home_title)
-                selectTab(views.telegramTabChats)
+            if (!isAdded || view == null) return@addOnBackStackChangedListener
+            when (childFragmentManager.findFragmentById(R.id.roomListContainer)) {
+                is ContactsBookFragment -> {
+                    showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                }
+                is TelegramSettingsFragment -> {
+                    showSecondaryTab(R.string.telegram_tab_settings, views.telegramTabSettings)
+                }
+                else -> showHomeTab()
             }
         }
 
         views.telegramTabSettings.debouncedClicks {
-            selectTab(views.telegramTabSettings)
-            navigator.openSettings(requireContext())
+            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is TelegramSettingsFragment) {
+                if (childFragmentManager.backStackEntryCount > 0) {
+                    childFragmentManager.popBackStackImmediate(
+                            null,
+                            androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                    )
+                }
+                showSecondaryTab(R.string.telegram_tab_settings, views.telegramTabSettings)
+                childFragmentManager.commitTransaction {
+                    replace(R.id.roomListContainer, TelegramSettingsFragment())
+                    addToBackStack("telegram_settings")
+                }
+            } else {
+                showSecondaryTab(R.string.telegram_tab_settings, views.telegramTabSettings)
+            }
         }
 
         views.telegramTabProfile.debouncedClicks {
