@@ -72,7 +72,7 @@ class MessageInformationDataFactory @Inject constructor(
         val sendStateDecoration = if (isSentByMe) {
             getSendStateDecoration(
                     event = event,
-                    lastSentEventWithoutReadReceipts = params.lastSentEventIdWithoutReadReceipts,
+                    isReadByOther = params.isReadByOther,
                     isMedia = event.root.isAttachmentMessage()
             )
         } else {
@@ -122,7 +122,7 @@ class MessageInformationDataFactory @Inject constructor(
 
     private fun getSendStateDecoration(
             event: TimelineEvent,
-            lastSentEventWithoutReadReceipts: String?,
+            isReadByOther: Boolean,
             isMedia: Boolean
     ): SendStateDecoration {
         val eventSendState = event.root.sendState
@@ -130,13 +130,14 @@ class MessageInformationDataFactory @Inject constructor(
             if (isMedia) SendStateDecoration.SENDING_MEDIA else SendStateDecoration.SENDING_NON_MEDIA
         } else if (eventSendState.hasFailed()) {
             SendStateDecoration.FAILED
-        } else if (lastSentEventWithoutReadReceipts == event.eventId) {
+        } else if (eventSendState.isSent() && isReadByOther) {
+            SendStateDecoration.READ
+        } else if (eventSendState.isSent()) {
             SendStateDecoration.SENT
         } else {
             SendStateDecoration.NONE
         }
     }
-
     private fun getE2EDecorationV2(roomSummary: RoomSummary?, event: Event): E2EDecoration {
         if (roomSummary?.isEncrypted != true) {
             // No decoration for clear room
