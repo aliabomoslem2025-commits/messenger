@@ -25,8 +25,6 @@ import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import com.google.android.material.shape.MaterialShapeDrawable
 import im.vector.app.R
-import im.vector.app.core.resources.DefaultLocaleProvider
-import im.vector.app.core.resources.getLayoutDirectionFromCurrentLocale
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.databinding.ViewMessageBubbleBinding
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
@@ -59,20 +57,15 @@ class MessageBubbleView @JvmOverloads constructor(
     override fun onFinishInflate() {
         super.onFinishInflate()
         views = ViewMessageBubbleBinding.bind(this)
-        val currentLayoutDirection = DefaultLocaleProvider(resources).getLayoutDirectionFromCurrentLocale()
-        val layoutDirectionToSet = if (isIncoming) {
-            currentLayoutDirection
-        } else {
-            if (currentLayoutDirection == View.LAYOUT_DIRECTION_LTR) {
-                View.LAYOUT_DIRECTION_RTL
-            } else {
-                View.LAYOUT_DIRECTION_LTR
-            }
-        }
-        views.informationBottom.layoutDirection = layoutDirectionToSet
-        views.messageThreadSummaryContainer.layoutDirection = layoutDirectionToSet
-        views.bubbleWrapper.layoutDirection = layoutDirectionToSet
-        views.bubbleView.layoutDirection = currentLayoutDirection
+        // Keep conversation geometry independent of the app/message language:
+        // received bubbles stay at the leading (left) edge and sent bubbles at the
+        // trailing (right) edge. MessageTextItem resolves paragraph direction from
+        // each message, allowing Persian/Arabic text without mirroring the timeline.
+        val messageAlignmentDirection = if (isIncoming) View.LAYOUT_DIRECTION_LTR else View.LAYOUT_DIRECTION_RTL
+        views.informationBottom.layoutDirection = messageAlignmentDirection
+        views.messageThreadSummaryContainer.layoutDirection = messageAlignmentDirection
+        views.bubbleWrapper.layoutDirection = messageAlignmentDirection
+        views.bubbleView.layoutDirection = View.LAYOUT_DIRECTION_LTR
 
         bubbleDrawable = MaterialShapeDrawable()
         rippleMaskDrawable = MaterialShapeDrawable()
