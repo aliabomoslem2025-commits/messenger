@@ -195,6 +195,47 @@ class MessageBubbleView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Keep the delivery indicator inside the outgoing bubble, after the timestamp,
+     * matching Telegram's compact message footer. Incoming timestamps keep their
+     * normal right inset because incoming messages have no delivery indicator.
+     */
+    private fun TimelineMessageLayout.Bubble.setTelegramSendStatePlacement() = apply {
+        val endInset = DimensionConverter(resources).dpToPx(8)
+        if (isIncoming) {
+            views.messageSendStateImageView.updateLayoutParams<LayoutParams> {
+                removeRule(android.widget.RelativeLayout.ALIGN_END)
+                addRule(android.widget.RelativeLayout.ALIGN_PARENT_END)
+                marginEnd = endInset
+            }
+            views.eventSendingIndicator.updateLayoutParams<LayoutParams> {
+                removeRule(android.widget.RelativeLayout.ALIGN_END)
+                addRule(android.widget.RelativeLayout.ALIGN_PARENT_END)
+                marginEnd = endInset
+            }
+            views.messageTimeView.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
+                marginEnd = endInset
+            }
+        } else {
+            views.messageSendStateImageView.updateLayoutParams<LayoutParams> {
+                removeRule(android.widget.RelativeLayout.ALIGN_PARENT_END)
+                addRule(android.widget.RelativeLayout.ALIGN_END, R.id.bubbleWrapper)
+                marginEnd = endInset
+            }
+            views.eventSendingIndicator.updateLayoutParams<LayoutParams> {
+                removeRule(android.widget.RelativeLayout.ALIGN_PARENT_END)
+                addRule(android.widget.RelativeLayout.ALIGN_END, R.id.bubbleWrapper)
+                marginEnd = endInset
+            }
+            views.messageTimeView.updateLayoutParams<androidx.constraintlayout.widget.ConstraintLayout.LayoutParams> {
+                marginEnd = DimensionConverter(resources).dpToPx(26)
+            }
+            views.messageSendStateImageView.imageTintList = android.content.res.ColorStateList.valueOf(
+                    ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text)
+            )
+        }
+    }
+
     private fun TimelineMessageLayout.Bubble.setAdditionalTopSpace() = apply {
         views.additionalTopSpace.isVisible = addTopMargin
     }
