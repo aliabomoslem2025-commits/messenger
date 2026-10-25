@@ -150,3 +150,12 @@ Remote source editing cannot substitute for screenshot comparison or hands-on Ma
 - Corrected the plain composer layout to follow Telegram Android's control order: emoji control at the leading edge of the input, editable text in the middle, attachment action at the trailing edge, and the send action outside the input capsule. The emoji control uses the existing attachment-size dimension token for a usable hit target.
 - Fixed bubble text palette ordering: send-state binding could overwrite the outgoing bubble's theme-aware readable text color. The bubble renderer now exposes a focused color refresh, invoked after send-state binding without altering Matrix send state, sending callbacks, or the Timeline source of truth.
 - This pass has not yet been compiled or exercised on a device. Build/test results, screenshot comparison, RTL behavior, and live Matrix send/retry behavior remain acceptance gates; no pixel-parity claim is made.
+
+### Screenshot-reference conversation pass (implementation committed; CI/device validation pending)
+
+- Changed the chat-only light canvas to Telegram-like lime green (`#D9EBA9`) with low-contrast doodles (`#C5DD8C`); dark mode now uses a near-black canvas with subdued doodles. Other screens retain their existing theme tokens.
+- Wrapped the room identity area in an inset rounded capsule and added circular surfaces to the existing toolbar back/overflow controls, retaining their navigation/menu listeners. The status and navigation bar colors follow the active chat surface and are restored when leaving the screen.
+- Switched the chat send-action accent to the defined Telegram blue resource in light/dark/black themes; the separate product logo green remains unchanged.
+- Shifted outgoing message delivery state into the bubble's right footer area, reserved space after the timestamp, and used the outgoing bubble's white text token for the timestamp/check indicator. The Matrix send-state view/model remains authoritative.
+- No screenshot comparison or live-device verification has been performed from this editing session. Verify header overlap, menu target sizes, multi-line message footer layout, media overlays, status/navigation bar icon contrast, and send-state transitions before accepting the visual pass.
+
