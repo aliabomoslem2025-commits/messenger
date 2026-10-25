@@ -113,8 +113,17 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
         holder.voicePlaybackWaveform.setOnLongClickListener(attributes.itemLongClickListener)
         holder.voicePlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
 
-        val waveformColorIdle = ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
-        val waveformColorPlayed = ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+        val outgoingBubble = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
+        val waveformColorIdle = if (outgoingBubble) {
+            Color.argb(150, 255, 255, 255)
+        } else {
+            ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_content_quaternary)
+        }
+        val waveformColorPlayed = ThemeUtils.getColor(
+                holder.view.context,
+                if (outgoingBubble) im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+                else im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent
+        )
 
         holder.voicePlaybackWaveform.clear()
         waveform.forEach { amplitude ->
