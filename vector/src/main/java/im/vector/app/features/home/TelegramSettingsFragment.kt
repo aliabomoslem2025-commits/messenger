@@ -78,56 +78,56 @@ class TelegramSettingsFragment : Fragment(R.layout.fragment_telegram_settings) {
 
         addRow(
                 primary,
-                "Account",
-                "Profile, username and account details",
+                getString(R.string.telegram_settings_account_title),
+                getString(R.string.telegram_settings_account_summary),
                 R.drawable.ic_settings_root_general,
                 0xFF229ED9.toInt(),
                 SettingsActivityPayload.General
         )
         addRow(
                 primary,
-                "Chat Settings",
-                "Appearance, bubbles and animations",
+                getString(R.string.telegram_settings_chat_title),
+                getString(R.string.telegram_settings_chat_summary),
                 R.drawable.ic_settings_root_preferences,
                 0xFFFF9F0A.toInt(),
                 SettingsActivityPayload.Preferences
         )
         addRow(
                 primary,
-                "Privacy & Security",
-                "Encryption, privacy and sessions",
+                getString(R.string.telegram_settings_privacy_title),
+                getString(R.string.telegram_settings_privacy_summary),
                 R.drawable.ic_settings_root_security_privacy,
                 0xFF34C759.toInt(),
                 SettingsActivityPayload.SecurityPrivacy
         )
         addRow(
                 primary,
-                "Notifications",
-                "Message and call notifications",
+                getString(R.string.telegram_settings_notifications_title),
+                getString(R.string.telegram_settings_notifications_summary),
                 R.drawable.ic_settings_root_notification,
                 0xFFF04455.toInt(),
                 SettingsActivityPayload.Notifications
         )
         addRow(
                 primary,
-                "Data & Storage",
-                "Media and download preferences",
+                getString(R.string.telegram_settings_storage_title),
+                getString(R.string.telegram_settings_storage_summary),
                 R.drawable.ic_settings_root_advanced,
                 0xFF4B7BF5.toInt(),
                 SettingsActivityPayload.Preferences
         )
         addRow(
                 primary,
-                "Devices",
-                "Manage this and other sessions",
+                getString(R.string.telegram_settings_devices_title),
+                getString(R.string.telegram_settings_devices_summary),
                 R.drawable.ic_device_type_desktop,
                 0xFF1FB6C9.toInt(),
                 SettingsActivityPayload.SecurityPrivacyManageSessions
         )
         addRow(
                 primary,
-                "Language",
-                "Application language",
+                getString(R.string.telegram_settings_language_title),
+                getString(R.string.telegram_settings_language_summary),
                 R.drawable.ic_settings_root_preferences,
                 0xFFAE5BEF.toInt(),
                 SettingsActivityPayload.Language
@@ -135,24 +135,24 @@ class TelegramSettingsFragment : Fragment(R.layout.fragment_telegram_settings) {
 
         addRow(
                 secondary,
-                "Voice & Video",
-                "Calling and audio/video preferences",
+                getString(R.string.telegram_settings_calls_title),
+                getString(R.string.telegram_settings_calls_summary),
                 R.drawable.ic_settings_root_call,
                 0xFFFF8425.toInt(),
                 SettingsActivityPayload.VoiceVideo
         )
         addRow(
                 secondary,
-                "Help & About",
-                "Help, diagnostics and app information",
+                getString(R.string.telegram_settings_help_title),
+                getString(R.string.telegram_settings_help_summary),
                 R.drawable.ic_settings_root_help_about,
                 0xFF6758F5.toInt(),
                 SettingsActivityPayload.HelpAbout
         )
         addRow(
                 secondary,
-                "Legal",
-                "Privacy information and licenses",
+                getString(R.string.telegram_settings_legal_title),
+                getString(R.string.telegram_settings_legal_summary),
                 R.drawable.ic_settings_root_legals,
                 0xFF8D63E6.toInt(),
                 SettingsActivityPayload.Legal
