@@ -52,6 +52,11 @@
     <color name="vctr_room_list_background_dark">#17212B</color>
     <color name="vctr_room_list_background_black">@android:color/black</color>
 
+    <attr name="vctr_telegram_settings_background" format="color" />
+    <color name="telegram_settings_background_light">#F2F2F7</color>
+    <color name="telegram_settings_background_dark">#111820</color>
+    <color name="telegram_settings_background_black">@android:color/black</color>
+
     <!-- Background for the persistent Telegram-like home search field. -->
     <attr name="vctr_telegram_search_surface" format="color" />
     <color name="telegram_search_surface_light">#F2F2F2</color>
