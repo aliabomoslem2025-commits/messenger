@@ -379,6 +379,10 @@ class MessageItemFactory @Inject constructor(
         }
 
         val fileUrl = getAudioFileUrl(messageContent, informationData)
+        val isLocalFile = localFilesHelper.isLocalFile(fileUrl)
+        val isDownloaded = isLocalFile || runCatching {
+            session.fileService().isFileInCache(messageContent)
+        }.getOrDefault(false)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
 
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
@@ -400,7 +404,8 @@ class MessageItemFactory @Inject constructor(
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .waveformTouchListener(waveformTouchListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
-                .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
+                .izLocalFile(isLocalFile)
+                .isDownloaded(isDownloaded)
                 .mxcUrl(fileUrl)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
