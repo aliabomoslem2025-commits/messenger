@@ -46,7 +46,7 @@
         android:visibility="gone"
         app:layout_constraintCircle="@id/roomToolbarAvatarImageView"
         app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="22dp"
+        app:layout_constraintCircleRadius="20dp"
         tools:ignore="MissingConstraints"
         tools:visibility="invisible" />
 
