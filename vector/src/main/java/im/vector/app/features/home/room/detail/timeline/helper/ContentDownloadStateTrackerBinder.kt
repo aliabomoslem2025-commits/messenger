@@ -10,17 +10,19 @@ package im.vector.app.features.home.room.detail.timeline.helper
 import android.graphics.drawable.Drawable
 import androidx.vectordrawable.graphics.drawable.Animatable2Compat
 import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
+import androidx.core.view.isVisible
 import dagger.hilt.android.scopes.ActivityScoped
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
+import im.vector.app.features.home.room.detail.timeline.item.MessageVoiceItem
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import javax.inject.Inject
 
 @ActivityScoped
 class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSessionHolder: ActiveSessionHolder) {
 
-    private val updateListeners = mutableMapOf<String, ContentDownloadUpdater>()
+    private val updateListeners = mutableMapOf<String, StoppableContentDownloadListener>()
 
     fun bind(
             mxcUrl: String,
@@ -31,6 +33,19 @@ class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSe
             val updateListener = ContentDownloadUpdater(holder)
             updateListeners[mxcUrl] = updateListener
             downloadStateTracker.track(mxcUrl, updateListener)
+        }
+    }
+
+    fun bindVoice(
+            mxcUrl: String,
+            holder: MessageVoiceItem.Holder,
+    ) {
+        if (mxcUrl.isBlank()) return
+        activeSessionHolder.getSafeActiveSession()?.also { session ->
+            val tracker = session.contentDownloadProgressTracker()
+            val listener = VoiceContentDownloadUpdater(holder)
+            updateListeners[mxcUrl] = listener
+            tracker.track(mxcUrl, listener)
         }
     }
 
@@ -51,7 +66,11 @@ class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSe
     }
 }
 
-private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder) : ContentDownloadStateTracker.UpdateListener {
+private interface StoppableContentDownloadListener : ContentDownloadStateTracker.UpdateListener {
+    fun stop()
+}
+
+private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder) : StoppableContentDownloadListener {
 
     override fun onDownloadStateUpdate(state: ContentDownloadStateTracker.State) {
         when (state) {
@@ -70,7 +89,7 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
         }
     }
 
-    fun stop() {
+    override fun stop() {
         animatedDrawable?.unregisterAnimationCallback(animationLoopCallback)
         animatedDrawable?.stop()
         animatedDrawable = null
@@ -113,5 +132,61 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
         holder.fileDownloadProgress.isIndeterminate = false
         holder.fileDownloadProgress.progress = 0
         holder.fileImageView.setImageResource(R.drawable.ic_paperclip)
+    }
+}
+
+private class VoiceContentDownloadUpdater(
+        private val holder: MessageVoiceItem.Holder,
+) : StoppableContentDownloadListener {
+
+    override fun onDownloadStateUpdate(state: ContentDownloadStateTracker.State) {
+        when (state) {
+            ContentDownloadStateTracker.State.Idle -> {
+                holder.voiceDownloadProgress.isVisible = false
+                if (!holder.isFileDownloaded) showDownloadAction()
+            }
+            is ContentDownloadStateTracker.State.Downloading -> {
+                holder.voiceDownloadProgress.isVisible = true
+                holder.voiceDownloadProgress.isIndeterminate = state.indeterminate || state.total <= 0L
+                if (!holder.voiceDownloadProgress.isIndeterminate) {
+                    holder.voiceDownloadProgress.progress =
+                            (100.0 * state.current.toDouble() / state.total.toDouble()).toInt().coerceIn(0, 100)
+                }
+                showDownloadAction()
+            }
+            ContentDownloadStateTracker.State.Decrypting -> {
+                holder.voiceDownloadProgress.isVisible = true
+                holder.voiceDownloadProgress.isIndeterminate = true
+                showDownloadAction()
+            }
+            ContentDownloadStateTracker.State.Success -> {
+                stop()
+                holder.isFileDownloaded = true
+                showPlaybackAction()
+            }
+            is ContentDownloadStateTracker.State.Failure -> {
+                stop()
+                holder.isFileDownloaded = false
+                showDownloadAction()
+            }
+        }
+    }
+
+    override fun stop() {
+        holder.voiceDownloadProgress.isVisible = false
+        holder.voiceDownloadProgress.isIndeterminate = false
+        holder.voiceDownloadProgress.progress = 0
+    }
+
+    private fun showDownloadAction() {
+        holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
+        holder.voicePlaybackControlButton.contentDescription =
+                holder.view.context.getString(R.string.telegram_voice_download_message)
+    }
+
+    private fun showPlaybackAction() {
+        holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_play_pause_play)
+        holder.voicePlaybackControlButton.contentDescription =
+                holder.view.context.getString(im.vector.lib.strings.CommonStrings.a11y_play_voice_message)
     }
 }
