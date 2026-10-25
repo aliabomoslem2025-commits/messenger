@@ -20,7 +20,7 @@
                 android:innerRadiusRatio="3"
                 android:thicknessRatio="7"
                 android:useLevel="true">
-                <solid android:color="@color/telegram_accent_blue" />
+                <solid android:color="?vctr_notice_secondary" />
             </shape>
         </rotate>
     </item>
