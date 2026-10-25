@@ -66,7 +66,7 @@ class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSe
     fun unbind(mxcUrl: String) {
         activeSessionHolder.getSafeActiveSession()?.also { session ->
             val downloadStateTracker = session.contentDownloadProgressTracker()
-            updateListeners[mxcUrl]?.also {
+            updateListeners.remove(mxcUrl)?.also {
                 it.stop()
                 downloadStateTracker.unTrack(mxcUrl, it)
             }
@@ -74,6 +74,8 @@ class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSe
     }
 
     fun clear() {
+        updateListeners.values.forEach { it.stop() }
+        updateListeners.clear()
         activeSessionHolder.getSafeActiveSession()?.also {
             it.contentDownloadProgressTracker().clear()
         }
