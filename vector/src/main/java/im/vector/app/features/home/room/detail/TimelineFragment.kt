@@ -51,6 +51,7 @@ import com.airbnb.mvrx.Fail
 import com.airbnb.mvrx.args
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -263,6 +264,9 @@ class TimelineFragment :
     private val debouncer = Debouncer(createUIHandler())
     private val itemVisibilityTracker = EpoxyVisibilityTracker()
 
+    private var previousStatusBarColor: Int? = null
+    private var previousNavigationBarColor: Int? = null
+
     private lateinit var scrollOnNewMessageCallback: ScrollOnNewMessageCallback
     private lateinit var scrollOnHighlightedEventCallback: ScrollOnHighlightedEventCallback
 
@@ -287,6 +291,59 @@ class TimelineFragment :
     private val currentCallsViewPresenter = CurrentCallsViewPresenter()
 
     private val lazyLoadedViews = RoomDetailLazyLoadedViews()
+
+    /**
+     * Applies Telegram-like circular surfaces to the existing MaterialToolbar buttons.
+     * The views and listeners remain owned by MaterialToolbar/ToolbarConfig, so back
+     * navigation and Matrix room actions are not replaced.
+     */
+    private fun applyTelegramToolbarActionSurfaces(toolbar: MaterialToolbar) {
+        toolbar.post {
+            if (!isAdded) return@post
+            val navigationBackground = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+            var navigationStyled = false
+
+            for (index in 0 until toolbar.childCount) {
+                val child = toolbar.getChildAt(index)
+                if (!navigationStyled && child is android.widget.ImageButton) {
+                    child.background = navigationBackground?.constantState?.newDrawable()?.mutate()
+                    navigationStyled = true
+                }
+
+                if (child is ViewGroup && child.javaClass.name.contains("ActionMenuView")) {
+                    for (menuIndex in 0 until child.childCount) {
+                        val menuChild = child.getChildAt(menuIndex)
+                        if (menuChild.javaClass.name.contains("OverflowMenuButton", ignoreCase = true)) {
+                            menuChild.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun applyChatSystemBarColors() {
+        val window = requireActivity().window
+        if (previousStatusBarColor == null) {
+            previousStatusBarColor = window.statusBarColor
+            previousNavigationBarColor = window.navigationBarColor
+        }
+        val chatSurface = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_chat_background)
+        window.statusBarColor = chatSurface
+        window.navigationBarColor = chatSurface
+    }
+
+    @Suppress("DEPRECATION")
+    private fun restoreChatSystemBarColors() {
+        val window = activity?.window
+        if (window != null) {
+            previousStatusBarColor?.let { window.statusBarColor = it }
+            previousNavigationBarColor?.let { window.navigationBarColor = it }
+        }
+        previousStatusBarColor = null
+        previousNavigationBarColor = null
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -331,6 +388,7 @@ class TimelineFragment :
         lazyLoadedViews.bind(views)
         setupToolbar(views.roomToolbar)
                 .allowBack()
+        applyTelegramToolbarActionSurfaces(views.roomToolbar)
         setupRecyclerView()
         applyChatWallpaperPreference()
         setupNotificationView()
@@ -1059,6 +1117,7 @@ class TimelineFragment :
 
     override fun onResume() {
         super.onResume()
+        applyChatSystemBarColors()
         itemVisibilityTracker.attach(views.timelineRecyclerView)
         notificationDrawerManager.setCurrentRoom(timelineArgs.roomId)
         notificationDrawerManager.setCurrentThread(timelineArgs.threadTimelineArgs?.rootThreadEventId)
@@ -1079,6 +1138,7 @@ class TimelineFragment :
     }
 
     override fun onPause() {
+        restoreChatSystemBarColors()
         super.onPause()
         itemVisibilityTracker.detach(views.timelineRecyclerView)
         notificationDrawerManager.setCurrentRoom(null)
