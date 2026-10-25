@@ -28,7 +28,7 @@
             android:id="@+id/roomToolbar"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:background="?vctr_room_list_background"
+            android:background="@android:color/transparent"
             android:elevation="0dp"
             android:transitionName="toolbar"
             app:navigationIconTint="?vctr_content_primary"
