@@ -73,11 +73,27 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         holder.isFileDownloaded = isDownloaded || izLocalFile
         holder.audioDownloadProgress.isVisible = false
         holder.audioDownloadProgress.progress = 0
+        val outgoingBubble = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
+        val actionColor = ThemeUtils.getColor(
+                holder.view.context,
+                if (outgoingBubble) im.vector.lib.ui.styles.R.attr.vctr_room_list_background
+                else im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent
+        )
+        val iconColor = ThemeUtils.getColor(
+                holder.view.context,
+                if (outgoingBubble) im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent
+                else im.vector.lib.ui.styles.R.attr.vctr_room_list_background
+        )
         holder.audioPlaybackControlButton.background = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.OVAL
-            setColor(ThemeUtils.getColor(holder.view.context, im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent))
+            setColor(actionColor)
         }
-        holder.audioPlaybackControlButton.imageTintList = ColorStateList.valueOf(Color.WHITE)
+        holder.audioPlaybackControlButton.imageTintList = ColorStateList.valueOf(iconColor)
+        holder.audioDownloadProgress.progressDrawable = androidx.core.content.ContextCompat.getDrawable(
+                holder.view.context,
+                if (outgoingBubble) R.drawable.bg_telegram_voice_download_progress_outgoing
+                else R.drawable.bg_telegram_voice_download_progress
+        )
         if (!holder.isFileDownloaded) {
             holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
             holder.audioPlaybackControlButton.contentDescription =
