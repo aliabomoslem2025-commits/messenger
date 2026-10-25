@@ -379,6 +379,13 @@ class NewHomeDetailFragment :
         }
 
         views.telegramTabProfile.debouncedClicks {
+            if (childFragmentManager.backStackEntryCount > 0) {
+                childFragmentManager.popBackStackImmediate(
+                        null,
+                        androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
+            }
+            setHomeChromeVisible(true)
             selectTab(views.telegramTabProfile)
             withState(viewModel) { state ->
                 val ownUserId = state.myMatrixItem?.id
