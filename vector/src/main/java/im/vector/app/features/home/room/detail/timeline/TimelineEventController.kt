@@ -413,7 +413,9 @@ class TimelineEventController @Inject constructor(
         // this event and the preceding events in the current ordered timeline chunk.
         // Only non-local, non-thread receipts count as a Telegram-style double tick.
         val lastReadEventIndex = if (partialState.roomSummary?.isDirect == true) {
-            currentSnapshot.indexOfLast { timelineEvent ->
+            // Timeline snapshots are newest-first; a receipt at index N confirms N
+            // and older messages at indices >= N, but not newer messages at smaller indices.
+            currentSnapshot.indexOfFirst { timelineEvent ->
                 timelineEvent.readReceipts.any { receipt ->
                     receipt.roomMember.userId != session.myUserId && receipt.threadId == null
                 }
@@ -430,7 +432,7 @@ class TimelineEventController @Inject constructor(
                     event.root.senderId == session.myUserId &&
                     event.root.sendState.isSent()
             ) {
-                lastReadEventIndex != null && position <= lastReadEventIndex
+                lastReadEventIndex != null && position >= lastReadEventIndex
             } else {
                 null
             }
