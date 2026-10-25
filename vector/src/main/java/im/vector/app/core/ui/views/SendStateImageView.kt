@@ -58,7 +58,7 @@ class SendStateImageView @JvmOverloads constructor(
                 false
             }
             SendStateDecoration.SENT -> {
-                setImageResource(R.drawable.ic_message_sent)
+                setImageResource(R.drawable.ic_telegram_message_sent)
                 imageTintList = ColorStateList.valueOf(ThemeUtils.getColor(context, tintAttribute))
                 contentDescription = context.getString(CommonStrings.event_status_a11y_sent)
                 false
