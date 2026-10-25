@@ -9,4 +9,5 @@
     <string name="telegram_settings_advanced_summary">Advanced application settings</string>
     <string name="telegram_settings_help_summary">Guides and application information</string>
     <string name="telegram_settings_legal_summary">Terms and legal information</string>
+    <string name="telegram_message_status_read">Read by recipient</string>
 </resources>
