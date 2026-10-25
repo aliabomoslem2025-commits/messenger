@@ -92,6 +92,8 @@
         android:textAppearance="@style/TextAppearance.Vector.Widget.ActionBarTitle"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:textDirection="firstStrongLtr"
+        android:textAlignment="textStart"
         android:textColor="?vctr_content_primary"
         app:layout_constraintBottom_toTopOf="@id/roomToolbarSubtitleView"
         app:layout_constraintEnd_toEndOf="parent"
