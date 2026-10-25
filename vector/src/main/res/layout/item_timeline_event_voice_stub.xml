@@ -34,6 +34,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:indeterminate="false"
+            android:indeterminateOnly="false"
             android:progress="0"
             android:max="100"
             android:progressDrawable="@drawable/bg_telegram_voice_download_progress"
