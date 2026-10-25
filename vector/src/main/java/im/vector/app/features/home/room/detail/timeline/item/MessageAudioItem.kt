@@ -109,6 +109,30 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         holder.mainLayout.contentDescription = holder.rootLayout.context.getString(
                 CommonStrings.a11y_audio_message_item, filename, durationContentDescription, formattedFileSize
         )
+
+        val bubbleLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
+        val outgoingBubble = bubbleLayout != null && !bubbleLayout.isIncoming
+        val bodyColorAttribute = if (outgoingBubble) {
+            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_content_primary
+        }
+        val metadataColorAttribute = if (outgoingBubble) {
+            im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+        } else {
+            im.vector.lib.ui.styles.R.attr.vctr_content_tertiary
+        }
+        val context = holder.rootLayout.context
+        holder.filenameView.setTextColor(ThemeUtils.getColor(context, bodyColorAttribute))
+        holder.audioPlaybackDuration.setTextColor(ThemeUtils.getColor(context, metadataColorAttribute))
+        holder.fileSize.setTextColor(ThemeUtils.getColor(context, metadataColorAttribute))
+        holder.audioPlaybackTime.setTextColor(
+                ThemeUtils.getColor(
+                        context,
+                        if (outgoingBubble) im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+                        else im.vector.lib.ui.styles.R.attr.vctr_content_secondary
+                )
+        )
     }
 
     private fun bindSeekBar(holder: Holder) {
