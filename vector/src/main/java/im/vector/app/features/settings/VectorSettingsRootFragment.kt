@@ -32,15 +32,15 @@ class VectorSettingsRootFragment :
 
     override fun bindPref() {
         val iconColors = mapOf(
-                "settings_general" to im.vector.lib.ui.styles.R.color.telegram_settings_blue,
-                "settings_notifications" to im.vector.lib.ui.styles.R.color.telegram_settings_red,
-                "settings_preferences" to im.vector.lib.ui.styles.R.color.telegram_settings_orange,
-                "settings_voice_video" to im.vector.lib.ui.styles.R.color.telegram_settings_cyan,
-                "settings_security_privacy" to im.vector.lib.ui.styles.R.color.telegram_settings_green,
-                "settings_labs" to im.vector.lib.ui.styles.R.color.telegram_settings_purple,
-                "settings_advanced" to im.vector.lib.ui.styles.R.color.telegram_settings_indigo,
-                "settings_help_about" to im.vector.lib.ui.styles.R.color.telegram_settings_deep_orange,
-                "settings_legals" to im.vector.lib.ui.styles.R.color.telegram_settings_violet
+                "settings_general" to R.color.telegram_settings_blue,
+                "settings_notifications" to R.color.telegram_settings_red,
+                "settings_preferences" to R.color.telegram_settings_orange,
+                "settings_voice_video" to R.color.telegram_settings_cyan,
+                "settings_security_privacy" to R.color.telegram_settings_green,
+                "settings_labs" to R.color.telegram_settings_purple,
+                "settings_advanced" to R.color.telegram_settings_indigo,
+                "settings_help_about" to R.color.telegram_settings_deep_orange,
+                "settings_legals" to R.color.telegram_settings_violet
         )
 
         for (i in 0 until preferenceScreen.preferenceCount) {
