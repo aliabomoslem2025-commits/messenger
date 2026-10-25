@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layoutDirection="ltr"
-    android:background="?vctr_chat_background">
+    android:background="@drawable/bg_telegram_chat_doodles">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
@@ -73,7 +73,7 @@
             android:id="@+id/removeJitsiWidgetView"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="?vctr_chat_background"
+            android:background="@android:color/transparent"
             android:minHeight="54dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -83,7 +83,7 @@
             android:id="@+id/timelineRecyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:background="@drawable/bg_telegram_chat_doodles"
+            android:background="@android:color/transparent"
             android:overScrollMode="always"
             app:layout_constraintBottom_toTopOf="@id/failedMessagesWarningStub"
             app:layout_constraintEnd_toEndOf="parent"
