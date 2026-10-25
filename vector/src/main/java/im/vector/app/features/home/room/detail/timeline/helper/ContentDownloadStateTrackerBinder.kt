@@ -112,6 +112,7 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
         stop()
         holder.fileDownloadProgress.isIndeterminate = false
         holder.fileDownloadProgress.progress = 0
+        holder.fileDownloadProgress.isVisible = false
         holder.fileImageView.setImageResource(R.drawable.ic_close_round)
     }
 
