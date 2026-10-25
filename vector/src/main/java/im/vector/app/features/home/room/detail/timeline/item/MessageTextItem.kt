@@ -117,7 +117,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         // the underlying Matrix send state or callbacks.
         val bubbleLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
         if (bubbleLayout != null) {
-            (holder.view as? MessageBubbleView)?.renderMessageLayout(bubbleLayout)
+            (holder.view as? MessageBubbleView)?.refreshBubbleTextColor(bubbleLayout)
         }
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
     }
