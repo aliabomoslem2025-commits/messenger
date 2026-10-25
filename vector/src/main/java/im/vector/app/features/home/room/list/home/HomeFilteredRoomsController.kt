@@ -15,6 +15,7 @@ import im.vector.app.core.utils.createUIHandler
 import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.home.room.list.RoomListListener
 import im.vector.app.features.home.room.list.RoomSummaryItemFactory
+import im.vector.app.features.home.room.list.RoomSummaryItem_
 import im.vector.app.features.home.room.list.RoomSummaryPlaceHolderItem_
 import im.vector.app.features.settings.FontScalePreferences
 import org.matrix.android.sdk.api.session.room.ResultBoundaries
@@ -100,7 +101,13 @@ class HomeFilteredRoomsController @Inject constructor(
                     displayMode = RoomListDisplayMode.ROOMS,
                     listener = listener,
                     singleLineLastEvent = shouldUseSingleLine
-            )
+            ).also { model ->
+                // Keep invitations' accept/reject layout intact; style regular room
+                // rows only in the primary home list.
+                if (model is RoomSummaryItem_) {
+                    model.compactTelegramHome(true)
+                }
+            }
         }
     }
 }

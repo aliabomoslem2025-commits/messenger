@@ -29,22 +29,22 @@
         android:id="@+id/roomAvatarContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="9dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
             android:id="@+id/roomAvatarImageView"
-            android:layout_width="54dp"
-            android:layout_height="54dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:importantForAccessibility="no"
             tools:src="@sample/room_round_avatars" />
 
         <ImageView
             android:id="@+id/roomAvatarCheckedImageView"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:contentDescription="@string/a11y_checked"
             android:scaleType="centerInside"
             android:src="@drawable/ic_material_done"
@@ -61,7 +61,7 @@
         android:src="@drawable/ic_warning_badge"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="45"
-        app:layout_constraintCircleRadius="29dp"
+        app:layout_constraintCircleRadius="25dp"
         tools:ignore="MissingConstraints" />
 
     <!-- Note: this is always gone now -->
@@ -71,7 +71,7 @@
         android:layout_height="24dp"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="27dp"
+        app:layout_constraintCircleRadius="25dp"
         tools:ignore="MissingConstraints"
         tools:visibility="gone" />
 
@@ -100,7 +100,7 @@
         android:visibility="gone"
         app:layout_constraintCircle="@id/roomAvatarContainer"
         app:layout_constraintCircleAngle="135"
-        app:layout_constraintCircleRadius="28dp"
+        app:layout_constraintCircleRadius="25dp"
         tools:ignore="MissingConstraints"
         tools:layout_constraintCircleRadius="8dp"
         tools:src="@drawable/ic_presence_offline"
@@ -120,12 +120,13 @@
         style="@style/Widget.Vector.TextView.Subtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="8dp"
         android:duplicateParentState="true"
         android:ellipsize="end"
         android:maxLines="1"
+        android:fontFamily="sans-serif-medium"
         android:textColor="?vctr_content_primary"
         android:textSize="16sp"
         app:layout_constrainedWidth="true"
@@ -178,8 +179,9 @@
         style="@style/Widget.Vector.TextView.Caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
+        android:layout_marginEnd="14dp"
         android:textColor="?vctr_content_secondary"
+        android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="@id/roomNameView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/roomNameView"
@@ -240,6 +242,7 @@
         android:id="@+id/roomDividerView"
         android:layout_width="0dp"
         android:layout_height="1dp"
+        android:visibility="gone"
         android:layout_marginStart="82dp"
         android:background="?vctr_list_separator_system"
         app:layout_constraintBottom_toBottomOf="parent"

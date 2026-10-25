@@ -7,8 +7,10 @@
 
 package im.vector.app.features.home
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -19,13 +21,13 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.airbnb.mvrx.activityViewModel
 import com.airbnb.mvrx.fragmentViewModel
 import com.airbnb.mvrx.withState
-import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
@@ -138,6 +140,10 @@ class NewHomeDetailFragment :
                 spaceListBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, SpaceListBottomSheet.TAG)
                 true
             }
+            R.id.menu_home_open_drawer -> {
+                sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
+                true
+            }
             R.id.menu_home_search -> true // The persistent search input handles the query.
             else -> false
         }
@@ -150,7 +156,7 @@ class NewHomeDetailFragment :
             menu.findItem(R.id.menu_home_dialpad).isVisible = state.showDialPadTab
             val spacesItem = menu.findItem(R.id.menu_home_spaces)
             spacesItem.isVisible = isRoomList
-            val spacesTitle = getString(R.string.a11y_open_spaces)
+            val spacesTitle = getString(CommonStrings.a11y_open_spaces)
             spacesItem.title = spacesUnreadLabel?.let { "$spacesTitle ($it)" } ?: spacesTitle
 
             // Search is a persistent input below the toolbar, not an overflow action.
@@ -271,6 +277,9 @@ class NewHomeDetailFragment :
         }
 
         selectTab(views.telegramTabChats)
+        withState(viewModel) { state ->
+            state.myMatrixItem?.let { avatarRenderer.render(it, views.telegramTabProfileIcon) }
+        }
 
         views.telegramTabChats.debouncedClicks {
             selectTab(views.telegramTabChats)
@@ -330,24 +339,30 @@ class NewHomeDetailFragment :
         })
 
         homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
-            val filters = headers.filtersList
+            // The reference home screen has a two-segment capsule, not Element's
+            // four-filter strip. Both segments remain wired to real Matrix room filters.
+            val filters = listOf(HomeRoomFilter.ALL, HomeRoomFilter.PEOPlE)
             isSyncingTelegramHomeTabs = true
             try {
                 tabs.removeAllTabs()
-                if (filters.isNullOrEmpty()) {
-                    tabs.isVisible = false
-                } else {
-                    tabs.isVisible = true
-                    filters.forEach { filter ->
-                        tabs.addTab(tabs.newTab().setText(filter.titleRes).setTag(filter), false)
-                    }
-                    val selectedIndex = filters.indexOf(headers.currentFilter)
-                    if (selectedIndex >= 0) {
-                        tabs.getTabAt(selectedIndex)?.select()
-                    }
+                tabs.isVisible = true
+                filters.forEach { filter ->
+                    tabs.addTab(
+                            tabs.newTab()
+                                    .setText(R.string.telegram_filter_all_chats)
+                                    .setTag(filter),
+                            false
+                    )
                 }
+                val selectedFilter = headers.currentFilter.takeIf { it in filters } ?: HomeRoomFilter.ALL
+                tabs.getTabAt(filters.indexOf(selectedFilter))?.select()
             } finally {
                 isSyncingTelegramHomeTabs = false
+            }
+            // If older persisted preferences point to an Element-only filter, move the
+            // real Matrix list to All Chats rather than merely changing the highlight.
+            if (headers.currentFilter !in filters) {
+                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
             }
         }
     }
@@ -374,6 +389,22 @@ class NewHomeDetailFragment :
             newChatBottomSheet.takeIf { !it.isAdded }?.show(requireActivity().supportFragmentManager, NewChatBottomSheet.TAG)
         }
 
+        views.telegramCameraButton.debouncedClicks {
+            openSystemCamera()
+        }
+
+    }
+
+    private fun openSystemCamera() {
+        try {
+            startActivity(Intent(MediaStore.ACTION_IMAGE_CAPTURE))
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(
+                    requireContext(),
+                    R.string.telegram_camera_unavailable,
+                    Toast.LENGTH_SHORT
+            ).show()
+        }
     }
 
     private fun showFABs() {
@@ -472,7 +503,8 @@ class NewHomeDetailFragment :
     }
 
     private fun onSpaceChange(spaceSummary: RoomSummary?) {
-        views.collapsingToolbar.title = (spaceSummary?.displayName ?: getString(CommonStrings.all_chats))
+        val title = spaceSummary?.displayName ?: getString(R.string.telegram_home_title)
+        views.toolbar.title = title
     }
 
     private fun setupKeysBackupBanner() {
@@ -502,15 +534,10 @@ class NewHomeDetailFragment :
         setupToolbar(views.toolbar)
         views.toolbar.title = getString(R.string.telegram_home_title)
 
-        views.collapsingToolbar.debouncedClicks(::openSpaceSettings)
-        views.toolbar.debouncedClicks(::openSpaceSettings)
-
-        views.toolbar.setNavigationIcon(R.drawable.ic_telegram_menu)
-        views.toolbar.setNavigationContentDescription(R.string.a11y_open_drawer)
-        views.toolbar.setNavigationOnClickListener {
-            // Match Telegram's hamburger behavior; account/settings remain in the drawer.
-            sharedActionViewModel.post(HomeActivitySharedAction.OpenDrawer)
-        }
+        // Telegram's chat list uses a plain title and a trailing overflow menu.
+        // Drawer access remains available as an item in that menu.
+        views.toolbar.navigationIcon = null
+        views.toolbar.setNavigationOnClickListener(null)
     }
 
     private fun setupMigrationBanner() {
@@ -555,14 +582,8 @@ class NewHomeDetailFragment :
     }
 
     private fun setupDebugButton() {
-        views.debugButton.debouncedClicks {
-            sharedActionViewModel.post(HomeActivitySharedAction.CloseDrawer)
-            navigator.openDebug(requireActivity())
-        }
-
-        views.appBarLayout.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-            views.debugButton.isVisible = verticalOffset == 0 && buildMeta.isDebug && vectorPreferences.developerMode()
-        })
+        // Developer shortcuts must not leak into the user-facing Telegram-style header.
+        views.debugButton.isGone = true
     }
 
     /* ==========================================================================================

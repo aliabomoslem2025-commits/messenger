@@ -57,15 +57,10 @@ class HomeRoomsHeadersController @Inject constructor(
     override fun buildModels() {
         val host = this
 
-        // HomeRoomFilter tabs are pinned in NewHomeDetailFragment. Keep this
-        // Epoxy header responsible only for invites and recent chats.
-
+        // Telegram's primary chat list starts directly under the pinned filter
+        // capsule. Do not insert Element's recent-room carousel above the real rooms.
         if (data.invitesCount != 0) {
             addInviteCounter(host.invitesClickListener, data.invitesCount)
-        }
-
-        data.recents?.let {
-            addRecents(host, it)
         }
     }
 

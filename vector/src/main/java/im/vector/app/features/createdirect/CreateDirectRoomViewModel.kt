@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.permalinks.PermalinkData
 import org.matrix.android.sdk.api.session.permalinks.PermalinkParser
@@ -68,9 +69,16 @@ class CreateDirectRoomViewModel @AssistedInject constructor(
                 .filterIsInstance<PendingSelection.UserPendingSelection>()
                 .map { it.user.userId }
                 .distinct()
+        // Persist the 3PID medium with its value; the room-create screen recreates
+        // the SDK ThreePid model before passing invitations to CreateRoomParams.
         val threePids = selections
                 .filterIsInstance<PendingSelection.ThreePidPendingSelection>()
-                .map { it.threePid }
+                .map {
+                    when (val threePid = it.threePid) {
+                        is ThreePid.Email -> "email:${threePid.email}"
+                        is ThreePid.Msisdn -> "msisdn:${threePid.msisdn}"
+                    }
+                }
                 .distinct()
 
         if (userIds.isNotEmpty() || threePids.isNotEmpty()) {
