@@ -139,3 +139,11 @@ Validated source revision: [f8fd8a2](https://github.com/aliabomoslem2025-commits
 - [ ] Verify Persian-only, Latin-only, mixed-script, URL, timestamp, multiline, edited-message, and media-caption rendering at multiple font scales with TalkBack enabled.
 
 Remote source editing cannot substitute for screenshot comparison or hands-on Matrix acceptance. Do not describe this as 100% parity until these gates pass.
+
+
+### Conversation header/composer fidelity pass (source changes; verification pending, 2026-10-25)
+
+- Restored a full-width 56dp conversation toolbar instead of an inset floating card; returned avatar sizing and title margins to a compact Android messenger header while retaining Matrix presence and room-security indicators.
+- Corrected the plain composer layout to follow Telegram Android's control order: emoji control at the leading edge of the input, editable text in the middle, attachment action at the trailing edge, and the send action outside the input capsule. The emoji control uses the existing attachment-size dimension token for a usable hit target.
+- Fixed bubble text palette ordering: send-state binding could overwrite the outgoing bubble's theme-aware readable text color. The bubble renderer now exposes a focused color refresh, invoked after send-state binding without altering Matrix send state, sending callbacks, or the Timeline source of truth.
+- This pass has not yet been compiled or exercised on a device. Build/test results, screenshot comparison, RTL behavior, and live Matrix send/retry behavior remain acceptance gates; no pixel-parity claim is made.
