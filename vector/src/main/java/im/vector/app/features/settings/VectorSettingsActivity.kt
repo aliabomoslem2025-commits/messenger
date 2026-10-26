@@ -71,6 +71,8 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
                     replaceFragment(views.vectorSettingsPage, VectorSettingsGeneralFragment::class.java, null, FRAGMENT_TAG)
                 SettingsActivityPayload.Preferences ->
                     replaceFragment(views.vectorSettingsPage, VectorSettingsPreferencesFragment::class.java, null, FRAGMENT_TAG)
+                SettingsActivityPayload.DataStorage ->
+                    replaceFragment(views.vectorSettingsPage, VectorSettingsDataStorageFragment::class.java, null, FRAGMENT_TAG)
                 SettingsActivityPayload.VoiceVideo ->
                     replaceFragment(views.vectorSettingsPage, VectorSettingsVoiceVideoFragment::class.java, null, FRAGMENT_TAG)
                 SettingsActivityPayload.HelpAbout ->
