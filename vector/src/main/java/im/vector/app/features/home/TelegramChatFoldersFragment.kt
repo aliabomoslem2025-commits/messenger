@@ -196,7 +196,7 @@ class TelegramChatFoldersFragment : Fragment(R.layout.fragment_telegram_chat_fol
         val spinner = Spinner(context).apply {
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, optionLabels)
             isEnabled = existing == null
-            val selectedIndex = options.indexOf(existing?.filter).coerceAtLeast(0)
+            val selectedIndex = options.indexOf(existing?.filter ?: HomeRoomFilter.ALL).coerceAtLeast(0)
             setSelection(selectedIndex)
         }
         editor.addView(nameInput, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
