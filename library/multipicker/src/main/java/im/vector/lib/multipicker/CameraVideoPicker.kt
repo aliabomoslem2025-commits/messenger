@@ -27,10 +27,17 @@ class CameraVideoPicker {
      * Start camera by using a ActivityResultLauncher.
      * @return Uri of taken photo or null if the operation is cancelled.
      */
-    fun startWithExpectingFile(context: Context, activityResultLauncher: ActivityResultLauncher<Intent>): Uri {
+    fun startWithExpectingFile(
+            context: Context,
+            activityResultLauncher: ActivityResultLauncher<Intent>,
+            maxDurationSeconds: Int? = null
+    ): Uri {
         val videoUri = createVideoUri(context)
         val intent = createIntent().apply {
             putExtra(MediaStore.EXTRA_OUTPUT, videoUri)
+            maxDurationSeconds?.takeIf { it > 0 }?.let {
+                putExtra(MediaStore.EXTRA_DURATION_LIMIT, it)
+            }
         }
         activityResultLauncher.launch(intent)
         return videoUri
