@@ -77,11 +77,13 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
     }
 
     private fun handleIdle() {
+        holder.fileDownloadProgress.isVisible = true
         holder.fileDownloadProgress.progress = 0
         holder.fileDownloadProgress.isIndeterminate = false
     }
 
     private fun handleDecrypting() {
+        holder.fileDownloadProgress.isVisible = true
         holder.fileDownloadProgress.isIndeterminate = true
     }
 
@@ -90,9 +92,14 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
     }
 
     private fun doHandleProgress(current: Long, total: Long) {
-        val percent = 100L * (current.toFloat() / total.toFloat())
+        val percent = if (total > 0L) {
+            (100.0 * current.toDouble() / total.toDouble()).toInt().coerceIn(0, 100)
+        } else {
+            0
+        }
+        holder.fileDownloadProgress.isVisible = true
         holder.fileDownloadProgress.isIndeterminate = false
-        holder.fileDownloadProgress.progress = percent.toInt()
+        holder.fileDownloadProgress.progress = percent
         if (animatedDrawable == null) {
             animatedDrawable = AnimatedVectorDrawableCompat.create(holder.view.context, R.drawable.ic_download_anim)
             holder.fileImageView.setImageDrawable(animatedDrawable)
@@ -105,6 +112,7 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
         stop()
         holder.fileDownloadProgress.isIndeterminate = false
         holder.fileDownloadProgress.progress = 0
+        holder.fileDownloadProgress.isVisible = false
         holder.fileImageView.setImageResource(R.drawable.ic_close_round)
     }
 
@@ -112,6 +120,7 @@ private class ContentDownloadUpdater(private val holder: MessageFileItem.Holder)
         stop()
         holder.fileDownloadProgress.isIndeterminate = false
         holder.fileDownloadProgress.progress = 0
+        holder.fileDownloadProgress.isVisible = false
         holder.fileImageView.setImageResource(R.drawable.ic_paperclip)
     }
 }

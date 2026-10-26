@@ -408,7 +408,14 @@ class TimelineEventController @Inject constructor(
         }
         Timber.v("Preprocess events took $preprocessEventsTiming ms")
         var numberOfEventsToBuild = 0
-        val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(readReceiptsCache.receiptsByEvent())
+        val receiptsByEvent = readReceiptsCache.receiptsByEvent()
+        // The timeline snapshot is newest-first. A receipt at position R means messages
+        // at R and all older positions (larger indices) have been read by that member.
+        val eventPositionById = currentSnapshot.mapIndexed { index, event -> event.eventId to index }.toMap()
+        val newestReadReceiptPosition = receiptsByEvent.keys
+                .mapNotNull { eventPositionById[it] }
+                .minOrNull()
+        val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(receiptsByEvent)
         (0 until modelCache.size).forEach { position ->
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
@@ -441,6 +448,11 @@ class TimelineEventController @Inject constructor(
                         nextDisplayableEvent = nextDisplayableEvent,
                         partialState = partialState,
                         lastSentEventIdWithoutReadReceipts = lastSentEventWithoutReadReceipts,
+                        isReadByOther = timeline?.isLive != false &&
+                                partialState.roomSummary?.isDirect == true &&
+                                event.root.senderId == session.myUserId &&
+                                newestReadReceiptPosition?.let { position >= it } == true,
+                        isLiveTimeline = timeline?.isLive != false,
                         callback = callback,
                         eventsGroup = timelineEventsGroup,
                         reactionsSummaryEvents = ReactionsSummaryEvents(

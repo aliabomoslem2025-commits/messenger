@@ -69,6 +69,16 @@ class VectorSettingsActivity : VectorBaseActivity<ActivityVectorSettingsBinding>
             when (val payload = readPayload<SettingsActivityPayload>(SettingsActivityPayload.Root)) {
                 SettingsActivityPayload.General ->
                     replaceFragment(views.vectorSettingsPage, VectorSettingsGeneralFragment::class.java, null, FRAGMENT_TAG)
+                SettingsActivityPayload.Preferences ->
+                    replaceFragment(views.vectorSettingsPage, VectorSettingsPreferencesFragment::class.java, null, FRAGMENT_TAG)
+                SettingsActivityPayload.VoiceVideo ->
+                    replaceFragment(views.vectorSettingsPage, VectorSettingsVoiceVideoFragment::class.java, null, FRAGMENT_TAG)
+                SettingsActivityPayload.HelpAbout ->
+                    replaceFragment(views.vectorSettingsPage, VectorSettingsHelpAboutFragment::class.java, null, FRAGMENT_TAG)
+                SettingsActivityPayload.Legal ->
+                    replaceFragment(views.vectorSettingsPage, im.vector.app.features.settings.legals.LegalsFragment::class.java, null, FRAGMENT_TAG)
+                SettingsActivityPayload.Language ->
+                    replaceFragment(views.vectorSettingsPage, im.vector.app.features.settings.locale.LocalePickerFragment::class.java, null, FRAGMENT_TAG)
                 SettingsActivityPayload.AdvancedSettings ->
                     replaceFragment(views.vectorSettingsPage, VectorSettingsAdvancedSettingsFragment::class.java, null, FRAGMENT_TAG)
                 SettingsActivityPayload.SecurityPrivacy ->

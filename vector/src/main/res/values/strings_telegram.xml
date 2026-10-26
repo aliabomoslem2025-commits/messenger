@@ -30,4 +30,27 @@
     <string name="telegram_wallpaper_doodles">Telegram-style doodles</string>
     <string name="telegram_wallpaper_plain">Plain background</string>
     <string name="telegram_wallpaper_reset">Use default wallpaper</string>
+    <string name="telegram_message_read_status">Read</string>
+    <string name="telegram_settings_account_title">Account</string>
+    <string name="telegram_settings_account_summary">Profile, username and account details</string>
+    <string name="telegram_settings_chat_title">Chat Settings</string>
+    <string name="telegram_settings_chat_summary">Appearance, bubbles and animations</string>
+    <string name="telegram_settings_privacy_title">Privacy &amp; Security</string>
+    <string name="telegram_settings_privacy_summary">Encryption, privacy and sessions</string>
+    <string name="telegram_settings_notifications_title">Notifications</string>
+    <string name="telegram_settings_notifications_summary">Message and call notifications</string>
+    <string name="telegram_settings_storage_title">Data &amp; Storage</string>
+    <string name="telegram_settings_storage_summary">Media and download preferences</string>
+    <string name="telegram_settings_advanced_title">Advanced Settings</string>
+    <string name="telegram_settings_advanced_summary">More app options and diagnostics</string>
+    <string name="telegram_settings_devices_title">Devices</string>
+    <string name="telegram_settings_devices_summary">Manage this and other sessions</string>
+    <string name="telegram_settings_language_title">Language</string>
+    <string name="telegram_settings_language_summary">Application language</string>
+    <string name="telegram_settings_calls_title">Voice &amp; Video</string>
+    <string name="telegram_settings_calls_summary">Calling and audio/video preferences</string>
+    <string name="telegram_settings_help_title">Help &amp; About</string>
+    <string name="telegram_settings_help_summary">Help, diagnostics and app information</string>
+    <string name="telegram_settings_legal_title">Legal</string>
+    <string name="telegram_settings_legal_summary">Privacy information and licenses</string>
 </resources>

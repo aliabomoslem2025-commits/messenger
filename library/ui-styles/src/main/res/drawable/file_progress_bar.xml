@@ -1,17 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Circular track and determinate arc for file downloads. The ProgressBar level
+     is supplied by Matrix ContentDownloadStateTracker, not a timer. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-
     <item android:id="@android:id/background">
-        <shape android:shape="oval">
-            <solid android:color="?vctr_system" />
+        <shape
+            android:shape="ring"
+            android:innerRadiusRatio="3"
+            android:thicknessRatio="7"
+            android:useLevel="false">
+            <solid android:color="@color/vctr_notice_secondary_alpha12" />
         </shape>
     </item>
-
     <item android:id="@android:id/progress">
-        <clip>
-            <shape android:shape="oval">
-                <solid android:color="@color/vctr_notice_secondary_alpha12" />
+        <rotate
+            android:fromDegrees="270"
+            android:toDegrees="270">
+            <shape
+                android:shape="ring"
+                android:innerRadiusRatio="3"
+                android:thicknessRatio="7"
+                android:useLevel="true">
+                <solid android:color="?vctr_notice_secondary" />
             </shape>
-        </clip>
+        </rotate>
     </item>
 </layer-list>

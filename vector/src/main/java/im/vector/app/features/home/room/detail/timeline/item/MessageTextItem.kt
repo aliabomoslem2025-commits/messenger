@@ -11,6 +11,7 @@ import android.text.Spanned
 import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewStub
+import android.view.animation.OvershootInterpolator
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.PrecomputedTextCompat
 import androidx.core.view.isVisible
@@ -111,6 +112,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.onClick(attributes.itemClickListener)
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
+        animateNewOutgoingEmoji(messageView)
         // Bubble styling runs during the base bind, but renderSendState() above also
         // applies Element's send-state text tint. Reapply the bubble palette last so
         // outbound Telegram-blue bubbles retain readable white text without changing
@@ -120,6 +122,48 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             (holder.view as? MessageBubbleView)?.refreshBubbleTextColor(bubbleLayout)
         }
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
+    }
+
+    /**
+     * Telegram-style large emoji messages pop into view when newly sent. Only animate
+     * recent outgoing local events, and remember their event IDs so Epoxy rebinds or
+     * scrolling do not replay the effect on older messages.
+     */
+    private fun animateNewOutgoingEmoji(messageView: AppCompatTextView) {
+        val info = attributes.informationData
+        if (!useBigFont || !info.sentByMe) return
+        val localTimestamp = info.ageLocalTS ?: return
+        val ageMs = System.currentTimeMillis() - localTimestamp
+        if (ageMs !in -2_000L..8_000L) return
+
+        val shouldAnimate = synchronized(animatedBigEmojiEventIds) {
+            if (animatedBigEmojiEventIds.contains(info.eventId)) {
+                false
+            } else {
+                animatedBigEmojiEventIds.add(info.eventId)
+                if (animatedBigEmojiEventIds.size > MAX_REMEMBERED_BIG_EMOJI_ANIMATIONS) {
+                    val iterator = animatedBigEmojiEventIds.iterator()
+                    if (iterator.hasNext()) {
+                        iterator.next()
+                        iterator.remove()
+                    }
+                }
+                true
+            }
+        }
+        if (!shouldAnimate) return
+
+        messageView.animate().cancel()
+        messageView.scaleX = 0.68f
+        messageView.scaleY = 0.68f
+        messageView.alpha = 0.75f
+        messageView.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(430L)
+                .setInterpolator(OvershootInterpolator(1.2f))
+                .start()
     }
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {
@@ -184,6 +228,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     }
 
     companion object {
+        private const val MAX_REMEMBERED_BIG_EMOJI_ANIMATIONS = 256
+        private val animatedBigEmojiEventIds = LinkedHashSet<String>()
         private val STUB_ID = R.id.messageContentTextStub
     }
 }

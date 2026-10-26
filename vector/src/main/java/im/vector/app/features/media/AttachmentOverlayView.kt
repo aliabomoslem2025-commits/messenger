@@ -12,6 +12,7 @@ import android.graphics.Color
 import android.util.AttributeSet
 import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
+import java.util.Locale
 import im.vector.app.R
 import im.vector.app.databinding.MergeImageAttachmentOverlayBinding
 import im.vector.lib.attachmentviewer.AttachmentEventListener
@@ -66,13 +67,32 @@ class AttachmentOverlayView @JvmOverloads constructor(
         views.overlayInfoText.text = senderInfo
     }
 
+    private fun formatPlaybackTime(milliseconds: Int): String {
+        val totalSeconds = milliseconds.coerceAtLeast(0) / 1_000
+        val seconds = totalSeconds % 60
+        val totalMinutes = totalSeconds / 60
+        return if (totalMinutes >= 60) {
+            String.format(
+                    Locale.ROOT,
+                    "%d:%02d:%02d",
+                    totalMinutes / 60,
+                    totalMinutes % 60,
+                    seconds
+            )
+        } else {
+            String.format(Locale.ROOT, "%d:%02d", totalMinutes, seconds)
+        }
+    }
+
     override fun onEvent(event: AttachmentEvents) {
         when (event) {
             is AttachmentEvents.VideoEvent -> {
                 views.overlayPlayPauseButton.setImageResource(if (!event.isPlaying) R.drawable.ic_play_arrow else R.drawable.ic_pause)
+                views.overlayCurrentTimeText.text = formatPlaybackTime(event.progress)
+                views.overlayDurationText.text = formatPlaybackTime(event.duration)
                 if (!suspendSeekBarUpdate) {
-                    val safeDuration = (if (event.duration == 0) 100 else event.duration).toFloat()
-                    val percent = ((event.progress / safeDuration) * 100f).toInt().coerceAtMost(100)
+                    val safeDuration = (if (event.duration <= 0) 100 else event.duration).toFloat()
+                    val percent = ((event.progress.coerceAtLeast(0) / safeDuration) * 100f).toInt().coerceIn(0, 100)
                     isPlaying = event.isPlaying
                     views.overlaySeekBar.progress = percent
                 }
