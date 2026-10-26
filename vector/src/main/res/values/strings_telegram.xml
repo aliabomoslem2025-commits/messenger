@@ -15,7 +15,7 @@
     <string name="telegram_create_channel_title">Create Channel</string>
     <string name="telegram_tab_chats">Chats</string>
     <string name="telegram_tab_contacts">Contacts</string>
-    <string name="telegram_tab_chat_folders">Chat Folders</string>
+    <string name="telegram_tab_chat_folders">Folders</string>
     <string name="telegram_folder_personal">Personal</string>
     <string name="telegram_folder_groups">Groups &amp; Rooms</string>
     <string name="telegram_folder_manage_title">Chat Folders</string>
