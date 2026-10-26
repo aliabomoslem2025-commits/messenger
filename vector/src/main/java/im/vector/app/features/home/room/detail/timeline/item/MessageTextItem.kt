@@ -114,14 +114,6 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
         animateNewOutgoingEmoji(messageView)
-        // Bubble styling runs during the base bind, but renderSendState() above also
-        // applies Element's send-state text tint. Reapply the bubble palette last so
-        // outbound Telegram-blue bubbles retain readable white text without changing
-        // the underlying Matrix send state or callbacks.
-        val bubbleLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
-        if (bubbleLayout != null) {
-            (holder.view as? MessageBubbleView)?.refreshBubbleTextColor(bubbleLayout)
-        }
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
     }
 
