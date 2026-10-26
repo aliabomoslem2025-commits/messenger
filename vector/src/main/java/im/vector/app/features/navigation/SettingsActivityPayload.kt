@@ -18,6 +18,7 @@ sealed interface SettingsActivityPayload : Parcelable {
     @Parcelize object SecurityPrivacyManageSessions : SettingsActivityPayload
     @Parcelize object General : SettingsActivityPayload
     @Parcelize object Preferences : SettingsActivityPayload
+    @Parcelize object DataStorage : SettingsActivityPayload
     @Parcelize object VoiceVideo : SettingsActivityPayload
     @Parcelize object HelpAbout : SettingsActivityPayload
     @Parcelize object Legal : SettingsActivityPayload
