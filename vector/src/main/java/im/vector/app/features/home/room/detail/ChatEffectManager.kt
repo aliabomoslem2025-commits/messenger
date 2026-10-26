@@ -18,13 +18,21 @@ import javax.inject.Inject
 
 enum class ChatEffect {
     CONFETTI,
-    SNOWFALL
+    SNOWFALL,
+    LAUGHTER,
+    CRYING,
+    HEARTS,
+    FIRE,
+    THUMBS_UP,
+    THUMBS_DOWN,
+    THINKING
 }
 
 fun ChatEffect.toMessageType(): String {
     return when (this) {
         ChatEffect.CONFETTI -> MessageType.MSGTYPE_CONFETTI
         ChatEffect.SNOWFALL -> MessageType.MSGTYPE_SNOWFALL
+        else -> MessageType.MSGTYPE_TEXT
     }
 }
 
@@ -109,32 +117,39 @@ class ChatEffectManager @Inject constructor(
             MessageType.MSGTYPE_SNOWFALL -> ChatEffect.SNOWFALL
             MessageType.MSGTYPE_EMOTE,
             MessageType.MSGTYPE_TEXT -> {
-                event.root.getClearContent().toModel<MessageContent>()?.body
-                        ?.let { text ->
-                            when {
-                                EMOJIS_FOR_CONFETTI.any { text.contains(it) } -> ChatEffect.CONFETTI
-                                EMOJIS_FOR_SNOWFALL.any { text.contains(it) } -> ChatEffect.SNOWFALL
-                                else -> null
-                            }
-                        }
+                // Telegram-style full-screen effects are for a standalone emoji message only.
+                // A normal sentence that happens to contain 😂 or ❤️ must remain a normal text message.
+                val body = event.root.getClearContent()
+                        .toModel<MessageContent>()
+                        ?.body
+                        ?.trim()
+                        ?: return null
+                when {
+                    body in EMOJIS_FOR_CONFETTI -> ChatEffect.CONFETTI
+                    body in EMOJIS_FOR_SNOWFALL -> ChatEffect.SNOWFALL
+                    body in EMOJIS_FOR_LAUGHTER -> ChatEffect.LAUGHTER
+                    body in EMOJIS_FOR_CRYING -> ChatEffect.CRYING
+                    body in EMOJIS_FOR_HEARTS -> ChatEffect.HEARTS
+                    body in EMOJIS_FOR_FIRE -> ChatEffect.FIRE
+                    body in EMOJIS_FOR_THUMBS_UP -> ChatEffect.THUMBS_UP
+                    body in EMOJIS_FOR_THUMBS_DOWN -> ChatEffect.THUMBS_DOWN
+                    body in EMOJIS_FOR_THINKING -> ChatEffect.THINKING
+                    else -> null
+                }
             }
             else -> null
         }
     }
 
     companion object {
-        private val EMOJIS_FOR_CONFETTI = listOf(
-                "🎉",
-                "🎊",
-                "🎆",
-                "🎇",
-                "🥳",
-                "💥"
-        )
-        private val EMOJIS_FOR_SNOWFALL = listOf(
-                "⛄️",
-                "☃️",
-                "❄️"
-        )
+        private val EMOJIS_FOR_CONFETTI = setOf("🎉", "🎊", "🎆", "🎇", "🥳", "💥")
+        private val EMOJIS_FOR_SNOWFALL = setOf("⛄️", "☃️", "❄️")
+        private val EMOJIS_FOR_LAUGHTER = setOf("😂", "🤣", "😆", "😹")
+        private val EMOJIS_FOR_CRYING = setOf("😭", "😢", "😥", "😿")
+        private val EMOJIS_FOR_HEARTS = setOf("❤️", "❤", "💖", "💗", "💓", "💕", "😍", "🥰")
+        private val EMOJIS_FOR_FIRE = setOf("🔥")
+        private val EMOJIS_FOR_THUMBS_UP = setOf("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿")
+        private val EMOJIS_FOR_THUMBS_DOWN = setOf("👎", "👎🏻", "👎🏼", "👎🏽", "👎🏾", "👎🏿")
+        private val EMOJIS_FOR_THINKING = setOf("🤔", "🧐")
     }
 }
