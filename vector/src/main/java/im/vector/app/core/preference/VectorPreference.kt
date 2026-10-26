@@ -20,6 +20,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import im.vector.app.R
 import androidx.core.animation.doOnEnd
 import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat

@@ -109,32 +109,31 @@ class ChatEffectManager @Inject constructor(
             MessageType.MSGTYPE_SNOWFALL -> ChatEffect.SNOWFALL
             MessageType.MSGTYPE_EMOTE,
             MessageType.MSGTYPE_TEXT -> {
-                event.root.getClearContent().toModel<MessageContent>()?.body
-                        ?.let { text ->
-                            when {
-                                EMOJIS_FOR_CONFETTI.any { text.contains(it) } -> ChatEffect.CONFETTI
-                                EMOJIS_FOR_SNOWFALL.any { text.contains(it) } -> ChatEffect.SNOWFALL
-                                else -> null
-                            }
-                        }
+                val body = event.root.getClearContent()
+                        .toModel<MessageContent>()
+                        ?.body
+                        ?: return null
+                resolveStandaloneTextEffect(body)
             }
             else -> null
         }
     }
 
     companion object {
-        private val EMOJIS_FOR_CONFETTI = listOf(
-                "🎉",
-                "🎊",
-                "🎆",
-                "🎇",
-                "🥳",
-                "💥"
-        )
-        private val EMOJIS_FOR_SNOWFALL = listOf(
-                "⛄️",
-                "☃️",
-                "❄️"
-        )
+        /**
+         * Full-screen message effects are only triggered by a standalone emoji. Ordinary text
+         * containing an emoji stays a normal text message; the bubble renderer handles large-emoji
+         * entrance motion separately.
+         */
+        internal fun resolveStandaloneTextEffect(body: String): ChatEffect? {
+            return when (body.trim()) {
+                in EMOJIS_FOR_CONFETTI -> ChatEffect.CONFETTI
+                in EMOJIS_FOR_SNOWFALL -> ChatEffect.SNOWFALL
+                else -> null
+            }
+        }
+
+        private val EMOJIS_FOR_CONFETTI = setOf("🎉", "🎊", "🎆", "🎇", "🥳", "💥")
+        private val EMOJIS_FOR_SNOWFALL = setOf("⛄️", "☃️", "❄️")
     }
 }

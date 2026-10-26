@@ -190,13 +190,21 @@ class TelegramChatFoldersFragment : Fragment(R.layout.fragment_telegram_chat_fol
             setText(existing?.name.orEmpty())
             contentDescription = getString(R.string.telegram_folder_name_hint)
         }
-        val options = listOf(
-                HomeRoomFilter.ALL,
-                HomeRoomFilter.UNREADS,
-                HomeRoomFilter.FAVOURITES,
-                HomeRoomFilter.PEOPlE,
-                HomeRoomFilter.ROOMS
-        )
+        // Each folder must represent a distinct query. On creation, offer only filters
+        // that are not already configured (including hidden folders); when renaming, keep
+        // the folder's existing filter and let the user edit its name.
+        val options = if (existing != null) {
+            listOf(existing.filter)
+        } else {
+            val configuredFilters = chatFoldersStore.foldersFlow.value.map { it.filter }.toSet()
+            HomeRoomFilter.values().filter { filter ->
+                filter != HomeRoomFilter.ALL && filter !in configuredFilters
+            }
+        }
+        if (options.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.telegram_folder_filter_exists, Toast.LENGTH_SHORT).show()
+            return
+        }
         val optionLabels = options.map(::filterLabel)
         val spinner = Spinner(context).apply {
             adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item, optionLabels)

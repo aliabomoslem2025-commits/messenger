@@ -7,13 +7,16 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.graphics.Outline
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -27,6 +30,8 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import kotlin.math.abs
+import kotlin.math.max
 
 @EpoxyModelClass
 abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Holder>() {
@@ -59,12 +64,29 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
         val dimensionConverter = DimensionConverter(holder.view.resources)
-        val imageCornerTransformation = if (messageLayout is TimelineMessageLayout.Bubble) {
-            messageLayout.cornersRadius.granularRoundedCorners()
-        } else {
-            RoundedCorners(dimensionConverter.dpToPx(8))
+        val mediaWidth = mediaData.width
+        val mediaHeight = mediaData.height
+        // A capture made by VideoNoteCaptureActivity carries a stable filename marker
+        // through Matrix's m.video body. This makes the circle treatment survive upload,
+        // sync and rendering on the recipient's device. Square videos from other clients
+        // are also rendered as circles; regular landscape videos keep rounded rectangles.
+        val isTaggedVideoNote = attributes.informationData.messageType == MessageType.MSGTYPE_VIDEO &&
+                mediaData.filename.startsWith("video_note_", ignoreCase = true)
+        val isSquareVideoNote = attributes.informationData.messageType == MessageType.MSGTYPE_VIDEO &&
+                mediaWidth != null && mediaHeight != null &&
+                abs(mediaWidth - mediaHeight) <= max(4, max(mediaWidth, mediaHeight) / 20)
+        val isCircularVideoNote = isTaggedVideoNote || isSquareVideoNote
+        holder.setCircularVideoNote(isCircularVideoNote, dimensionConverter.dpToPx(208))
+        val imageCornerTransformation = when {
+            isCircularVideoNote -> CircleCrop()
+            messageLayout is TimelineMessageLayout.Bubble -> messageLayout.cornersRadius.granularRoundedCorners()
+            else -> RoundedCorners(dimensionConverter.dpToPx(8))
         }
+        holder.imageView.clipToOutline = false
         imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
+        if (isCircularVideoNote) {
+            holder.imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+        }
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(
                     attributes.informationData.eventId,
@@ -121,6 +143,31 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
         val downloadProgress by bind<android.widget.ProgressBar>(R.id.messageMediaDownloadProgress)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
+
+        private var originalMediaWidth: Int? = null
+        private var originalMediaHeight: Int? = null
+
+        fun setCircularVideoNote(enabled: Boolean, sizePx: Int) {
+            val params = mediaContentView.layoutParams ?: return
+            if (originalMediaWidth == null) {
+                originalMediaWidth = params.width
+                originalMediaHeight = params.height
+            }
+            params.width = if (enabled) sizePx else originalMediaWidth ?: params.width
+            params.height = if (enabled) sizePx else originalMediaHeight ?: params.height
+            mediaContentView.layoutParams = params
+            mediaContentView.clipToOutline = enabled
+            mediaContentView.outlineProvider = if (enabled) CIRCLE_OUTLINE_PROVIDER else null
+            if (enabled) mediaContentView.invalidateOutline()
+        }
+
+        companion object {
+            private val CIRCLE_OUTLINE_PROVIDER = object : ViewOutlineProvider() {
+                override fun getOutline(view: View, outline: Outline) {
+                    outline.setOval(0, 0, view.width, view.height)
+                }
+            }
+        }
     }
 
     companion object {

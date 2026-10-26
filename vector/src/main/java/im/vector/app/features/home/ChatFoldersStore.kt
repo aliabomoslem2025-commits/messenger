@@ -147,6 +147,23 @@ class ChatFoldersStore @Inject constructor(
                         enabled = item.optBoolean("enabled", true)
                 )
             }
+            // Migrate only the untouched legacy defaults. If the user renamed, reordered,
+            // or hid any folder, preserve their choices exactly.
+            val legacyDefaultNames = mapOf(
+                    "all" to context.getString(R.string.telegram_folder_all_chats),
+                    "personal" to context.getString(R.string.telegram_folder_personal),
+                    "groups" to context.getString(R.string.telegram_folder_groups),
+                    "unread" to context.getString(R.string.telegram_folder_unread),
+                    "favorites" to context.getString(R.string.telegram_folder_favorites)
+            )
+            val legacyDefaultOrder = listOf("all", "personal", "groups", "unread", "favorites")
+            val isUntouchedLegacyDefaults = parsed.size == legacyDefaultNames.size &&
+                    parsed.map { it.id } == legacyDefaultOrder &&
+                    parsed.all { it.enabled && it.name == legacyDefaultNames[it.id] }
+            if (isUntouchedLegacyDefaults) {
+                return@runCatching defaultFolders()
+            }
+
             val uniqueFilters = parsed.distinctBy { it.filter }
             val all = uniqueFilters.firstOrNull { it.filter == HomeRoomFilter.ALL }
                     ?: defaultFolders().first()
@@ -155,11 +172,11 @@ class ChatFoldersStore @Inject constructor(
     }
 
     private fun defaultFolders(): List<ChatFolderDefinition> = listOf(
+            // Keep these four default tabs in the same order as Telegram's standard folders.
             ChatFolderDefinition("all", context.getString(R.string.telegram_folder_all_chats), HomeRoomFilter.ALL, true),
-            ChatFolderDefinition("personal", context.getString(R.string.telegram_folder_personal), HomeRoomFilter.PEOPlE, true),
-            ChatFolderDefinition("groups", context.getString(R.string.telegram_folder_groups), HomeRoomFilter.ROOMS, true),
             ChatFolderDefinition("unread", context.getString(R.string.telegram_folder_unread), HomeRoomFilter.UNREADS, true),
-            ChatFolderDefinition("favorites", context.getString(R.string.telegram_folder_favorites), HomeRoomFilter.FAVOURITES, true)
+            ChatFolderDefinition("favorites", context.getString(R.string.telegram_folder_favorites), HomeRoomFilter.FAVOURITES, true),
+            ChatFolderDefinition("personal", context.getString(R.string.telegram_folder_personal), HomeRoomFilter.PEOPlE, true)
     )
 
     companion object {

@@ -409,18 +409,38 @@ class TimelineEventController @Inject constructor(
         Timber.v("Preprocess events took $preprocessEventsTiming ms")
         var numberOfEventsToBuild = 0
         val receiptsByEvent = readReceiptsCache.receiptsByEvent()
-        // The timeline snapshot is newest-first. A receipt at position R means messages
-        // at R and all older positions (larger indices) have been read by that member.
-        val eventPositionById = currentSnapshot.mapIndexed { index, event -> event.eventId to index }.toMap()
-        val newestReadReceiptPosition = receiptsByEvent.keys
-                .mapNotNull { eventPositionById[it] }
-                .minOrNull()
         val lastSentEventWithoutReadReceipts = searchLastSentEventWithoutReadReceipts(receiptsByEvent)
+        // Only a recipient's non-thread receipt in a direct room enables the double tick.
+        // The timeline snapshot is newest-first: receipt index R covers R and older messages.
+        val lastReadEventIndex = if (partialState.roomSummary?.isDirect == true) {
+            currentSnapshot.indexOfFirst { timelineEvent ->
+                timelineEvent.readReceipts.any { receipt ->
+                    receipt.roomMember.userId != session.myUserId && receipt.threadId == null
+                }
+            }.takeIf { it >= 0 }
+        } else {
+            null
+        }
         (0 until modelCache.size).forEach { position ->
             val event = currentSnapshot[position]
             val nextEvent = currentSnapshot.nextOrNull(position)
-            // Should be build if not cached or if model should be refreshed
-            if (modelCache[position] == null || modelCache[position]?.isCacheable(partialState) == false || reactionListFactory.needsRebuild(event)) {
+            val readStatusForEvent = if (
+                    partialState.roomSummary?.isDirect == true &&
+                    event.root.senderId == session.myUserId &&
+                    event.root.sendState.isSent()
+            ) {
+                lastReadEventIndex != null && position >= lastReadEventIndex
+            } else {
+                null
+            }
+            val cachedItem = modelCache[position]
+            // Read receipts arrive independently of timeline events. Rebuild a message
+            // when its read state changes so the single/double check cannot become stale.
+            if (cachedItem == null ||
+                    !cachedItem.isCacheable(partialState) ||
+                    cachedItem.readStatusForEvent != readStatusForEvent ||
+                    reactionListFactory.needsRebuild(event)
+            ) {
                 val prevEvent = currentSnapshot.prevOrNull(position)
                 val prevDisplayableEvent = currentSnapshot.subList(0, position).lastOrNull {
                     timelineEventVisibilityHelper.shouldShowEvent(
@@ -448,10 +468,7 @@ class TimelineEventController @Inject constructor(
                         nextDisplayableEvent = nextDisplayableEvent,
                         partialState = partialState,
                         lastSentEventIdWithoutReadReceipts = lastSentEventWithoutReadReceipts,
-                        isReadByOther = timeline?.isLive != false &&
-                                partialState.roomSummary?.isDirect == true &&
-                                event.root.senderId == session.myUserId &&
-                                newestReadReceiptPosition?.let { position >= it } == true,
+                        isReadByOther = timeline?.isLive != false && readStatusForEvent == true,
                         isLiveTimeline = timeline?.isLive != false,
                         callback = callback,
                         eventsGroup = timelineEventsGroup,
@@ -461,7 +478,7 @@ class TimelineEventController @Inject constructor(
                                 onShowMoreClicked = { reactionListFactory.onShowMoreClicked(event.eventId) }
                         )
                 )
-                modelCache[position] = buildCacheItem(params)
+                modelCache[position] = buildCacheItem(params, readStatusForEvent)
                 numberOfEventsToBuild++
             }
             val itemCachedData = modelCache[position] ?: return@forEach
@@ -471,7 +488,10 @@ class TimelineEventController @Inject constructor(
         Timber.v("Number of events to rebuild: $numberOfEventsToBuild on ${modelCache.size} total events")
     }
 
-    private fun buildCacheItem(params: TimelineItemFactoryParams): CacheItemData {
+    private fun buildCacheItem(
+            params: TimelineItemFactoryParams,
+            readStatusForEvent: Boolean? = null
+    ): CacheItemData {
         val event = params.event
         if (hasReachedInvite && hasUTD) {
             return CacheItemData(event.localId, event.root.eventId)
@@ -486,7 +506,8 @@ class TimelineEventController @Inject constructor(
                 localId = event.localId,
                 eventId = event.root.eventId,
                 eventModel = eventModel,
-                isCacheable = isCacheable
+                isCacheable = isCacheable,
+                readStatusForEvent = readStatusForEvent
         )
     }
 
@@ -651,7 +672,8 @@ class TimelineEventController @Inject constructor(
             val eventModel: EpoxyModel<*>? = null,
             val mergedHeaderModel: BasedMergedItem<*>? = null,
             val formattedDayModel: DaySeparatorItem? = null,
-            private val isCacheable: Boolean = true
+            private val isCacheable: Boolean = true,
+            val readStatusForEvent: Boolean? = null
     ) {
         fun isCacheable(partialState: PartialState): Boolean {
             return isCacheable && partialState.highlightedEventId != eventId

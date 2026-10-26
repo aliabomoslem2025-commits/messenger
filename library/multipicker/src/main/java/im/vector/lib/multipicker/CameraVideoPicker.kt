@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
+import java.io.File
 import androidx.activity.result.ActivityResultLauncher
 import androidx.core.content.FileProvider
 import im.vector.lib.multipicker.entity.MultiPickerVideoType
@@ -58,10 +59,25 @@ class CameraVideoPicker {
     }
 
     companion object {
-        fun createVideoUri(context: Context): Uri {
-            val file = createTemporaryMediaFile(context, MediaType.VIDEO)
+        /**
+         * A capture output is shared with the app's recorder Activity so it can write
+         * directly to the same FileProvider-backed file consumed by the existing
+         * Matrix attachment pipeline.
+         */
+        data class VideoCaptureOutput(val uri: Uri, val file: File)
+
+        fun createVideoCaptureOutput(context: Context, videoNote: Boolean = false): VideoCaptureOutput {
+            val temporaryFile = createTemporaryMediaFile(context, MediaType.VIDEO)
+            val file = if (videoNote) {
+                val namedFile = File(temporaryFile.parentFile, "video_note_${System.currentTimeMillis()}.mp4")
+                if (temporaryFile.renameTo(namedFile)) namedFile else temporaryFile
+            } else {
+                temporaryFile
+            }
             val authority = context.packageName + ".multipicker.fileprovider"
-            return FileProvider.getUriForFile(context, authority, file)
+            return VideoCaptureOutput(FileProvider.getUriForFile(context, authority, file), file)
         }
+
+        fun createVideoUri(context: Context): Uri = createVideoCaptureOutput(context).uri
     }
 }

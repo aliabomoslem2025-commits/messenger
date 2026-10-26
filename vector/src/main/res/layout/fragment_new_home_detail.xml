@@ -162,6 +162,26 @@
             android:orientation="vertical"
             app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
+            <HorizontalScrollView
+                android:id="@+id/telegramStoriesStrip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:fillViewport="false"
+                android:scrollbars="none"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="8dp">
+
+                <LinearLayout
+                    android:id="@+id/telegramHomeStoriesPeople"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal" />
+
+            </HorizontalScrollView>
+
             <im.vector.app.core.ui.views.VerifyDeviceBanner
                 android:id="@+id/homeVerifyDevice"
                 android:layout_width="match_parent"

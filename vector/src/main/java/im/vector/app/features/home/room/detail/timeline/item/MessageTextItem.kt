@@ -21,11 +21,13 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
+import im.vector.app.features.home.room.detail.timeline.view.MessageBubbleView
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -112,11 +114,9 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.onClick(attributes.itemClickListener)
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
-        animateNewOutgoingEmoji(messageView)
-        // Bubble styling runs during the base bind, but renderSendState() above also
-        // applies Element's send-state text tint. Reapply the bubble palette last so
-        // outbound Telegram-blue bubbles retain readable white text without changing
-        // the underlying Matrix send state or callbacks.
+        animateRecentStandaloneEmoji(messageView)
+        // The send-state binder applies Element's generic text tint; restore the
+        // bubble-specific palette so the outgoing Telegram-blue bubble stays readable.
         val bubbleLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
         if (bubbleLayout != null) {
             (holder.view as? MessageBubbleView)?.refreshBubbleTextColor(bubbleLayout)
@@ -125,13 +125,24 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     }
 
     /**
-     * Telegram-style large emoji messages pop into view when newly sent. Only animate
-     * recent outgoing local events, and remember their event IDs so Epoxy rebinds or
-     * scrolling do not replay the effect on older messages.
+     * Telegram-inspired entrance for a standalone large-emoji message. Run it for
+     * freshly received as well as locally sent events, but never for old history.
+     * Remember event IDs so RecyclerView/Epoxy rebinding cannot replay it while
+     * the user scrolls through the same timeline.
      */
-    private fun animateNewOutgoingEmoji(messageView: AppCompatTextView) {
+    private fun animateRecentStandaloneEmoji(messageView: AppCompatTextView) {
         val info = attributes.informationData
-        if (!useBigFont || !info.sentByMe) return
+
+        // Epoxy may recycle a TextView that was animated for a previous message.
+        // Restore its baseline before checking whether this event should animate.
+        messageView.animate().cancel()
+        messageView.scaleX = 1f
+        messageView.scaleY = 1f
+        messageView.alpha = 1f
+        messageView.rotation = 0f
+        messageView.translationY = 0f
+
+        if (!useBigFont || !messageView.context.isAnimationEnabled()) return
         val localTimestamp = info.ageLocalTS ?: return
         val ageMs = System.currentTimeMillis() - localTimestamp
         if (ageMs !in -2_000L..8_000L) return
@@ -153,16 +164,98 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         if (!shouldAnimate) return
 
-        messageView.animate().cancel()
-        messageView.scaleX = 0.68f
-        messageView.scaleY = 0.68f
-        messageView.alpha = 0.75f
+        val density = messageView.resources.displayMetrics.density
+        messageView.pivotX = messageView.width / 2f
+        messageView.pivotY = messageView.height / 2f
+        messageView.scaleX = 0.48f
+        messageView.scaleY = 0.48f
+        messageView.alpha = 0.22f
+        messageView.rotation = if (info.sentByMe) -8f else 8f
+        messageView.translationY = 8f * density
+        messageView.translationX = 0f
+
+        val emoji = messageView.text?.toString()?.trim().orEmpty()
+        val motion = when {
+            containsAnyEmoji(emoji, listOf("😂", "🤣", "😹", "😆", "😅")) -> listOf(
+                    EmojiMotionStep(1.18f, 1.18f, if (info.sentByMe) 12f else -12f, 3f, -2f, 1f, 145L),
+                    EmojiMotionStep(1.04f, 1.04f, if (info.sentByMe) -11f else 11f, -4f, 0f, 1f, 105L),
+                    EmojiMotionStep(1.10f, 1.10f, if (info.sentByMe) 5f else -5f, 2f, 0f, 1f, 100L),
+                    EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 110L)
+            )
+            containsAnyEmoji(emoji, listOf("😭", "😢", "🥹", "☹️", "😿")) -> listOf(
+                    EmojiMotionStep(1.10f, 1.12f, 0f, 0f, -3f, 1f, 180L),
+                    EmojiMotionStep(0.98f, 0.98f, 0f, 0f, 4f, 1f, 170L),
+                    EmojiMotionStep(1.02f, 1.02f, 0f, 0f, -1f, 1f, 120L),
+                    EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 100L)
+            )
+            containsAnyEmoji(emoji, listOf("❤️", "❤", "💕", "💖", "💗", "💓", "💞", "💘", "😍", "🥰")) -> listOf(
+                    EmojiMotionStep(1.30f, 1.30f, 0f, 0f, 0f, 1f, 145L),
+                    EmojiMotionStep(0.88f, 0.88f, 0f, 0f, 0f, 1f, 115L),
+                    EmojiMotionStep(1.17f, 1.17f, 0f, 0f, 0f, 1f, 135L),
+                    EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 110L)
+            )
+            containsAnyEmoji(emoji, listOf("🔥", "💥")) -> listOf(
+                    EmojiMotionStep(1.14f, 1.18f, 0f, 0f, -7f, 1f, 150L),
+                    EmojiMotionStep(0.98f, 0.96f, 0f, 0f, 3f, 1f, 115L),
+                    EmojiMotionStep(1.08f, 1.10f, 0f, 0f, -3f, 1f, 115L),
+                    EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 105L)
+            )
+            containsAnyEmoji(emoji, listOf("👍", "👎", "👏", "🙏", "💪")) -> listOf(
+                    EmojiMotionStep(1.16f, 1.16f, if (info.sentByMe) -14f else 14f, 0f, -2f, 1f, 160L),
+                    EmojiMotionStep(1.04f, 1.04f, if (info.sentByMe) 7f else -7f, 0f, 0f, 1f, 120L),
+                    EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 120L)
+            )
+            containsAnyEmoji(emoji, listOf("🎉", "🎊", "🥳", "✨", "🌟")) -> listOf(
+                    EmojiMotionStep(1.20f, 1.20f, if (info.sentByMe) -16f else 16f, 0f, -6f, 1f, 170L),
+                    EmojiMotionStep(1.07f, 1.07f, if (info.sentByMe) 11f else -11f, 0f, 2f, 1f, 120L),
+                    EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 130L)
+            )
+            else -> listOf(
+                    EmojiMotionStep(1.12f, 1.12f, if (info.sentByMe) -4f else 4f, 0f, -2f, 1f, 250L),
+                    EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 130L)
+            )
+        }
+        runEmojiMotion(messageView, motion, 0, density)
+    }
+
+    private fun containsAnyEmoji(text: String, emojis: List<String>): Boolean = emojis.any { emoji -> text.contains(emoji) }
+
+    private data class EmojiMotionStep(
+            val scaleX: Float,
+            val scaleY: Float,
+            val rotation: Float,
+            val translationX: Float,
+            val translationY: Float,
+            val alpha: Float,
+            val durationMs: Long
+    )
+
+    private fun runEmojiMotion(
+            messageView: AppCompatTextView,
+            steps: List<EmojiMotionStep>,
+            index: Int,
+            density: Float
+    ) {
+        if (index >= steps.size) {
+            messageView.scaleX = 1f
+            messageView.scaleY = 1f
+            messageView.alpha = 1f
+            messageView.rotation = 0f
+            messageView.translationX = 0f
+            messageView.translationY = 0f
+            return
+        }
+        val step = steps[index]
         messageView.animate()
-                .scaleX(1f)
-                .scaleY(1f)
-                .alpha(1f)
-                .setDuration(430L)
-                .setInterpolator(OvershootInterpolator(1.2f))
+                .scaleX(step.scaleX)
+                .scaleY(step.scaleY)
+                .alpha(step.alpha)
+                .rotation(step.rotation)
+                .translationX(step.translationX * density)
+                .translationY(step.translationY * density)
+                .setDuration(step.durationMs)
+                .setInterpolator(OvershootInterpolator(1.15f))
+                .withEndAction { runEmojiMotion(messageView, steps, index + 1, density) }
                 .start()
     }
 
