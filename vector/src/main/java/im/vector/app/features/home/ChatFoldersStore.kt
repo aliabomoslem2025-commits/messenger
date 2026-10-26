@@ -156,8 +156,9 @@ class ChatFoldersStore @Inject constructor(
                     "unread" to context.getString(R.string.telegram_folder_unread),
                     "favorites" to context.getString(R.string.telegram_folder_favorites)
             )
+            val legacyDefaultOrder = listOf("all", "personal", "groups", "unread", "favorites")
             val isUntouchedLegacyDefaults = parsed.size == legacyDefaultNames.size &&
-                    parsed.map { it.id }.toSet() == legacyDefaultNames.keys &&
+                    parsed.map { it.id } == legacyDefaultOrder &&
                     parsed.all { it.enabled && it.name == legacyDefaultNames[it.id] }
             if (isUntouchedLegacyDefaults) {
                 return@runCatching defaultFolders()
