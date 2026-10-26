@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
  */
 
+@file:Suppress("DEPRECATION")
+
 package im.vector.app.features.attachments
 
 import android.Manifest
@@ -246,12 +248,11 @@ class VideoNoteCaptureActivity : AppCompatActivity(), TextureView.SurfaceTexture
     private fun stopRecording() {
         if (!isRecording) return
         handler.removeCallbacks(updateTimer)
-        var stoppedSuccessfully = false
-        try {
+        val stoppedSuccessfully = try {
             recorder?.stop()
-            stoppedSuccessfully = outputFileExists()
+            outputFileExists()
         } catch (_: RuntimeException) {
-            stoppedSuccessfully = false
+            false
         } finally {
             runCatching { recorder?.reset() }
             runCatching { recorder?.release() }
