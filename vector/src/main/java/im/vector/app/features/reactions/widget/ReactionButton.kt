@@ -134,7 +134,8 @@ class ReactionButton @JvmOverloads constructor(
         val density = resources.displayMetrics.density
         val centerX = x + width / 2f
         val centerY = y + height / 2f
-        val glyphs = listOf("✨", reactionString, "💫", "✨", reactionString, "💥")
+        val reactionGlyph = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: "✨"
+        val glyphs = listOf("✨", reactionGlyph, "💫", "✨", reactionGlyph, "💥")
         val radius = 22f * density
 
         glyphs.forEachIndexed { index, glyph ->
