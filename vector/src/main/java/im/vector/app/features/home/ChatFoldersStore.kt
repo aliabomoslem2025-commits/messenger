@@ -91,6 +91,9 @@ class ChatFoldersStore @Inject constructor(
     fun createFolder(name: String, filter: HomeRoomFilter): Boolean {
         val cleanName = name.trim().take(MAX_FOLDER_NAME_LENGTH)
         if (cleanName.isBlank()) return false
+        // This first iteration supports named, reorderable Matrix query categories.
+        // Do not create several tabs that all show the exact same query.
+        if (_folders.value.any { it.filter == filter }) return false
         saveFolders(_folders.value + ChatFolderDefinition(UUID.randomUUID().toString(), cleanName, filter))
         return true
     }
@@ -144,10 +147,10 @@ class ChatFoldersStore @Inject constructor(
                         enabled = item.optBoolean("enabled", true)
                 )
             }
-            val uniqueIds = parsed.distinctBy { it.id }
-            val all = uniqueIds.firstOrNull { it.filter == HomeRoomFilter.ALL }
+            val uniqueFilters = parsed.distinctBy { it.filter }
+            val all = uniqueFilters.firstOrNull { it.filter == HomeRoomFilter.ALL }
                     ?: defaultFolders().first()
-            listOf(all.copy(enabled = true)) + uniqueIds.filterNot { it.id == all.id || it.filter == HomeRoomFilter.ALL }
+            listOf(all.copy(enabled = true)) + uniqueFilters.filterNot { it.id == all.id || it.filter == HomeRoomFilter.ALL }
         }.getOrElse { defaultFolders() }
     }
 
