@@ -302,16 +302,31 @@ class NewHomeDetailFragment :
         fun showHomeTab() {
             setHomeChromeVisible(true)
             views.toolbar.title = getString(R.string.telegram_home_title)
+            views.toolbar.navigationIcon = null
+            views.toolbar.setNavigationOnClickListener(null)
             selectTab(views.telegramTabChats)
         }
 
         fun showSecondaryTab(titleRes: Int, selected: View) {
             setHomeChromeVisible(false)
-            // The Telegram settings reference uses icon actions instead of a "Settings" title.
-            views.toolbar.title = if (selected.id == views.telegramTabSettings.id) {
-                ""
+            views.toolbar.title = when {
+                selected.id == views.telegramTabSettings.id -> ""
+                selected.id == views.telegramTabContacts.id -> getString(R.string.telegram_folder_manage_title)
+                else -> getString(titleRes)
+            }
+            if (selected.id == views.telegramTabContacts.id) {
+                views.toolbar.setNavigationIcon(R.drawable.ic_back_24dp)
+                views.toolbar.setNavigationContentDescription(R.string.telegram_folder_action_cancel)
+                views.toolbar.setNavigationOnClickListener {
+                    if (childFragmentManager.backStackEntryCount > 0) {
+                        childFragmentManager.popBackStackImmediate()
+                    } else {
+                        showHomeTab()
+                    }
+                }
             } else {
-                getString(titleRes)
+                views.toolbar.navigationIcon = null
+                views.toolbar.setNavigationOnClickListener(null)
             }
             selectTab(selected)
         }
