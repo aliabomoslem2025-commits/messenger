@@ -147,7 +147,30 @@ class ChatFoldersStore @Inject constructor(
                         enabled = item.optBoolean("enabled", true)
                 )
             }
-            val uniqueFilters = parsed.distinctBy { it.filter }
+            // Migrate the exact pre-folder-management defaults once they are encountered on an
+            // existing installation. Preserve any user-customized name, enabled state, or ordering.
+            val defaultLabels = mapOf(
+                    "all" to context.getString(R.string.telegram_folder_all_chats),
+                    "personal" to context.getString(R.string.telegram_folder_personal),
+                    "groups" to context.getString(R.string.telegram_folder_groups),
+                    "unread" to context.getString(R.string.telegram_folder_unread),
+                    "favorites" to context.getString(R.string.telegram_folder_favorites)
+            )
+            val isLegacyDefaultSet = parsed.map { it.id } == listOf("all", "personal", "groups", "unread", "favorites") &&
+                    parsed.all { it.enabled && defaultLabels[it.id] == it.name }
+            val foldersToNormalize = if (isLegacyDefaultSet) {
+                val byId = parsed.associateBy { it.id }
+                listOf(
+                        byId.getValue("all"),
+                        byId.getValue("unread"),
+                        byId.getValue("favorites"),
+                        byId.getValue("personal"),
+                        byId.getValue("groups").copy(enabled = false)
+                )
+            } else {
+                parsed
+            }
+            val uniqueFilters = foldersToNormalize.distinctBy { it.filter }
             val all = uniqueFilters.firstOrNull { it.filter == HomeRoomFilter.ALL }
                     ?: defaultFolders().first()
             listOf(all.copy(enabled = true)) + uniqueFilters.filterNot { it.id == all.id || it.filter == HomeRoomFilter.ALL }
