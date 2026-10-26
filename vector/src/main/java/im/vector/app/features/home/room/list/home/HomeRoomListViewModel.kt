@@ -25,6 +25,7 @@ import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.extensions.toTrackingValue
 import im.vector.app.features.analytics.plan.UserProperties
 import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.home.ChatFoldersStore
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
@@ -67,6 +68,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         private val session: Session,
         private val spaceStateHandler: SpaceStateHandler,
         private val preferencesStore: HomeLayoutPreferencesStore,
+        private val chatFoldersStore: ChatFoldersStore,
         private val stringProvider: StringProvider,
         private val drawableProvider: DrawableProvider,
         private val analyticsTracker: AnalyticsTracker,
@@ -158,23 +160,37 @@ class HomeRoomListViewModel @AssistedInject constructor(
     }
 
     private fun observeFilterTabs() {
-        preferencesStore.areFiltersEnabledFlow
-                .distinctUntilChanged()
-                .flatMapLatest { areEnabled ->
-                    getFilterTabsFlow(areEnabled)
-                }.onEach { filtersOptional ->
-                    val filters = filtersOptional.getOrNull()
-                    if (!isCurrentFilterStillValid(filters)) {
-                        changeRoomFilter(HomeRoomFilter.ALL)
-                    }
-                    setState {
-                        copy(
-                                headersData = headersData.copy(
-                                        filtersList = filters,
-                                )
+        // The home filter row and the folder-management screen share one persisted source of truth.
+        // Always keep the user's enabled default folders available, even when the current account
+        // has no unread or favourite rooms yet; the actual room query still comes from Matrix.
+        combine(
+                preferencesStore.areFiltersEnabledFlow.distinctUntilChanged(),
+                chatFoldersStore.foldersFlow,
+                chatFoldersStore.separateChatsFlow
+        ) { areEnabled, _, _ ->
+            if (!areEnabled) {
+                Optional.empty()
+            } else {
+                Optional.from(
+                        chatFoldersStore.visibleFolders()
+                                .map { it.filter }
+                                .distinct()
+                                .toMutableList()
+                )
+            }
+        }.onEach { filtersOptional ->
+            val filters = filtersOptional.getOrNull()
+            if (!isCurrentFilterStillValid(filters)) {
+                changeRoomFilter(HomeRoomFilter.ALL)
+            }
+            setState {
+                copy(
+                        headersData = headersData.copy(
+                                filtersList = filters,
                         )
-                    }
-                }.launchIn(viewModelScope)
+                )
+            }
+        }.launchIn(viewModelScope)
     }
 
     private suspend fun isCurrentFilterStillValid(filtersList: List<HomeRoomFilter>?): Boolean {
