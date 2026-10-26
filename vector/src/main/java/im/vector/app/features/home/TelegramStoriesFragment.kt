@@ -6,24 +6,33 @@
 
 package im.vector.app.features.home
 
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.Outline
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
+import android.view.WindowManager
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import android.animation.ObjectAnimator
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.platform.VectorBaseFragment
@@ -47,6 +56,22 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
 
     private var stories: List<TelegramStoriesRepository.Story> = emptyList()
+    private var storyViewerDialog: Dialog? = null
+    private var storyViewerIndex = -1
+    private var viewerImage: ImageView? = null
+    private var viewerTitle: TextView? = null
+    private var viewerProgress: ProgressBar? = null
+    private var viewerPreviousButton: Button? = null
+    private var viewerNextButton: Button? = null
+    private var viewerOpenVideoButton: Button? = null
+    private val storyTimerHandler = Handler(Looper.getMainLooper())
+    private var storyProgressAnimator: ObjectAnimator? = null
+    private val advanceStoryRunnable = Runnable {
+        val current = stories.getOrNull(storyViewerIndex)
+        if (storyViewerDialog?.isShowing == true && current != null && !current.isVideo) {
+            showStory(storyViewerIndex + 1)
+        }
+    }
 
     private val photoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) publishStory(uri)
@@ -181,62 +206,203 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
     }
 
     private fun showStory(index: Int) {
-        val story = stories.getOrNull(index) ?: return
+        val story = stories.getOrNull(index)
+        if (story == null) {
+            storyTimerHandler.removeCallbacks(advanceStoryRunnable)
+            storyProgressAnimator?.cancel()
+            storyViewerDialog?.dismiss()
+            return
+        }
+        storyViewerIndex = index
         viewLifecycleOwner.lifecycleScope.launch {
-            runCatching { storiesRepository.markSeen(story.event.eventId) }
+            if (!story.isSeen) runCatching { storiesRepository.markSeen(story.event.eventId) }
             stories = stories.map {
                 if (it.event.eventId == story.event.eventId) it.copy(isSeen = true) else it
             }
             renderStories()
-            displayStory(story)
+            renderStoryViewer(story)
         }
     }
 
-    private fun displayStory(story: TelegramStoriesRepository.Story) {
-        val content = LinearLayout(requireContext()).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(12), dp(16), dp(8))
-            gravity = Gravity.CENTER_HORIZONTAL
+    /**
+     * Full-screen story viewer with a short photo timer, read ring, previous/next
+     * controls, and an explicit Matrix event hand-off for video playback.
+     */
+    private fun renderStoryViewer(story: TelegramStoriesRepository.Story) {
+        val dialog = storyViewerDialog ?: createStoryViewerDialog().also {
+            storyViewerDialog = it
+            it.show()
+            it.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         }
-        val image = ImageView(requireContext()).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    dp(420)
-            )
-            scaleType = ImageView.ScaleType.FIT_CENTER
-            adjustViewBounds = true
-            background = GradientDrawable().apply {
-                shape = GradientDrawable.RECTANGLE
-                cornerRadius = dp(14).toFloat()
-                setColor(resolveSurfaceColor())
-            }
-            clipToOutline = true
-            outlineProvider = object : ViewOutlineProvider() {
-                override fun getOutline(view: View, outline: Outline) {
-                    outline.setRoundRect(0, 0, view.width, view.height, dp(14).toFloat())
-                }
-            }
-        }
-        content.addView(image)
+        viewerTitle?.text = story.ownerUserId.substringBefore(':').removePrefix("@")
+                .ifBlank { getString(R.string.telegram_stories_title) }
+        viewerPreviousButton?.isEnabled = storyViewerIndex > 0
+        viewerNextButton?.isEnabled = storyViewerIndex < stories.lastIndex
+        viewerOpenVideoButton?.isVisible = story.isVideo
+        viewerProgress?.isVisible = !story.isVideo
+        viewerProgress?.progress = 0
+
+        val image = viewerImage ?: return
+        imageContentRenderer.clear(image)
         val data = storiesRepository.buildThumbnailData(story)
         if (data != null) {
+            image.scaleType = ImageView.ScaleType.FIT_CENTER
             imageContentRenderer.render(data, ImageContentRenderer.Mode.FULL_SIZE, image)
         } else {
             image.setImageResource(android.R.drawable.ic_menu_gallery)
         }
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(if (story.isVideo) R.string.telegram_stories_video else R.string.telegram_stories_photo)
-                .setView(content)
-                .setNegativeButton(android.R.string.cancel, null)
 
-        if (story.isVideo) {
-            dialog.setPositiveButton(R.string.telegram_stories_open_video) { _, _ ->
+        storyTimerHandler.removeCallbacks(advanceStoryRunnable)
+        storyProgressAnimator?.cancel()
+        storyProgressAnimator = null
+        if (!story.isVideo) {
+            viewerProgress?.let { progress ->
+                storyProgressAnimator = ObjectAnimator.ofInt(progress, "progress", 0, 100).apply {
+                    duration = STORY_PHOTO_DURATION_MS
+                    start()
+                }
+            }
+            storyTimerHandler.postDelayed(advanceStoryRunnable, STORY_PHOTO_DURATION_MS)
+        }
+    }
+
+    private fun createStoryViewerDialog(): Dialog {
+        val context = requireContext()
+        val root = FrameLayout(context).apply {
+            setBackgroundColor(Color.BLACK)
+        }
+        val image = ImageView(context).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            scaleType = ImageView.ScaleType.FIT_CENTER
+            contentDescription = getString(R.string.telegram_stories_title)
+        }
+        root.addView(image)
+        viewerImage = image
+
+        val progress = ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+            max = 100
+            progress = 0
+            progressTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+            progressBackgroundTintList = android.content.res.ColorStateList.valueOf(0x55FFFFFF)
+        }
+        root.addView(progress, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dp(3),
+                Gravity.TOP
+        ).apply {
+            leftMargin = dp(12)
+            rightMargin = dp(12)
+            topMargin = dp(12)
+        })
+        viewerProgress = progress
+
+        val topBar = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), dp(20), dp(12), dp(8))
+            background = GradientDrawable().apply {
+                orientation = GradientDrawable.Orientation.TOP_BOTTOM
+                colors = intArrayOf(0x99000000.toInt(), Color.TRANSPARENT)
+            }
+        }
+        val title = TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            maxLines = 1
+            ellipsize = android.text.TextUtils.TruncateAt.END
+        }
+        viewerTitle = title
+        topBar.addView(title)
+        val close = TextView(context).apply {
+            text = "×"
+            textSize = 32f
+            setTextColor(Color.WHITE)
+            gravity = Gravity.CENTER
+            contentDescription = getString(android.R.string.cancel)
+            setPadding(dp(12), 0, dp(8), dp(4))
+            setOnClickListener { storyViewerDialog?.dismiss() }
+        }
+        topBar.addView(close)
+        root.addView(topBar, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP
+        ))
+
+        val bottomBar = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(dp(12), dp(18), dp(12), dp(20))
+            background = GradientDrawable().apply {
+                orientation = GradientDrawable.Orientation.BOTTOM_TOP
+                colors = intArrayOf(0x99000000.toInt(), Color.TRANSPARENT)
+            }
+        }
+        val previous = Button(context).apply {
+            text = "‹"
+            textSize = 24f
+            isAllCaps = false
+            contentDescription = getString(android.R.string.dialog_alert_title)
+            setOnClickListener { if (storyViewerIndex > 0) showStory(storyViewerIndex - 1) }
+        }
+        viewerPreviousButton = previous
+        val next = Button(context).apply {
+            text = "›"
+            textSize = 24f
+            isAllCaps = false
+            contentDescription = getString(R.string.telegram_stories_open_viewer)
+            setOnClickListener { showStory(storyViewerIndex + 1) }
+        }
+        viewerNextButton = next
+        val openVideo = Button(context).apply {
+            text = getString(R.string.telegram_stories_open_video)
+            isAllCaps = false
+            setOnClickListener {
+                val story = stories.getOrNull(storyViewerIndex) ?: return@setOnClickListener
+                storyViewerDialog?.dismiss()
                 navigator.openRoom(requireContext(), story.roomId, story.event.eventId)
             }
-        } else {
-            dialog.setPositiveButton(android.R.string.ok, null)
         }
-        dialog.show()
+        viewerOpenVideoButton = openVideo
+        bottomBar.addView(previous, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginEnd = dp(4) })
+        bottomBar.addView(next, LinearLayout.LayoutParams(0, dp(48), 1f).apply { marginStart = dp(4) })
+        bottomBar.addView(openVideo, LinearLayout.LayoutParams(0, dp(48), 2f).apply { marginStart = dp(8) })
+        root.addView(bottomBar, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM
+        ))
+
+        return Dialog(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen).apply {
+            setContentView(root)
+            window?.setBackgroundDrawable(ColorDrawable(Color.BLACK))
+            window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            setOnDismissListener {
+                storyTimerHandler.removeCallbacks(advanceStoryRunnable)
+                storyProgressAnimator?.cancel()
+                storyProgressAnimator = null
+                imageContentRenderer.clear(image)
+                storyViewerDialog = null
+                viewerImage = null
+                viewerTitle = null
+                viewerProgress = null
+                viewerPreviousButton = null
+                viewerNextButton = null
+                viewerOpenVideoButton = null
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        storyTimerHandler.removeCallbacks(advanceStoryRunnable)
+        storyProgressAnimator?.cancel()
+        storyViewerDialog?.dismiss()
+        storyViewerDialog = null
+        super.onDestroyView()
     }
 
     private fun resolveSurfaceColor(): Int {
