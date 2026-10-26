@@ -845,6 +845,11 @@ class TimelineFragment :
     }
 
     override fun onDestroyView() {
+        activeEmojiEffectParticles.toList().forEach { particle ->
+            particle.animate().cancel()
+            views.rootConstraintLayout.overlay.remove(particle)
+        }
+        activeEmojiEffectParticles.clear()
         lazyLoadedViews.unBind()
         timelineEventController.callback = null
         timelineEventController.removeModelBuildListener(modelBuildListener)
