@@ -112,6 +112,7 @@ class NewHomeDetailFragment :
 
     private var isSyncingTelegramHomeTabs = false
     private var activeHomeRoomFilter: HomeRoomFilter = HomeRoomFilter.ALL
+    private var pendingStoryEventId: String? = null
     private var homeSearchTextWatcher: TextWatcher? = null
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
@@ -366,8 +367,10 @@ class NewHomeDetailFragment :
                     )
                 }
                 showStoriesTab()
+                val initialStoryEventId = pendingStoryEventId
+                pendingStoryEventId = null
                 childFragmentManager.commitTransaction {
-                    replace(R.id.roomListContainer, TelegramStoriesFragment())
+                    replace(R.id.roomListContainer, TelegramStoriesFragment.newInstance(initialStoryEventId))
                     addToBackStack("telegram_stories")
                 }
             } else {
@@ -484,7 +487,10 @@ class NewHomeDetailFragment :
                 isClickable = true
                 isFocusable = true
                 contentDescription = label
-                setOnClickListener { views.telegramStoriesStrip.performClick() }
+                setOnClickListener {
+                    pendingStoryEventId = story?.event?.eventId
+                    views.telegramStoriesStrip.performClick()
+                }
             }
             val frame = android.widget.FrameLayout(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(itemSize, itemSize)
