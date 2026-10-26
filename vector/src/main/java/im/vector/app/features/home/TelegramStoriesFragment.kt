@@ -7,6 +7,7 @@
 package im.vector.app.features.home
 
 private const val STORY_PHOTO_DURATION_MS = 5_000L
+private const val ARG_INITIAL_STORY_EVENT_ID = "initial_story_event_id"
 
 import android.app.Dialog
 import android.content.Intent
@@ -60,6 +61,7 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
     private var stories: List<TelegramStoriesRepository.Story> = emptyList()
     private var storyViewerDialog: Dialog? = null
     private var storyViewerIndex = -1
+    private var didOpenRequestedInitialStory = false
     private var viewerImage: ImageView? = null
     private var viewerTitle: TextView? = null
     private var viewerProgress: ProgressBar? = null
@@ -122,6 +124,7 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
             try {
                 stories = storiesRepository.loadStories()
                 renderStories()
+                openRequestedInitialStoryIfPresent()
             } catch (failure: Throwable) {
                 views.telegramStoriesStatus.text = failure.message ?: getString(R.string.telegram_stories_upload_failed)
             } finally {
@@ -131,6 +134,15 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
                 }
             }
         }
+    }
+
+    private fun openRequestedInitialStoryIfPresent() {
+        if (didOpenRequestedInitialStory) return
+        didOpenRequestedInitialStory = true
+        val eventId = arguments?.getString(ARG_INITIAL_STORY_EVENT_ID).orEmpty()
+        if (eventId.isBlank()) return
+        val initialIndex = stories.indexOfFirst { it.event.eventId == eventId }
+        if (initialIndex >= 0) showStory(initialIndex)
     }
 
     private fun renderStories() {
@@ -421,6 +433,18 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
         return if (values.resourceId != 0) {
             runCatching { androidx.core.content.ContextCompat.getColor(requireContext(), values.resourceId) }.getOrDefault(values.data)
         } else values.data
+    }
+
+    companion object {
+        fun newInstance(initialStoryEventId: String? = null): TelegramStoriesFragment {
+            return TelegramStoriesFragment().apply {
+                arguments = Bundle().apply {
+                    if (!initialStoryEventId.isNullOrBlank()) {
+                        putString(ARG_INITIAL_STORY_EVENT_ID, initialStoryEventId)
+                    }
+                }
+            }
+        }
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).roundToInt()
