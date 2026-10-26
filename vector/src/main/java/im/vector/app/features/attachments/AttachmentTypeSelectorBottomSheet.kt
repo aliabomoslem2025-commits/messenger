@@ -55,6 +55,7 @@ class AttachmentTypeSelectorBottomSheet : VectorBaseBottomSheetDialogFragment<Bo
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         views.gallery.debouncedClicks { onAttachmentSelected(AttachmentType.GALLERY) }
+        views.videoMessage.debouncedClicks { onAttachmentSelected(AttachmentType.VIDEO_MESSAGE) }
         views.stickers.debouncedClicks { onAttachmentSelected(AttachmentType.STICKER) }
         views.file.debouncedClicks { onAttachmentSelected(AttachmentType.FILE) }
         views.voiceBroadcast.debouncedClicks { onAttachmentSelected(AttachmentType.VOICE_BROADCAST) }
