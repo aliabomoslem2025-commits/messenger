@@ -152,11 +152,11 @@ class ChatFoldersStore @Inject constructor(
     }
 
     private fun defaultFolders(): List<ChatFolderDefinition> = listOf(
-            ChatFolderDefinition("all", context.getString(R.string.telegram_filter_all_chats), HomeRoomFilter.ALL, true),
+            ChatFolderDefinition("all", context.getString(R.string.telegram_folder_all_chats), HomeRoomFilter.ALL, true),
             ChatFolderDefinition("personal", context.getString(R.string.telegram_folder_personal), HomeRoomFilter.PEOPlE, true),
             ChatFolderDefinition("groups", context.getString(R.string.telegram_folder_groups), HomeRoomFilter.ROOMS, true),
-            ChatFolderDefinition("unread", context.getString(R.string.telegram_filter_unread), HomeRoomFilter.UNREADS, true),
-            ChatFolderDefinition("favorites", context.getString(R.string.telegram_filter_favourites), HomeRoomFilter.FAVOURITES, true)
+            ChatFolderDefinition("unread", context.getString(R.string.telegram_folder_unread), HomeRoomFilter.UNREADS, true),
+            ChatFolderDefinition("favorites", context.getString(R.string.telegram_folder_favorites), HomeRoomFilter.FAVOURITES, true)
     )
 
     companion object {
