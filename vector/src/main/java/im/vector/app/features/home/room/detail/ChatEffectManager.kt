@@ -122,26 +122,34 @@ class ChatEffectManager @Inject constructor(
                 val body = event.root.getClearContent()
                         .toModel<MessageContent>()
                         ?.body
-                        ?.trim()
                         ?: return null
-                when {
-                    body in EMOJIS_FOR_CONFETTI -> ChatEffect.CONFETTI
-                    body in EMOJIS_FOR_SNOWFALL -> ChatEffect.SNOWFALL
-                    body in EMOJIS_FOR_LAUGHTER -> ChatEffect.LAUGHTER
-                    body in EMOJIS_FOR_CRYING -> ChatEffect.CRYING
-                    body in EMOJIS_FOR_HEARTS -> ChatEffect.HEARTS
-                    body in EMOJIS_FOR_FIRE -> ChatEffect.FIRE
-                    body in EMOJIS_FOR_THUMBS_UP -> ChatEffect.THUMBS_UP
-                    body in EMOJIS_FOR_THUMBS_DOWN -> ChatEffect.THUMBS_DOWN
-                    body in EMOJIS_FOR_THINKING -> ChatEffect.THINKING
-                    else -> null
-                }
+                resolveStandaloneEmojiEffect(body)
             }
             else -> null
         }
     }
 
     companion object {
+        /**
+         * Maps only a complete, single-emoji message to an effect. Exposed internally for unit tests
+         * so a sentence containing an emoji cannot regress into triggering a screen-wide animation.
+         */
+        internal fun resolveStandaloneEmojiEffect(body: String): ChatEffect? {
+            val emoji = body.trim()
+            return when {
+                emoji in EMOJIS_FOR_CONFETTI -> ChatEffect.CONFETTI
+                emoji in EMOJIS_FOR_SNOWFALL -> ChatEffect.SNOWFALL
+                emoji in EMOJIS_FOR_LAUGHTER -> ChatEffect.LAUGHTER
+                emoji in EMOJIS_FOR_CRYING -> ChatEffect.CRYING
+                emoji in EMOJIS_FOR_HEARTS -> ChatEffect.HEARTS
+                emoji in EMOJIS_FOR_FIRE -> ChatEffect.FIRE
+                emoji in EMOJIS_FOR_THUMBS_UP -> ChatEffect.THUMBS_UP
+                emoji in EMOJIS_FOR_THUMBS_DOWN -> ChatEffect.THUMBS_DOWN
+                emoji in EMOJIS_FOR_THINKING -> ChatEffect.THINKING
+                else -> null
+            }
+        }
+
         private val EMOJIS_FOR_CONFETTI = setOf("🎉", "🎊", "🎆", "🎇", "🥳", "💥")
         private val EMOJIS_FOR_SNOWFALL = setOf("⛄️", "☃️", "❄️")
         private val EMOJIS_FOR_LAUGHTER = setOf("😂", "🤣", "😆", "😹")
@@ -151,5 +159,4 @@ class ChatEffectManager @Inject constructor(
         private val EMOJIS_FOR_THUMBS_UP = setOf("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿")
         private val EMOJIS_FOR_THUMBS_DOWN = setOf("👎", "👎🏻", "👎🏼", "👎🏽", "👎🏾", "👎🏿")
         private val EMOJIS_FOR_THINKING = setOf("🤔", "🧐")
-    }
-}
+    }}
