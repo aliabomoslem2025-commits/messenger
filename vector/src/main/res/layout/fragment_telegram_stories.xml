@@ -40,9 +40,7 @@
                 android:layout_height="48dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="6dp"
-                android:text="@string/telegram_stories_add_photo"
-                app:icon="@drawable/ic_attachment_photo"
-                app:iconGravity="textStart" />
+                android:text="@string/telegram_stories_add_photo" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/telegramStoriesAddVideo"
@@ -50,9 +48,7 @@
                 android:layout_height="48dp"
                 android:layout_weight="1"
                 android:layout_marginStart="6dp"
-                android:text="@string/telegram_stories_add_video"
-                app:icon="@drawable/ic_attachment_video"
-                app:iconGravity="textStart" />
+                android:text="@string/telegram_stories_add_video" />
 
         </LinearLayout>
 
