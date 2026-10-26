@@ -21,6 +21,15 @@
             app:titleTextColor="?vctr_content_primary" />
 
         <im.vector.app.core.ui.views.BottomSheetActionButton
+            android:id="@+id/videoMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:actionTitle="@string/telegram_attachment_record_video"
+            app:leftIcon="@drawable/ic_telegram_video_note"
+            app:tint="@color/telegram_accent_blue"
+            app:titleTextColor="?vctr_content_primary" />
+
+        <im.vector.app.core.ui.views.BottomSheetActionButton
             android:id="@+id/stickers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
