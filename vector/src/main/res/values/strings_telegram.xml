@@ -98,4 +98,17 @@
     <string name="telegram_message_status_read">Read by recipient</string>
     <string name="telegram_voice_download_message">Download voice message</string>
     <string name="telegram_audio_download_message">Download audio</string>
+    <string name="telegram_stories_title">Stories</string>
+    <string name="telegram_stories_description">Share a photo or short video with people you chat with. Stories expire from this app after 24 hours.</string>
+    <string name="telegram_stories_add_photo">Add photo</string>
+    <string name="telegram_stories_add_video">Add video</string>
+    <string name="telegram_stories_loading">Loading stories…</string>
+    <string name="telegram_stories_empty">No active stories yet.</string>
+    <string name="telegram_stories_upload_started">Story upload was queued in Matrix.</string>
+    <string name="telegram_stories_upload_failed">Could not publish the story.</string>
+    <string name="telegram_stories_choose_story">Choose a story</string>
+    <string name="telegram_stories_open_video">Open video</string>
+    <string name="telegram_stories_photo">Photo</string>
+    <string name="telegram_stories_video">Video</string>
+    <string name="telegram_stories_open_viewer">Open Stories</string>
 </resources>
