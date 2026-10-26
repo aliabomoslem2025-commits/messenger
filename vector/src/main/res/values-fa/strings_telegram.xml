@@ -42,4 +42,7 @@
     <string name="telegram_video_note_permission_error">برای ضبط ویدئو باید مجوز دوربین و میکروفون را بدهید.</string>
     <string name="telegram_video_note_camera_error">باز کردن دوربین ممکن نیست.</string>
     <string name="telegram_video_note_recording_failed">ضبط ویدئو ناموفق بود. دوباره تلاش کنید.</string>
+    <string name="telegram_message_status_read">خوانده‌شده توسط مخاطب</string>
+    <string name="telegram_voice_download_message">دانلود پیام صوتی</string>
+    <string name="telegram_audio_download_message">دانلود فایل صوتی</string>
 </resources>
