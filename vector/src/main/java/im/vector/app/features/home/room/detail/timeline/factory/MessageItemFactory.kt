@@ -329,6 +329,11 @@ class MessageItemFactory @Inject constructor(
     ): MessageAudioItem {
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val isLocalFile = localFilesHelper.isLocalFile(fileUrl)
+        val isDownloaded = isLocalFile || runCatching {
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
+        }.getOrDefault(false)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
         val duration = messageContent.audioInfo?.duration ?: 0
 
@@ -339,7 +344,7 @@ class MessageItemFactory @Inject constructor(
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(isLocalFile)
-                .isDownloaded(isDownloaded)
+                .downloaded(isDownloaded)
                 .fileSize(messageContent.audioInfo?.size ?: 0L)
                 .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.eventId, duration, it) }
                 .mxcUrl(fileUrl)
@@ -384,11 +389,6 @@ class MessageItemFactory @Inject constructor(
 
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val isLocalFile = localFilesHelper.isLocalFile(fileUrl)
-        val isDownloaded = isLocalFile || runCatching {
-            val fileState = session.fileService().fileState(messageContent)
-            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
-                    fileState.decryptedFileInCache
-        }.getOrDefault(false)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
 
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
