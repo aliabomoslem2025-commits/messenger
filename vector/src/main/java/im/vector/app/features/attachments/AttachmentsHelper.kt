@@ -112,7 +112,11 @@ class AttachmentsHelper(
      */
     fun recordVideo(cameraVideoActivityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
         captureUri = MultiPicker.get(MultiPicker.CAMERA_VIDEO)
-                .startWithExpectingFile(context, cameraVideoActivityResultLauncher)
+                .startWithExpectingFile(
+                        context = context,
+                        activityResultLauncher = cameraVideoActivityResultLauncher,
+                        maxDurationSeconds = 60
+                )
     }
 
     /**
