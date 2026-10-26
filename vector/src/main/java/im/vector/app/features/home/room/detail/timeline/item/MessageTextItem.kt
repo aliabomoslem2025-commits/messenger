@@ -176,36 +176,36 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
         val emoji = messageView.text?.toString()?.trim().orEmpty()
         val motion = when {
-            emoji.any { it in "😂🤣😹😆😅" } -> listOf(
+            containsAnyEmoji(emoji, listOf("😂", "🤣", "😹", "😆", "😅")) -> listOf(
                     EmojiMotionStep(1.18f, 1.18f, if (info.sentByMe) 12f else -12f, 3f, -2f, 1f, 145L),
                     EmojiMotionStep(1.04f, 1.04f, if (info.sentByMe) -11f else 11f, -4f, 0f, 1f, 105L),
                     EmojiMotionStep(1.10f, 1.10f, if (info.sentByMe) 5f else -5f, 2f, 0f, 1f, 100L),
                     EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 110L)
             )
-            emoji.any { it in "😭😢🥹☹️😿" } -> listOf(
+            containsAnyEmoji(emoji, listOf("😭", "😢", "🥹", "☹️", "😿")) -> listOf(
                     EmojiMotionStep(1.10f, 1.12f, 0f, 0f, -3f, 1f, 180L),
                     EmojiMotionStep(0.98f, 0.98f, 0f, 0f, 4f, 1f, 170L),
                     EmojiMotionStep(1.02f, 1.02f, 0f, 0f, -1f, 1f, 120L),
                     EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 100L)
             )
-            emoji.any { it in "❤️❤💕💖💗💓💞💘😍🥰" } -> listOf(
+            containsAnyEmoji(emoji, listOf("❤️", "❤", "💕", "💖", "💗", "💓", "💞", "💘", "😍", "🥰")) -> listOf(
                     EmojiMotionStep(1.30f, 1.30f, 0f, 0f, 0f, 1f, 145L),
                     EmojiMotionStep(0.88f, 0.88f, 0f, 0f, 0f, 1f, 115L),
                     EmojiMotionStep(1.17f, 1.17f, 0f, 0f, 0f, 1f, 135L),
                     EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 110L)
             )
-            emoji.any { it in "🔥💥" } -> listOf(
+            containsAnyEmoji(emoji, listOf("🔥", "💥")) -> listOf(
                     EmojiMotionStep(1.14f, 1.18f, 0f, 0f, -7f, 1f, 150L),
                     EmojiMotionStep(0.98f, 0.96f, 0f, 0f, 3f, 1f, 115L),
                     EmojiMotionStep(1.08f, 1.10f, 0f, 0f, -3f, 1f, 115L),
                     EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 105L)
             )
-            emoji.any { it in "👍👎👏🙏💪" } -> listOf(
+            containsAnyEmoji(emoji, listOf("👍", "👎", "👏", "🙏", "💪")) -> listOf(
                     EmojiMotionStep(1.16f, 1.16f, if (info.sentByMe) -14f else 14f, 0f, -2f, 1f, 160L),
                     EmojiMotionStep(1.04f, 1.04f, if (info.sentByMe) 7f else -7f, 0f, 0f, 1f, 120L),
                     EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 120L)
             )
-            emoji.any { it in "🎉🎊🥳✨🌟" } -> listOf(
+            containsAnyEmoji(emoji, listOf("🎉", "🎊", "🥳", "✨", "🌟")) -> listOf(
                     EmojiMotionStep(1.20f, 1.20f, if (info.sentByMe) -16f else 16f, 0f, -6f, 1f, 170L),
                     EmojiMotionStep(1.07f, 1.07f, if (info.sentByMe) 11f else -11f, 0f, 2f, 1f, 120L),
                     EmojiMotionStep(1f, 1f, 0f, 0f, 0f, 1f, 130L)
@@ -217,6 +217,8 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         runEmojiMotion(messageView, motion, 0, density)
     }
+
+    private fun containsAnyEmoji(text: String, emojis: List<String>): Boolean = emojis.any(text::contains)
 
     private data class EmojiMotionStep(
             val scaleX: Float,
