@@ -26,6 +26,7 @@ import im.vector.app.features.analytics.extensions.toTrackingValue
 import im.vector.app.features.analytics.plan.UserProperties
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.ChatFoldersStore
+import im.vector.app.features.home.TelegramStoriesRepository
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
@@ -94,6 +95,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         val builder = RoomSummaryQueryParams.Builder().also {
             it.memberships = listOf(Membership.JOIN)
             it.spaceFilter = spaceStateHandler.getCurrentSpace()?.roomId.toActiveSpaceOrNoFilter()
+            it.excludeType = listOf("m.space", TelegramStoriesRepository.STORY_ROOM_TYPE)
         }
         val params = getFilteredQueryParams(initialState.headersData.currentFilter, builder.build())
         val sortOrder = RoomSortOrder.ACTIVITY
@@ -133,6 +135,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
                 .liveRoomSummaries(
                         roomSummaryQueryParams {
                             memberships = listOf(Membership.INVITE)
+                            excludeType = listOf("m.space", TelegramStoriesRepository.STORY_ROOM_TYPE)
                         },
                         RoomSortOrder.ACTIVITY
                 ).onEach { list ->
@@ -148,6 +151,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
                         session.flow()
                                 .liveBreadcrumbs(roomSummaryQueryParams {
                                     memberships = listOf(Membership.JOIN)
+                                    excludeType = listOf("m.space", TelegramStoriesRepository.STORY_ROOM_TYPE)
                                 })
                                 .map { Optional.from(it) }
                     } else {
