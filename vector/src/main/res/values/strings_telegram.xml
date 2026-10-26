@@ -16,6 +16,8 @@
     <string name="telegram_tab_chats">Chats</string>
     <string name="telegram_tab_contacts">Contacts</string>
     <string name="telegram_tab_chat_folders">Folders</string>
+    <string name="telegram_attachment_record_video">Record video</string>
+    <string name="telegram_attachment_record_video_hint">Record a short video clip and send it to this conversation.</string>
     <string name="telegram_folder_personal">Personal</string>
     <string name="telegram_folder_groups">Groups &amp; Rooms</string>
     <string name="telegram_folder_manage_title">Chat Folders</string>
