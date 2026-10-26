@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.list.home.header
 
 import androidx.annotation.StringRes
+import im.vector.app.R
 import im.vector.lib.strings.CommonStrings
 
 enum class HomeRoomFilter(@StringRes val titleRes: Int) {
@@ -15,4 +16,7 @@ enum class HomeRoomFilter(@StringRes val titleRes: Int) {
     UNREADS(CommonStrings.room_list_filter_unreads),
     FAVOURITES(CommonStrings.room_list_filter_favourites),
     PEOPlE(CommonStrings.room_list_filter_people),
+    // Matrix differentiates direct chats from regular rooms. It doesn't define a
+    // separate "channel" primitive, so this folder intentionally means non-DM rooms.
+    ROOMS(R.string.telegram_folder_groups),
 }
