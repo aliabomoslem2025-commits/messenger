@@ -26,5 +26,7 @@ fun HomeRoomFilter.toTrackingValue(): UserProperties.AllChatsActiveFilter {
         HomeRoomFilter.UNREADS -> UserProperties.AllChatsActiveFilter.Unreads
         HomeRoomFilter.FAVOURITES -> UserProperties.AllChatsActiveFilter.Favourites
         HomeRoomFilter.PEOPlE -> UserProperties.AllChatsActiveFilter.People
+        // Analytics has no dedicated "rooms" value yet.
+        HomeRoomFilter.ROOMS -> UserProperties.AllChatsActiveFilter.All
     }
 }
