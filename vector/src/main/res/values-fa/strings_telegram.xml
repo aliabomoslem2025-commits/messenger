@@ -33,4 +33,13 @@
     <string name="telegram_folder_delete_message">پوشه حذف می‌شود؛ گفتگوها و پیام‌های شما حذف نخواهند شد.</string>
     <string name="telegram_folder_action_cancel">لغو</string>
     <string name="telegram_folder_action_save">ذخیره</string>
+    <string name="telegram_video_note_title">ویدئوی دایره‌ای</string>
+    <string name="telegram_video_note_hint">یک ویدئوی کوتاه ضبط کنید؛ پیش‌نمایش دایره‌ای است.</string>
+    <string name="telegram_video_note_record">ضبط</string>
+    <string name="telegram_video_note_stop">توقف</string>
+    <string name="telegram_video_note_send">ارسال</string>
+    <string name="telegram_video_note_cancel">لغو</string>
+    <string name="telegram_video_note_permission_error">برای ضبط ویدئو باید مجوز دوربین و میکروفون را بدهید.</string>
+    <string name="telegram_video_note_camera_error">باز کردن دوربین ممکن نیست.</string>
+    <string name="telegram_video_note_recording_failed">ضبط ویدئو ناموفق بود. دوباره تلاش کنید.</string>
 </resources>
