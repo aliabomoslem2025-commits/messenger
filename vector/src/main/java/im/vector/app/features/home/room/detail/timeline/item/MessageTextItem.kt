@@ -218,7 +218,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         runEmojiMotion(messageView, motion, 0, density)
     }
 
-    private fun containsAnyEmoji(text: String, emojis: List<String>): Boolean = emojis.any(text::contains)
+    private fun containsAnyEmoji(text: String, emojis: List<String>): Boolean = emojis.any { emoji -> text.contains(emoji) }
 
     private data class EmojiMotionStep(
             val scaleX: Float,
