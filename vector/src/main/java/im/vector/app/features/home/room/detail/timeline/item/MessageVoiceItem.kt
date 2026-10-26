@@ -50,7 +50,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     var izLocalFile = false
 
     @EpoxyAttribute
-    var isDownloaded: Boolean = false
+    var downloaded: Boolean = false
 
     @EpoxyAttribute
     lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
@@ -70,7 +70,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.voiceLayout, null)
-        holder.isFileDownloaded = isDownloaded || izLocalFile
+        holder.isFileDownloaded = downloaded || izLocalFile
         holder.voiceDownloadProgress.isVisible = false
         holder.voiceDownloadProgress.progress = 0
         val outgoingBubble = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
