@@ -50,7 +50,6 @@ import im.vector.app.features.call.SharedKnownCallsViewModel
 import im.vector.app.features.call.VectorCallActivity
 import im.vector.app.features.call.dialpad.PstnDialActivity
 import im.vector.app.features.call.webrtc.WebRtcCallManager
-import im.vector.app.features.contactsbook.ContactsBookFragment
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.elementx.MigrationBannerAction
 import im.vector.app.features.elementx.MigrationBannerState
@@ -96,12 +95,14 @@ class NewHomeDetailFragment :
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var buildMeta: BuildMeta
+    @Inject lateinit var chatFoldersStore: ChatFoldersStore
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val newHomeDetailViewModel: NewHomeDetailViewModel by fragmentViewModel()
     private val homeRoomListViewModel: HomeRoomListViewModel by activityViewModel()
 
     private var isSyncingTelegramHomeTabs = false
+    private var activeHomeRoomFilter: HomeRoomFilter = HomeRoomFilter.ALL
     private var homeSearchTextWatcher: TextWatcher? = null
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
@@ -301,16 +302,31 @@ class NewHomeDetailFragment :
         fun showHomeTab() {
             setHomeChromeVisible(true)
             views.toolbar.title = getString(R.string.telegram_home_title)
+            views.toolbar.navigationIcon = null
+            views.toolbar.setNavigationOnClickListener(null)
             selectTab(views.telegramTabChats)
         }
 
         fun showSecondaryTab(titleRes: Int, selected: View) {
             setHomeChromeVisible(false)
-            // The Telegram settings reference uses icon actions instead of a "Settings" title.
-            views.toolbar.title = if (selected.id == views.telegramTabSettings.id) {
-                ""
+            views.toolbar.title = when {
+                selected.id == views.telegramTabSettings.id -> ""
+                selected.id == views.telegramTabContacts.id -> getString(R.string.telegram_folder_manage_title)
+                else -> getString(titleRes)
+            }
+            if (selected.id == views.telegramTabContacts.id) {
+                views.toolbar.setNavigationIcon(R.drawable.ic_back_24dp)
+                views.toolbar.setNavigationContentDescription(R.string.telegram_folder_action_cancel)
+                views.toolbar.setNavigationOnClickListener {
+                    if (childFragmentManager.backStackEntryCount > 0) {
+                        childFragmentManager.popBackStackImmediate()
+                    } else {
+                        showHomeTab()
+                    }
+                }
             } else {
-                getString(titleRes)
+                views.toolbar.navigationIcon = null
+                views.toolbar.setNavigationOnClickListener(null)
             }
             selectTab(selected)
         }
@@ -335,28 +351,28 @@ class NewHomeDetailFragment :
         }
 
         views.telegramTabContacts.debouncedClicks {
-            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is ContactsBookFragment) {
+            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is TelegramChatFoldersFragment) {
                 if (childFragmentManager.backStackEntryCount > 0) {
                     childFragmentManager.popBackStackImmediate(
                             null,
                             androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
                     )
                 }
-                showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
                 childFragmentManager.commitTransaction {
-                    replace(R.id.roomListContainer, ContactsBookFragment())
-                    addToBackStack("telegram_contacts")
+                    replace(R.id.roomListContainer, TelegramChatFoldersFragment())
+                    addToBackStack("telegram_chat_folders")
                 }
             } else {
-                showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
             }
         }
 
         childFragmentManager.addOnBackStackChangedListener {
             if (!isAdded || view == null) return@addOnBackStackChangedListener
             when (childFragmentManager.findFragmentById(R.id.roomListContainer)) {
-                is ContactsBookFragment -> {
-                    showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                is TelegramChatFoldersFragment -> {
+                    showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
                 }
                 is TelegramSettingsFragment -> {
                     showSecondaryTab(R.string.telegram_tab_settings, views.telegramTabSettings)
@@ -405,11 +421,42 @@ class NewHomeDetailFragment :
 
     private fun setupTelegramHomeTabs() {
         val tabs = views.telegramHomeTabs
+
+        fun renderTabs() {
+            val folders = chatFoldersStore.visibleFolders()
+            isSyncingTelegramHomeTabs = true
+            try {
+                tabs.removeAllTabs()
+                tabs.isVisible = folders.isNotEmpty()
+                folders.forEach { folder ->
+                    tabs.addTab(
+                            tabs.newTab()
+                                    .setText(folder.name)
+                                    .setTag(folder),
+                            false
+                    )
+                }
+                val selectedId = chatFoldersStore.selectedFolderId()
+                val selectedIndex = folders.indexOfFirst {
+                    it.id == selectedId && it.filter == activeHomeRoomFilter
+                }.takeIf { it >= 0 }
+                        ?: folders.indexOfFirst { it.filter == activeHomeRoomFilter }.takeIf { it >= 0 }
+                        ?: folders.indexOfFirst { it.filter == HomeRoomFilter.ALL }
+                if (selectedIndex >= 0) {
+                    tabs.getTabAt(selectedIndex)?.select()
+                }
+            } finally {
+                isSyncingTelegramHomeTabs = false
+            }
+        }
+
         tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 if (isSyncingTelegramHomeTabs) return
-                val filter = tab.tag as? HomeRoomFilter ?: return
-                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(filter))
+                val folder = tab.tag as? ChatFolderDefinition ?: return
+                chatFoldersStore.setSelectedFolder(folder.id)
+                activeHomeRoomFilter = folder.filter
+                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(folder.filter))
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) = Unit
@@ -417,32 +464,55 @@ class NewHomeDetailFragment :
             override fun onTabReselected(tab: TabLayout.Tab) = Unit
         })
 
-        homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
-            // The reference home screen has a two-segment capsule, not Element's
-            // four-filter strip. Both segments remain wired to real Matrix room filters.
-            val filters = listOf(HomeRoomFilter.ALL, HomeRoomFilter.PEOPlE)
-            isSyncingTelegramHomeTabs = true
-            try {
-                tabs.removeAllTabs()
-                tabs.isVisible = true
-                filters.forEach { filter ->
-                    tabs.addTab(
-                            tabs.newTab()
-                                    .setText(R.string.telegram_filter_all_chats)
-                                    .setTag(filter),
-                            false
-                    )
+        chatFoldersStore.foldersFlow
+                .onEach {
+                    val visible = chatFoldersStore.visibleFolders()
+                    val selected = visible.firstOrNull { it.id == chatFoldersStore.selectedFolderId() }
+                            ?: visible.firstOrNull { it.filter == HomeRoomFilter.ALL }
+                    if (selected != null && selected.filter != activeHomeRoomFilter) {
+                        chatFoldersStore.setSelectedFolder(selected.id)
+                        activeHomeRoomFilter = selected.filter
+                        homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(selected.filter))
+                    }
+                    renderTabs()
                 }
-                val selectedFilter = headers.currentFilter.takeIf { it in filters } ?: HomeRoomFilter.ALL
-                tabs.getTabAt(filters.indexOf(selectedFilter))?.select()
-            } finally {
-                isSyncingTelegramHomeTabs = false
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        chatFoldersStore.separateChatsFlow
+                .onEach {
+                    val visible = chatFoldersStore.visibleFolders()
+                    if (visible.none { it.filter == activeHomeRoomFilter }) {
+                        val fallback = visible.firstOrNull { it.filter == HomeRoomFilter.ALL }
+                                ?: visible.firstOrNull()
+                        fallback?.let {
+                            chatFoldersStore.setSelectedFolder(it.id)
+                            activeHomeRoomFilter = it.filter
+                            homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(it.filter))
+                        }
+                    }
+                    renderTabs()
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
+            activeHomeRoomFilter = headers.currentFilter
+            val folders = chatFoldersStore.visibleFolders()
+            val selectedFolder = folders.firstOrNull {
+                it.id == chatFoldersStore.selectedFolderId() && it.filter == activeHomeRoomFilter
+            } ?: folders.firstOrNull { it.filter == activeHomeRoomFilter }
+            if (selectedFolder != null && selectedFolder.id != chatFoldersStore.selectedFolderId()) {
+                chatFoldersStore.setSelectedFolder(selectedFolder.id)
+            } else if (selectedFolder == null) {
+                val fallback = folders.firstOrNull { it.filter == HomeRoomFilter.ALL }
+                        ?: folders.firstOrNull()
+                fallback?.let {
+                    chatFoldersStore.setSelectedFolder(it.id)
+                    if (it.filter != activeHomeRoomFilter) {
+                        homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(it.filter))
+                    }
+                }
             }
-            // If older persisted preferences point to an Element-only filter, move the
-            // real Matrix list to All Chats rather than merely changing the highlight.
-            if (headers.currentFilter !in filters) {
-                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
-            }
+            renderTabs()
         }
     }
 

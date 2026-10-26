@@ -103,6 +103,16 @@
                 android:src="@drawable/ic_attachment_camera"
                 app:tint="?colorPrimary" />
 
+            <ImageButton
+                android:id="@+id/attachmentVideoMessageButton"
+                android:layout_width="@dimen/layout_touch_size"
+                android:layout_height="@dimen/layout_touch_size"
+                android:layout_marginStart="2dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:contentDescription="@string/telegram_attachment_record_video"
+                android:src="@drawable/ic_telegram_video_note"
+                app:tint="@color/telegram_accent_blue" />
+
             <!-- TODO. Request for new icon -->
             <ImageButton
                 android:id="@+id/attachmentContactButton"

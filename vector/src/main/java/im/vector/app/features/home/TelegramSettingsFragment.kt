@@ -109,11 +109,11 @@ class TelegramSettingsFragment : Fragment(R.layout.fragment_telegram_settings) {
         )
         addRow(
                 primary,
-                getString(R.string.telegram_settings_advanced_title),
-                getString(R.string.telegram_settings_advanced_summary),
+                getString(R.string.telegram_settings_storage_title),
+                getString(R.string.telegram_settings_storage_summary),
                 R.drawable.ic_settings_root_advanced,
                 0xFF4B7BF5.toInt(),
-                SettingsActivityPayload.AdvancedSettings
+                SettingsActivityPayload.DataStorage
         )
         addRow(
                 primary,

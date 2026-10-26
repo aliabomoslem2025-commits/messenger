@@ -144,10 +144,10 @@
                     android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     app:tabBackground="@drawable/bg_telegram_home_tab"
-                    app:tabGravity="fill"
+                    app:tabGravity="center"
                     app:tabIndicatorHeight="0dp"
                     app:tabMinHeight="26dp"
-                    app:tabMode="fixed"
+                    app:tabMode="scrollable"
                     app:tabRippleColor="@android:color/transparent"
                     app:tabSelectedTextColor="@color/telegram_accent_blue"
                     app:tabTextColor="?vctr_content_secondary" />
@@ -276,10 +276,10 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:visibility="gone"
-                android:contentDescription="@string/telegram_tab_contacts"
+                android:contentDescription="@string/telegram_tab_chat_folders"
                 android:duplicateParentState="true"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_baseline_perm_contact_calendar_24"
+                android:src="@drawable/ic_telegram_chat_folder"
                 android:tint="@color/telegram_bottom_tab_tint" />
 
             <TextView
@@ -290,7 +290,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:text="@string/telegram_tab_contacts"
+                android:text="@string/telegram_tab_chat_folders"
                 android:textColor="@color/telegram_bottom_tab_tint"
                 android:textSize="14sp" />
 
@@ -400,7 +400,7 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="10dp"
         android:contentDescription="@string/a11y_create_message"
-        android:src="@drawable/ic_fab_add_chat"
+        android:src="@drawable/ic_telegram_compose"
         android:visibility="gone"
         app:backgroundTint="@color/telegram_accent_blue"
         app:fabSize="mini"

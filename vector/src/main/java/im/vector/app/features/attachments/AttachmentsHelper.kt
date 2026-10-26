@@ -107,6 +107,19 @@ class AttachmentsHelper(
     }
 
     /**
+     * Starts video capture directly instead of asking the user to choose between
+     * photo and video first. The result follows the same preview and Matrix send path.
+     */
+    fun recordVideo(cameraVideoActivityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
+        captureUri = MultiPicker.get(MultiPicker.CAMERA_VIDEO)
+                .startWithExpectingFile(
+                        context = context,
+                        activityResultLauncher = cameraVideoActivityResultLauncher,
+                        maxDurationSeconds = 60
+                )
+    }
+
+    /**
      * Starts the process for handling contact picking.
      */
     fun selectContact(activityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {

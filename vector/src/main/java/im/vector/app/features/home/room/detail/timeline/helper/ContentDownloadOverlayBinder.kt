@@ -44,7 +44,7 @@ class ContentDownloadOverlayBinder @Inject constructor(
                     ContentDownloadStateTracker.State.Idle -> {
                         progress.progress = 0
                         progress.isIndeterminate = false
-                        progress.isVisible = true
+                        progress.isVisible = false
                     }
                     is ContentDownloadStateTracker.State.Downloading -> {
                         progress.isIndeterminate = false

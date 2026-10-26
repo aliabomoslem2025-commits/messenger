@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="telegram_tab_chat_folders">پوشه‌ها</string>
+    <string name="telegram_attachment_record_video">ضبط ویدئو</string>
+    <string name="telegram_attachment_record_video_hint">یک کلیپ کوتاه ضبط کنید و در این گفتگو بفرستید.</string>
+    <string name="telegram_folder_personal">شخصی</string>
+    <string name="telegram_folder_groups">گروه‌ها و اتاق‌ها</string>
+    <string name="telegram_folder_manage_title">پوشه‌های گفتگو</string>
+    <string name="telegram_folder_hero_description">برای انواع گفتگوها پوشه بسازید و با سرعت بین آن‌ها جابه‌جا شوید.</string>
+    <string name="telegram_folder_separate_chats">تفکیک گفتگوها</string>
+    <string name="telegram_folder_section_title">پوشه‌های گفتگو</string>
+    <string name="telegram_folder_create_new">ایجاد پوشه جدید</string>
+    <string name="telegram_folder_restore_all">بازنشانی همه پوشه‌ها</string>
+    <string name="telegram_folder_all_chats">تمامی گفتگوها</string>
+    <string name="telegram_folder_unread">خوانده‌نشده</string>
+    <string name="telegram_folder_favorites">علاقه‌مندی‌ها</string>
+    <string name="telegram_folder_name_hint">نام پوشه</string>
+    <string name="telegram_folder_choose_filter">گفتگوهایی را که باید نمایش داده شوند انتخاب کنید</string>
+    <string name="telegram_folder_filter_all">تمام گفتگوها</string>
+    <string name="telegram_folder_filter_unread">گفتگوهای خوانده‌نشده</string>
+    <string name="telegram_folder_filter_favorites">گفتگوهای علاقه‌مندی</string>
+    <string name="telegram_folder_filter_personal">گفتگوهای دونفره</string>
+    <string name="telegram_folder_filter_groups">گروه‌ها و اتاق‌ها</string>
+    <string name="telegram_folder_empty_name">نام پوشه را وارد کنید.</string>
+    <string name="telegram_folder_filter_exists">برای این فیلتر یک پوشه وجود دارد؛ می‌توانید آن را تغییرنام دهید یا جابه‌جا کنید.</string>
+    <string name="telegram_folder_action_rename">تغییر نام</string>
+    <string name="telegram_folder_action_hide">پنهان‌کردن از نوار</string>
+    <string name="telegram_folder_action_show">نمایش در نوار</string>
+    <string name="telegram_folder_action_move_up">انتقال به بالا</string>
+    <string name="telegram_folder_action_move_down">انتقال به پایین</string>
+    <string name="telegram_folder_action_delete">حذف پوشه</string>
+    <string name="telegram_folder_delete_title">حذف پوشه؟</string>
+    <string name="telegram_folder_delete_message">پوشه حذف می‌شود؛ گفتگوها و پیام‌های شما حذف نخواهند شد.</string>
+    <string name="telegram_folder_action_cancel">لغو</string>
+    <string name="telegram_folder_action_save">ذخیره</string>
+</resources>

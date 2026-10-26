@@ -53,7 +53,8 @@
 
     <dimen name="chat_bubble_margin_start">28dp</dimen>
     <dimen name="chat_bubble_margin_end">6dp</dimen>
-    <dimen name="chat_bubble_fixed_size">350sp</dimen>
+    <!-- Keep Telegram-style text bubbles compact on phones; use dp so system font scaling doesn't widen them. -->
+    <dimen name="chat_bubble_fixed_size">280dp</dimen>
     <dimen name="chat_bubble_corner_radius">16dp</dimen>
     <!-- Keep a small soft corner between consecutive messages from the same sender. -->
     <dimen name="chat_bubble_grouped_corner_radius">4dp</dimen>

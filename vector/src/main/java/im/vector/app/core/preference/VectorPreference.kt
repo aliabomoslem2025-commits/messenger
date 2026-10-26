@@ -14,11 +14,14 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.animation.doOnEnd
+import androidx.core.view.isVisible
 import androidx.core.widget.ImageViewCompat
 import androidx.preference.Preference
 import androidx.preference.PreferenceViewHolder
@@ -81,6 +84,7 @@ open class VectorPreference : Preference {
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         val itemView = holder.itemView
         addClickListeners(itemView)
+        applyTelegramPreferenceCard(holder, itemView)
 
         // display the title in multi-line to avoid ellipsis.
         try {
@@ -93,14 +97,20 @@ open class VectorPreference : Preference {
 
             summary?.setTypeface(null, mTypeface)
 
-            if (tintIcon) {
-                // Tint icons (See #1786)
-                val icon = holder.findViewById(android.R.id.icon) as? ImageView
-
-                icon?.let {
-                    val color = ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
-                    ImageViewCompat.setImageTintList(it, ColorStateList.valueOf(color))
+            val icon = holder.findViewById(android.R.id.icon) as? ImageView
+            icon?.let {
+                val (fallbackIcon, accentColor) = getPreferenceIconStyle()
+                if (it.drawable == null || icon == null) {
+                    it.setImageResource(fallbackIcon)
                 }
+                it.isVisible = true
+                it.setPadding(dp(8), dp(8), dp(8), dp(8))
+                it.background = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    cornerRadius = dp(12).toFloat()
+                    setColor(accentColor)
+                }
+                ImageViewCompat.setImageTintList(it, ColorStateList.valueOf(Color.WHITE))
             }
 
             // cancel existing animation (find a way to resume if happens during anim?)
@@ -129,13 +139,54 @@ open class VectorPreference : Preference {
                     start()
                 }
             } else {
-                itemView.setBackgroundColor(Color.TRANSPARENT)
+                itemView.background = createPreferenceCardBackground()
             }
         } catch (e: Exception) {
             Timber.e(e, "onBindView")
         }
 
         super.onBindViewHolder(holder)
+        if (!isHighlighted) TelegramPreferenceStyler.apply(this, holder)
+    }
+
+    private fun applyTelegramPreferenceCard(holder: PreferenceViewHolder, itemView: View) {
+        val horizontalPadding = dp(14)
+        itemView.setPadding(horizontalPadding, dp(12), horizontalPadding, dp(12))
+        (itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
+            params.marginStart = dp(8)
+            params.marginEnd = dp(8)
+            params.topMargin = dp(4)
+            params.bottomMargin = dp(4)
+            itemView.layoutParams = params
+        }
+        itemView.background = createPreferenceCardBackground()
+    }
+
+    private fun createPreferenceCardBackground() = GradientDrawable().apply {
+        shape = GradientDrawable.RECTANGLE
+        cornerRadius = dp(18).toFloat()
+        setColor(ThemeUtils.getColor(context, com.google.android.material.R.attr.colorSurface))
+    }
+
+    private fun dp(value: Int): Int = (value * context.resources.displayMetrics.density).toInt()
+
+    private fun getPreferenceIconStyle(): Pair<Int, Int> {
+        val descriptor = "${key.orEmpty()} ${title?.toString().orEmpty()}".lowercase()
+        return when {
+            "notification" in descriptor || "sound" in descriptor || "badge" in descriptor ->
+                R.drawable.ic_settings_root_notification to 0xFFF04455.toInt()
+            "privacy" in descriptor || "security" in descriptor || "password" in descriptor || "device" in descriptor || "session" in descriptor ->
+                R.drawable.ic_settings_root_security_privacy to 0xFF34C759.toInt()
+            "call" in descriptor || "video" in descriptor || "audio" in descriptor || "voice" in descriptor ->
+                R.drawable.ic_settings_root_call to 0xFFFF8425.toInt()
+            "language" in descriptor || "text" in descriptor || "theme" in descriptor || "appearance" in descriptor || "bubble" in descriptor ->
+                R.drawable.ic_settings_root_preferences to 0xFFFF9F0A.toInt()
+            "storage" in descriptor || "media" in descriptor || "download" in descriptor || "cache" in descriptor ->
+                R.drawable.ic_settings_root_advanced to 0xFF4B7BF5.toInt()
+            "account" in descriptor || "profile" in descriptor || "username" in descriptor ->
+                R.drawable.ic_settings_root_general to 0xFF229ED9.toInt()
+            else -> R.drawable.ic_settings_root_preferences to 0xFF8D63E6.toInt()
+        }
     }
 
     /**

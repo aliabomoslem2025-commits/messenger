@@ -34,6 +34,7 @@ class VectorCheckboxPreference : CheckBoxPreference {
         // display the title in multi-line to avoid ellipsis.
         (holder.findViewById(android.R.id.title) as? TextView)?.isSingleLine = false
         super.onBindViewHolder(holder)
+        TelegramPreferenceStyler.apply(this, holder)
     }
 
     override fun syncSummaryView(holder: PreferenceViewHolder) {

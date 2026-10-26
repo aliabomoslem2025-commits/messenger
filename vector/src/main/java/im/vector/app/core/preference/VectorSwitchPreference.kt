@@ -82,5 +82,6 @@ class VectorSwitchPreference : SwitchPreference {
         }
 
         super.onBindViewHolder(holder)
+        if (!isHighlighted) TelegramPreferenceStyler.apply(this, holder)
     }
 }

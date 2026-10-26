@@ -125,7 +125,11 @@ class ChatEffectManager @Inject constructor(
     companion object {
         private val EMOJIS_FOR_CONFETTI = listOf(
                 "🎉",
-                "🎊"
+                "🎊",
+                "🎆",
+                "🎇",
+                "🥳",
+                "💥"
         )
         private val EMOJIS_FOR_SNOWFALL = listOf(
                 "⛄️",
