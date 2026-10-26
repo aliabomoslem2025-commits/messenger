@@ -234,6 +234,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
                         HomeRoomFilter.PEOPlE
                 )
             }
+            filtersData.add(HomeRoomFilter.ROOMS)
             Optional.from(filtersData)
         }
     }
@@ -272,6 +273,10 @@ class HomeRoomListViewModel @AssistedInject constructor(
                 )
             HomeRoomFilter.PEOPlE -> currentParams.copy(
                     roomCategoryFilter = RoomCategoryFilter.ONLY_DM,
+                    roomTagQueryFilter = null
+            )
+            HomeRoomFilter.ROOMS -> currentParams.copy(
+                    roomCategoryFilter = RoomCategoryFilter.ONLY_ROOMS,
                     roomTagQueryFilter = null
             )
         }
