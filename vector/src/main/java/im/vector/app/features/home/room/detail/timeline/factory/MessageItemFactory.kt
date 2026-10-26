@@ -328,6 +328,12 @@ class MessageItemFactory @Inject constructor(
             attributes: AbsMessageItem.Attributes
     ): MessageAudioItem {
         val fileUrl = getAudioFileUrl(messageContent, informationData)
+        val isLocalFile = localFilesHelper.isLocalFile(fileUrl)
+        val isDownloaded = isLocalFile || runCatching {
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
+        }.getOrDefault(false)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
         val duration = messageContent.audioInfo?.duration ?: 0
 
@@ -337,7 +343,8 @@ class MessageItemFactory @Inject constructor(
                 .duration(messageContent.audioInfo?.duration ?: 0)
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
-                .izLocalFile(localFilesHelper.isLocalFile(fileUrl))
+                .izLocalFile(isLocalFile)
+                .isDownloaded(isDownloaded)
                 .fileSize(messageContent.audioInfo?.size ?: 0L)
                 .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.eventId, duration, it) }
                 .mxcUrl(fileUrl)
@@ -381,6 +388,12 @@ class MessageItemFactory @Inject constructor(
         }
 
         val fileUrl = getAudioFileUrl(messageContent, informationData)
+        val isLocalFile = localFilesHelper.isLocalFile(fileUrl)
+        val isDownloaded = isLocalFile || runCatching {
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
+        }.getOrDefault(false)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
 
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
