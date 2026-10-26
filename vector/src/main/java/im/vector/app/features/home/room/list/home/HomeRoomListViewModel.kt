@@ -25,17 +25,15 @@ import im.vector.app.features.analytics.AnalyticsTracker
 import im.vector.app.features.analytics.extensions.toTrackingValue
 import im.vector.app.features.analytics.plan.UserProperties
 import im.vector.app.features.displayname.getBestName
+import im.vector.app.features.home.ChatFoldersStore
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.room.LeaveRoomPrompt
 import im.vector.app.features.room.getLeaveRoomWarning
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -67,6 +65,7 @@ class HomeRoomListViewModel @AssistedInject constructor(
         private val session: Session,
         private val spaceStateHandler: SpaceStateHandler,
         private val preferencesStore: HomeLayoutPreferencesStore,
+        private val chatFoldersStore: ChatFoldersStore,
         private val stringProvider: StringProvider,
         private val drawableProvider: DrawableProvider,
         private val analyticsTracker: AnalyticsTracker,
@@ -158,14 +157,21 @@ class HomeRoomListViewModel @AssistedInject constructor(
     }
 
     private fun observeFilterTabs() {
-        preferencesStore.areFiltersEnabledFlow
+        // Drive allowed filters from the same folder definitions used by the Telegram
+        // home tab strip. The legacy Element toggle and room counts must not reset a
+        // selected Favorites/People folder merely because it is currently empty.
+        combine(chatFoldersStore.foldersFlow, chatFoldersStore.separateChatsFlow) { _, _ ->
+            chatFoldersStore.visibleFolders()
+                    .map { it.filter }
+                    .distinct()
+                    .toMutableList()
+        }
                 .distinctUntilChanged()
-                .flatMapLatest { areEnabled ->
-                    getFilterTabsFlow(areEnabled)
-                }.onEach { filtersOptional ->
+                .map { Optional.from(it) }
+                .onEach { filtersOptional ->
                     val filters = filtersOptional.getOrNull()
                     if (!isCurrentFilterStillValid(filters)) {
-                        changeRoomFilter(HomeRoomFilter.ALL)
+                        changeRoomFilter(filters?.firstOrNull() ?: HomeRoomFilter.ALL)
                     }
                     setState {
                         copy(
@@ -174,69 +180,14 @@ class HomeRoomListViewModel @AssistedInject constructor(
                                 )
                         )
                     }
-                }.launchIn(viewModelScope)
+                }
+                .launchIn(viewModelScope)
     }
 
     private suspend fun isCurrentFilterStillValid(filtersList: List<HomeRoomFilter>?): Boolean {
         if (filtersList.isNullOrEmpty()) return false
         val currentFilter = awaitState().headersData.currentFilter
         return filtersList.contains(currentFilter)
-    }
-
-    private fun getFilterTabsFlow(isEnabled: Boolean): Flow<Optional<MutableList<HomeRoomFilter>>> {
-        if (!isEnabled) return flowOf(Optional.empty())
-        val spaceFLow = spaceStateHandler.getSelectedSpaceFlow()
-                .distinctUntilChanged()
-                .onStart {
-                    emit(spaceStateHandler.getCurrentSpace().toOption())
-                }
-        val favouritesFlow =
-                spaceFLow.flatMapLatest { selectedSpace ->
-                    session.flow()
-                            .liveRoomSummaries(
-                                    RoomSummaryQueryParams.Builder().also { builder ->
-                                        builder.spaceFilter = selectedSpace.orNull()?.roomId.toActiveSpaceOrNoFilter()
-                                        builder.roomTagQueryFilter = RoomTagQueryFilter(true, null, null)
-                                    }.build()
-                            )
-                }
-                        .map { it.isNotEmpty() }
-                        .distinctUntilChanged()
-
-        val dmsFLow =
-                spaceFLow.flatMapLatest { selectedSpace ->
-                    session.flow()
-                            .liveRoomSummaries(
-                                    RoomSummaryQueryParams.Builder().also { builder ->
-                                        builder.spaceFilter = selectedSpace.orNull()?.roomId.toActiveSpaceOrNoFilter()
-                                        builder.memberships = listOf(Membership.JOIN)
-                                        builder.roomCategoryFilter = RoomCategoryFilter.ONLY_DM
-                                    }.build()
-                            )
-                }
-                        .map { it.isNotEmpty() }
-                        .distinctUntilChanged()
-
-        return combine(favouritesFlow, dmsFLow) { hasFavourite, hasDm ->
-            hasFavourite to hasDm
-        }.map { (hasFavourite, hasDm) ->
-            val filtersData = mutableListOf(
-                    HomeRoomFilter.ALL,
-                    HomeRoomFilter.UNREADS
-            )
-            if (hasFavourite) {
-                filtersData.add(
-                        HomeRoomFilter.FAVOURITES
-                )
-            }
-            if (hasDm) {
-                filtersData.add(
-                        HomeRoomFilter.PEOPlE
-                )
-            }
-            filtersData.add(HomeRoomFilter.ROOMS)
-            Optional.from(filtersData)
-        }
     }
 
     private fun observeOrderPreferences() {
