@@ -9,6 +9,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -25,6 +26,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadOv
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
+import im.vector.app.features.attachments.TelegramMediaMarkers
 import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 
@@ -59,6 +61,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
         val dimensionConverter = DimensionConverter(holder.view.resources)
+        val isVideoNote = attributes.informationData.messageType == MessageType.MSGTYPE_VIDEO &&
+                mediaData.filename.startsWith(TelegramMediaMarkers.VIDEO_NOTE_FILENAME_PREFIX)
+        applyVideoNoteShape(holder, isVideoNote, dimensionConverter.dpToPx(184))
         val imageCornerTransformation = if (messageLayout is TimelineMessageLayout.Bubble) {
             messageLayout.cornersRadius.granularRoundedCorners()
         } else {
@@ -103,6 +108,35 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         }
     }
 
+    private fun applyVideoNoteShape(holder: Holder, isVideoNote: Boolean, diameterPx: Int) {
+        if (!holder.hasOriginalMediaGeometry) {
+            val originalParams = holder.mediaContentView.layoutParams
+            holder.originalMediaWidth = originalParams.width
+            holder.originalMediaHeight = originalParams.height
+            holder.originalMediaOutlineProvider = holder.mediaContentView.outlineProvider
+            holder.originalMediaClipToOutline = holder.mediaContentView.clipToOutline
+            holder.originalImageScaleType = holder.imageView.scaleType
+            holder.hasOriginalMediaGeometry = true
+        }
+
+        val params = holder.mediaContentView.layoutParams
+        if (isVideoNote) {
+            params.width = diameterPx
+            params.height = diameterPx
+            holder.mediaContentView.layoutParams = params
+            holder.mediaContentView.outlineProvider = VIDEO_NOTE_CIRCLE_OUTLINE
+            holder.mediaContentView.clipToOutline = true
+            holder.imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+        } else {
+            params.width = holder.originalMediaWidth
+            params.height = holder.originalMediaHeight
+            holder.mediaContentView.layoutParams = params
+            holder.mediaContentView.outlineProvider = holder.originalMediaOutlineProvider
+            holder.mediaContentView.clipToOutline = holder.originalMediaClipToOutline
+            holder.imageView.scaleType = holder.originalImageScaleType
+        }
+    }
+
     override fun unbind(holder: Holder) {
         GlideApp.with(holder.view.context.applicationContext).clear(holder.imageView)
         imageContentRenderer.clear(holder.imageView)
@@ -121,9 +155,21 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
         val downloadProgress by bind<android.widget.ProgressBar>(R.id.messageMediaDownloadProgress)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
+
+        var hasOriginalMediaGeometry = false
+        var originalMediaWidth = ViewGroup.LayoutParams.WRAP_CONTENT
+        var originalMediaHeight = ViewGroup.LayoutParams.WRAP_CONTENT
+        var originalMediaOutlineProvider: ViewOutlineProvider? = null
+        var originalMediaClipToOutline = false
+        var originalImageScaleType = ImageView.ScaleType.FIT_CENTER
     }
 
     companion object {
         private val STUB_ID = R.id.messageContentMediaStub
+        private val VIDEO_NOTE_CIRCLE_OUTLINE = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: android.graphics.Outline) {
+                outline.setOval(0, 0, view.width, view.height)
+            }
+        }
     }
 }
