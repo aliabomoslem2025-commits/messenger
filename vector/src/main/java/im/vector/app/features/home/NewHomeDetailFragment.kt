@@ -424,7 +424,10 @@ class NewHomeDetailFragment :
                     showSecondaryTab(R.string.telegram_tab_settings, views.telegramTabSettings)
                 }
                 is TelegramStoriesFragment -> showStoriesTab()
-                else -> showHomeTab()
+                else -> {
+                    showHomeTab()
+                    setupTelegramStoriesPreview()
+                }
             }
         }
 
