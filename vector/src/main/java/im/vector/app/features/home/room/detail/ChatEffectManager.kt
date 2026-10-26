@@ -159,4 +159,5 @@ class ChatEffectManager @Inject constructor(
         private val EMOJIS_FOR_THUMBS_UP = setOf("👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿")
         private val EMOJIS_FOR_THUMBS_DOWN = setOf("👎", "👎🏻", "👎🏼", "👎🏽", "👎🏾", "👎🏿")
         private val EMOJIS_FOR_THINKING = setOf("🤔", "🧐")
-    }}
+    }
+}
