@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="telegram_tab_chat_folders">پوشه‌ها</string>
+    <string name="telegram_attachment_record_video">ضبط ویدئو</string>
+    <string name="telegram_attachment_record_video_hint">یک کلیپ کوتاه ضبط کنید و در این گفتگو بفرستید.</string>
     <string name="telegram_folder_personal">شخصی</string>
     <string name="telegram_folder_groups">گروه‌ها و اتاق‌ها</string>
     <string name="telegram_folder_manage_title">پوشه‌های گفتگو</string>
