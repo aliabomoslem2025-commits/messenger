@@ -759,6 +759,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
                     cameraActivityResultLauncher = attachmentCameraActivityResultLauncher,
                     cameraVideoActivityResultLauncher = attachmentCameraVideoActivityResultLauncher
             )
+            AttachmentType.VIDEO_MESSAGE -> attachmentsHelper.recordVideo(attachmentCameraVideoActivityResultLauncher)
             AttachmentType.FILE -> attachmentsHelper.selectFile(attachmentFileActivityResultLauncher)
             AttachmentType.GALLERY -> attachmentsHelper.selectGallery(attachmentMediaActivityResultLauncher)
             AttachmentType.CONTACT -> attachmentsHelper.selectContact(attachmentContactActivityResultLauncher)
