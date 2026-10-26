@@ -145,6 +145,7 @@ open class VectorPreference : Preference {
         }
 
         super.onBindViewHolder(holder)
+        if (!isHighlighted) TelegramPreferenceStyler.apply(this, holder)
     }
 
     private fun applyTelegramPreferenceCard(holder: PreferenceViewHolder, itemView: View) {
