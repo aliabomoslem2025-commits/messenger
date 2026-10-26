@@ -329,11 +329,6 @@ class MessageItemFactory @Inject constructor(
     ): MessageAudioItem {
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val isLocalFile = localFilesHelper.isLocalFile(fileUrl)
-        val isDownloaded = isLocalFile || runCatching {
-            val fileState = session.fileService().fileState(messageContent)
-            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
-                    fileState.decryptedFileInCache
-        }.getOrDefault(false)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
         val duration = messageContent.audioInfo?.duration ?: 0
 
