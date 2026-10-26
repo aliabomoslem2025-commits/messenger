@@ -134,8 +134,19 @@ class ReactionButton @JvmOverloads constructor(
         val density = resources.displayMetrics.density
         val centerX = x + width / 2f
         val centerY = y + height / 2f
-        val reactionGlyph = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: "✨"
-        val glyphs = listOf("✨", reactionGlyph, "💫", "✨", reactionGlyph, "💥")
+        val reactionGlyph = views.reactionText.text?.toString()?.trim()?.takeIf { it.isNotBlank() } ?: "✨"
+        // Match the particles to the selected reaction instead of emitting the same generic
+        // sparkles for every emoji. The reaction itself is still sent through the Matrix callback.
+        val glyphs = when (reactionGlyph) {
+            "😂", "🤣", "😆", "😹" -> listOf(reactionGlyph, "🤣", "💧", "😆", reactionGlyph, "✨")
+            "😭", "😢", "😥", "😿" -> listOf(reactionGlyph, "💧", "😢", "💦", reactionGlyph, "💧")
+            "❤️", "❤", "💖", "💗", "💓", "💕", "😍", "🥰" -> listOf(reactionGlyph, "💖", "💕", "💗", "💘", "❤️")
+            "🔥" -> listOf("🔥", reactionGlyph, "✨", "🔥", "💥", "🔥")
+            "👍", "👍🏻", "👍🏼", "👍🏽", "👍🏾", "👍🏿" -> listOf("👍", reactionGlyph, "✨", "👍", "💫", "👍")
+            "👎", "👎🏻", "👎🏼", "👎🏽", "👎🏾", "👎🏿" -> listOf("👎", reactionGlyph, "💨", "👎", "💫", "👎")
+            "🤔", "🧐" -> listOf(reactionGlyph, "💭", "❔", reactionGlyph, "💭", "✨")
+            else -> listOf("✨", reactionGlyph, "💫", "✨", reactionGlyph, "💥")
+        }
         val radius = 22f * density
 
         glyphs.forEachIndexed { index, glyph ->
