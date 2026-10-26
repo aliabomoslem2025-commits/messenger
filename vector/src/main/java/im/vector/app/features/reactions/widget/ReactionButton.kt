@@ -120,6 +120,8 @@ class ReactionButton @JvmOverloads constructor(
         animateReactionSelection()
         if (isChecked) {
             playReactionBurst()
+        } else {
+            playReactionRemoval()
         }
     }
 
@@ -135,7 +137,7 @@ class ReactionButton @JvmOverloads constructor(
         val centerX = x + width / 2f
         val centerY = y + height / 2f
         val reactionGlyph = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: "✨"
-        val glyphs = listOf("✨", reactionGlyph, "💫", "✨", reactionGlyph, "💥")
+        val glyphs = listOf(reactionGlyph, "✨", reactionGlyph, "💫", reactionGlyph, "✨")
         val radius = 22f * density
 
         glyphs.forEachIndexed { index, glyph ->
@@ -191,6 +193,49 @@ class ReactionButton @JvmOverloads constructor(
      * member reacts. Pop only the count label, not the entire timeline row, so
      * receipt and encryption-state rebinding cannot make the message flicker.
      */
+    /**
+     * Shrink the selected emoji away when a reaction is removed. Matrix remains the
+     * source of truth; this animation is only feedback and never changes event state.
+     */
+    private fun playReactionRemoval() {
+        if (!context.isAnimationEnabled()) return
+        val parent = parent as? ViewGroup ?: return
+        val overlay = parent.overlay
+        val density = resources.displayMetrics.density
+        val particleSize = (34f * density).toInt()
+        val centerX = x + width / 2f
+        val centerY = y + height / 2f
+        val particle = TextView(context).apply {
+            text = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: "✨"
+            textSize = 19f
+            gravity = Gravity.CENTER
+            includeFontPadding = false
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            alpha = 1f
+            scaleX = 1f
+            scaleY = 1f
+        }
+        particle.measure(
+                View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY)
+        )
+        particle.layout(
+                (centerX - particleSize / 2f).toInt(),
+                (centerY - particleSize / 2f).toInt(),
+                (centerX + particleSize / 2f).toInt(),
+                (centerY + particleSize / 2f).toInt()
+        )
+        overlay.add(particle)
+        particle.animate()
+                .alpha(0f)
+                .scaleX(0.25f)
+                .scaleY(0.25f)
+                .translationY(-10f * density)
+                .setDuration(190L)
+                .withEndAction { overlay.remove(particle) }
+                .start()
+    }
+
     private fun animateReactionCountChange() {
         val countView = views.reactionCount
         countView.animate().cancel()
