@@ -62,6 +62,7 @@ class VectorListPreference : ListPreference {
                 mWarningIconClickListener!!.onWarningIconClick(this@VectorListPreference)
             }
         }
+        TelegramPreferenceStyler.apply(this, holder)
     }
 
     /**
