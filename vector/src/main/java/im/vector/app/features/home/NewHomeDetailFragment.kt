@@ -283,6 +283,7 @@ class NewHomeDetailFragment :
         val homeChromeViews = listOf(
                 views.telegramHomeSearchInput,
                 views.telegramHomeTabsTrack,
+                views.telegramStoriesStrip,
                 views.telegramCameraButton,
                 views.newLayoutCreateChatButton,
                 views.newLayoutOpenSpacesButton
@@ -341,6 +342,41 @@ class NewHomeDetailFragment :
             selectTab(selected)
         }
 
+        fun showStoriesTab() {
+            setHomeChromeVisible(false)
+            views.toolbar.title = getString(R.string.telegram_stories_title)
+            views.toolbar.setNavigationIcon(R.drawable.ic_back_24dp)
+            views.toolbar.setNavigationContentDescription(R.string.telegram_folder_action_cancel)
+            views.toolbar.setNavigationOnClickListener {
+                if (childFragmentManager.backStackEntryCount > 0) {
+                    childFragmentManager.popBackStackImmediate()
+                } else {
+                    showHomeTab()
+                }
+            }
+            selectTab(views.telegramTabChats)
+        }
+
+        fun openStoriesTab() {
+            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is TelegramStoriesFragment) {
+                if (childFragmentManager.backStackEntryCount > 0) {
+                    childFragmentManager.popBackStackImmediate(
+                            null,
+                            androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                    )
+                }
+                showStoriesTab()
+                childFragmentManager.commitTransaction {
+                    replace(R.id.roomListContainer, TelegramStoriesFragment())
+                    addToBackStack("telegram_stories")
+                }
+            } else {
+                showStoriesTab()
+            }
+        }
+
+        views.telegramStoriesStrip.setOnClickListener { openStoriesTab() }
+
         selectTab(views.telegramTabChats)
         withState(viewModel) { state ->
             state.myMatrixItem?.let { avatarRenderer.render(it, views.telegramTabProfileIcon) }
@@ -387,6 +423,7 @@ class NewHomeDetailFragment :
                 is TelegramSettingsFragment -> {
                     showSecondaryTab(R.string.telegram_tab_settings, views.telegramTabSettings)
                 }
+                is TelegramStoriesFragment -> showStoriesTab()
                 else -> showHomeTab()
             }
         }
@@ -428,6 +465,103 @@ class NewHomeDetailFragment :
             }
         }
     }
+
+    private fun setupTelegramStoriesPreview() {
+        val container = views.telegramHomeStoriesPeople
+        val itemSize = (66 * resources.displayMetrics.density).toInt()
+        val itemWidth = (82 * resources.displayMetrics.density).toInt()
+
+        fun addStoryCard(label: String, story: TelegramStoriesRepository.Story?, isAdd: Boolean) {
+            val card = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER_HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(itemWidth, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    marginEnd = (6 * resources.displayMetrics.density).toInt()
+                }
+                isClickable = true
+                isFocusable = true
+                contentDescription = label
+                setOnClickListener { views.telegramStoriesStrip.performClick() }
+            }
+            val frame = android.widget.FrameLayout(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(itemSize, itemSize)
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(if (isAdd) 0xFF229ED9.toInt() else 0xFF3C5367.toInt())
+                    setStroke((2 * resources.displayMetrics.density).toInt().coerceAtLeast(1),
+                            if (story?.isSeen == false) 0xFF229ED9.toInt() else 0xFF9299A2.toInt())
+                }
+                setPadding((3 * resources.displayMetrics.density).toInt(), (3 * resources.displayMetrics.density).toInt(),
+                        (3 * resources.displayMetrics.density).toInt(), (3 * resources.displayMetrics.density).toInt())
+            }
+            val image = ImageView(requireContext()).apply {
+                layoutParams = android.widget.FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                clipToOutline = true
+                outlineProvider = object : ViewOutlineProvider() {
+                    override fun getOutline(view: View, outline: Outline) {
+                        outline.setOval(0, 0, view.width, view.height)
+                    }
+                }
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(0xFF3C5367.toInt())
+                }
+            }
+            if (isAdd) {
+                image.setImageResource(android.R.drawable.ic_input_add)
+                image.setColorFilter(android.graphics.Color.WHITE)
+            } else if (story != null) {
+                val data = telegramStoriesRepository.buildThumbnailData(story)
+                if (data != null) {
+                    imageContentRenderer.render(data, image, itemSize - (6 * resources.displayMetrics.density).toInt())
+                } else {
+                    image.setImageResource(android.R.drawable.ic_menu_gallery)
+                }
+            }
+            frame.addView(image)
+            card.addView(frame)
+
+            val title = TextView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    topMargin = (4 * resources.displayMetrics.density).toInt()
+                }
+                text = label
+                gravity = Gravity.CENTER
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                textSize = 11f
+                setTextColor(if (isAdd) 0xFF229ED9.toInt() else 0xFF8A929A.toInt())
+            }
+            card.addView(title)
+            container.addView(card)
+        }
+
+        container.removeAllViews()
+        addStoryCard(getString(R.string.telegram_stories_yours), null, true)
+
+        lifecycleScope.launch {
+            val recentStories = runCatching {
+                telegramStoriesRepository.loadStories(joinInvitations = false)
+            }.getOrDefault(emptyList())
+            if (!isAdded || view == null) return@launch
+            container.removeAllViews()
+            addStoryCard(getString(R.string.telegram_stories_yours), null, true)
+            recentStories.groupBy { it.ownerUserId }.values
+                    .mapNotNull { ownerStories -> ownerStories.maxByOrNull { it.createdAt } }
+                    .sortedByDescending { it.createdAt }
+                    .forEach { story ->
+                        val ownerName = story.ownerUserId.substringBefore(':').removePrefix("@").take(10)
+                                .ifBlank { getString(R.string.telegram_stories_title) }
+                        addStoryCard(ownerName, story, false)
+                    }
+        }
+    }
+
+    private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private fun setupTelegramHomeTabs() {
         val tabs = views.telegramHomeTabs
