@@ -6,9 +6,6 @@
 
 package im.vector.app.features.home
 
-private const val STORY_PHOTO_DURATION_MS = 5_000L
-private const val ARG_INITIAL_STORY_EVENT_ID = "initial_story_event_id"
-
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
@@ -43,6 +40,9 @@ import im.vector.app.databinding.FragmentTelegramStoriesBinding
 import im.vector.app.features.media.ImageContentRenderer
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+private const val STORY_PHOTO_DURATION_MS = 5_000L
+private const val ARG_INITIAL_STORY_EVENT_ID = "initial_story_event_id"
 import kotlin.math.roundToInt
 
 /**
