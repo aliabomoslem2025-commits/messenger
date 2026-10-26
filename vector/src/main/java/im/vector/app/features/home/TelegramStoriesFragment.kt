@@ -243,10 +243,12 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
      * controls, and an explicit Matrix event hand-off for video playback.
      */
     private fun renderStoryViewer(story: TelegramStoriesRepository.Story) {
-        val dialog = storyViewerDialog ?: createStoryViewerDialog().also {
-            storyViewerDialog = it
-            it.show()
-            it.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        if (storyViewerDialog == null) {
+            createStoryViewerDialog().also {
+                storyViewerDialog = it
+                it.show()
+                it.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            }
         }
         viewerTitle?.text = story.ownerUserId.substringBefore(':').removePrefix("@")
                 .ifBlank { getString(R.string.telegram_stories_title) }
@@ -280,6 +282,7 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun createStoryViewerDialog(): Dialog {
         val context = requireContext()
         val root = FrameLayout(context).apply {
