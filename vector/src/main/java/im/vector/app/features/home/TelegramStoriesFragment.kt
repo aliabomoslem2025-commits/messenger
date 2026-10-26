@@ -6,6 +6,8 @@
 
 package im.vector.app.features.home
 
+private const val STORY_PHOTO_DURATION_MS = 5_000L
+
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
