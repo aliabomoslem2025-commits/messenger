@@ -42,5 +42,6 @@ class VectorEditTextPreference : EditTextPreference {
         }
 
         super.onBindViewHolder(holder)
+        TelegramPreferenceStyler.apply(this, holder)
     }
 }
