@@ -10,9 +10,12 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import dagger.hilt.android.AndroidEntryPoint
@@ -115,6 +118,71 @@ class ReactionButton @JvmOverloads constructor(
         }
 
         animateReactionSelection()
+        if (isChecked) {
+            playReactionBurst()
+        }
+    }
+
+    /**
+     * A short Telegram-inspired emoji burst layered above the message timeline.
+     * The underlying reaction still goes through the existing Matrix callback.
+     */
+    private fun playReactionBurst() {
+        if (!context.isAnimationEnabled()) return
+        val parent = parent as? ViewGroup ?: return
+        val overlay = parent.overlay
+        val density = resources.displayMetrics.density
+        val centerX = x + width / 2f
+        val centerY = y + height / 2f
+        val glyphs = listOf("✨", reactionString, "💫", "✨", reactionString, "💥")
+        val radius = 22f * density
+
+        glyphs.forEachIndexed { index, glyph ->
+            val angle = (Math.PI * 2.0 * index / glyphs.size) - Math.PI / 2.0
+            val targetX = (kotlin.math.cos(angle) * radius).toFloat()
+            val targetY = (kotlin.math.sin(angle) * radius).toFloat()
+            val particleSize = (28f * density).toInt()
+            val particle = TextView(context).apply {
+                text = glyph
+                textSize = if (index == 1 || index == 4) 17f else 16f
+                gravity = Gravity.CENTER
+                includeFontPadding = false
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                alpha = 0f
+                scaleX = 0.35f
+                scaleY = 0.35f
+            }
+            particle.measure(
+                    View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY)
+            )
+            particle.layout(
+                    (centerX - particleSize / 2f).toInt(),
+                    (centerY - particleSize / 2f).toInt(),
+                    (centerX + particleSize / 2f).toInt(),
+                    (centerY + particleSize / 2f).toInt()
+            )
+            overlay.add(particle)
+            particle.animate()
+                    .alpha(1f)
+                    .scaleX(1.12f)
+                    .scaleY(1.12f)
+                    .setDuration(90L)
+                    .setStartDelay(index * 12L)
+                    .withEndAction {
+                        particle.animate()
+                                .translationX(targetX)
+                                .translationY(targetY)
+                                .alpha(0f)
+                                .scaleX(0.55f)
+                                .scaleY(0.55f)
+                                .setDuration(235L)
+                                .setInterpolator(OvershootInterpolator(0.8f))
+                                .withEndAction { overlay.remove(particle) }
+                                .start()
+                    }
+                    .start()
+        }
     }
 
     /**
