@@ -114,7 +114,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.onClick(attributes.itemClickListener)
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
-        animateNewOutgoingEmoji(messageView)
+        animateRecentStandaloneEmoji(messageView)
         // The send-state binder applies Element's generic text tint; restore the
         // bubble-specific palette so the outgoing Telegram-blue bubble stays readable.
         val bubbleLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
@@ -130,7 +130,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
      * Remember event IDs so RecyclerView/Epoxy rebinding cannot replay it while
      * the user scrolls through the same timeline.
      */
-    private fun animateNewOutgoingEmoji(messageView: AppCompatTextView) {
+    private fun animateRecentStandaloneEmoji(messageView: AppCompatTextView) {
         val info = attributes.informationData
 
         // Epoxy may recycle a TextView that was animated for a previous message.
