@@ -421,11 +421,42 @@ class NewHomeDetailFragment :
 
     private fun setupTelegramHomeTabs() {
         val tabs = views.telegramHomeTabs
+
+        fun renderTabs() {
+            val folders = chatFoldersStore.visibleFolders()
+            isSyncingTelegramHomeTabs = true
+            try {
+                tabs.removeAllTabs()
+                tabs.isVisible = folders.isNotEmpty()
+                folders.forEach { folder ->
+                    tabs.addTab(
+                            tabs.newTab()
+                                    .setText(folder.name)
+                                    .setTag(folder),
+                            false
+                    )
+                }
+                val selectedId = chatFoldersStore.selectedFolderId()
+                val selectedIndex = folders.indexOfFirst {
+                    it.id == selectedId && it.filter == activeHomeRoomFilter
+                }.takeIf { it >= 0 }
+                        ?: folders.indexOfFirst { it.filter == activeHomeRoomFilter }.takeIf { it >= 0 }
+                        ?: folders.indexOfFirst { it.filter == HomeRoomFilter.ALL }
+                if (selectedIndex >= 0) {
+                    tabs.getTabAt(selectedIndex)?.select()
+                }
+            } finally {
+                isSyncingTelegramHomeTabs = false
+            }
+        }
+
         tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 if (isSyncingTelegramHomeTabs) return
-                val filter = tab.tag as? HomeRoomFilter ?: return
-                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(filter))
+                val folder = tab.tag as? ChatFolderDefinition ?: return
+                chatFoldersStore.setSelectedFolder(folder.id)
+                activeHomeRoomFilter = folder.filter
+                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(folder.filter))
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) = Unit
@@ -433,32 +464,55 @@ class NewHomeDetailFragment :
             override fun onTabReselected(tab: TabLayout.Tab) = Unit
         })
 
-        homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
-            // The reference home screen has a two-segment capsule, not Element's
-            // four-filter strip. Both segments remain wired to real Matrix room filters.
-            val filters = listOf(HomeRoomFilter.ALL, HomeRoomFilter.PEOPlE)
-            isSyncingTelegramHomeTabs = true
-            try {
-                tabs.removeAllTabs()
-                tabs.isVisible = true
-                filters.forEach { filter ->
-                    tabs.addTab(
-                            tabs.newTab()
-                                    .setText(R.string.telegram_filter_all_chats)
-                                    .setTag(filter),
-                            false
-                    )
+        chatFoldersStore.foldersFlow
+                .onEach {
+                    val visible = chatFoldersStore.visibleFolders()
+                    val selected = visible.firstOrNull { it.id == chatFoldersStore.selectedFolderId() }
+                            ?: visible.firstOrNull { it.filter == HomeRoomFilter.ALL }
+                    if (selected != null && selected.filter != activeHomeRoomFilter) {
+                        chatFoldersStore.setSelectedFolder(selected.id)
+                        activeHomeRoomFilter = selected.filter
+                        homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(selected.filter))
+                    }
+                    renderTabs()
                 }
-                val selectedFilter = headers.currentFilter.takeIf { it in filters } ?: HomeRoomFilter.ALL
-                tabs.getTabAt(filters.indexOf(selectedFilter))?.select()
-            } finally {
-                isSyncingTelegramHomeTabs = false
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        chatFoldersStore.separateChatsFlow
+                .onEach {
+                    val visible = chatFoldersStore.visibleFolders()
+                    if (visible.none { it.filter == activeHomeRoomFilter }) {
+                        val fallback = visible.firstOrNull { it.filter == HomeRoomFilter.ALL }
+                                ?: visible.firstOrNull()
+                        fallback?.let {
+                            chatFoldersStore.setSelectedFolder(it.id)
+                            activeHomeRoomFilter = it.filter
+                            homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(it.filter))
+                        }
+                    }
+                    renderTabs()
+                }
+                .launchIn(viewLifecycleOwner.lifecycleScope)
+
+        homeRoomListViewModel.onEach(HomeRoomListViewState::headersData) { headers ->
+            activeHomeRoomFilter = headers.currentFilter
+            val folders = chatFoldersStore.visibleFolders()
+            val selectedFolder = folders.firstOrNull {
+                it.id == chatFoldersStore.selectedFolderId() && it.filter == activeHomeRoomFilter
+            } ?: folders.firstOrNull { it.filter == activeHomeRoomFilter }
+            if (selectedFolder != null && selectedFolder.id != chatFoldersStore.selectedFolderId()) {
+                chatFoldersStore.setSelectedFolder(selectedFolder.id)
+            } else if (selectedFolder == null) {
+                val fallback = folders.firstOrNull { it.filter == HomeRoomFilter.ALL }
+                        ?: folders.firstOrNull()
+                fallback?.let {
+                    chatFoldersStore.setSelectedFolder(it.id)
+                    if (it.filter != activeHomeRoomFilter) {
+                        homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(it.filter))
+                    }
+                }
             }
-            // If older persisted preferences point to an Element-only filter, move the
-            // real Matrix list to All Chats rather than merely changing the highlight.
-            if (headers.currentFilter !in filters) {
-                homeRoomListViewModel.handle(HomeRoomListAction.ChangeRoomFilter(HomeRoomFilter.ALL))
-            }
+            renderTabs()
         }
     }
 
