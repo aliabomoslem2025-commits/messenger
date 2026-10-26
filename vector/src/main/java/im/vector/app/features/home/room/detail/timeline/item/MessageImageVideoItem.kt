@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
+import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.R
 import im.vector.app.core.epoxy.ClickListener
@@ -27,6 +28,8 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.media.ImageContentRenderer
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import kotlin.math.abs
+import kotlin.math.max
 
 @EpoxyModelClass
 abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Holder>() {
@@ -59,11 +62,21 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
         val dimensionConverter = DimensionConverter(holder.view.resources)
-        val imageCornerTransformation = if (messageLayout is TimelineMessageLayout.Bubble) {
-            messageLayout.cornersRadius.granularRoundedCorners()
-        } else {
-            RoundedCorners(dimensionConverter.dpToPx(8))
+        val mediaWidth = mediaData.width
+        val mediaHeight = mediaData.height
+        // Telegram video notes are square and rendered as a circle, not as a wide
+        // rectangular video card inside a text bubble. Matrix has no standard
+        // video-note message type, so only apply this treatment to square m.video
+        // media; regular landscape videos retain their regular rounded corners.
+        val isSquareVideoNote = attributes.informationData.messageType == MessageType.MSGTYPE_VIDEO &&
+                mediaWidth != null && mediaHeight != null &&
+                abs(mediaWidth - mediaHeight) <= max(4, max(mediaWidth, mediaHeight) / 20)
+        val imageCornerTransformation = when {
+            isSquareVideoNote -> CircleCrop()
+            messageLayout is TimelineMessageLayout.Bubble -> messageLayout.cornersRadius.granularRoundedCorners()
+            else -> RoundedCorners(dimensionConverter.dpToPx(8))
         }
+        holder.imageView.clipToOutline = false
         imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(
