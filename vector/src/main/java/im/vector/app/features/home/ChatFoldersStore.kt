@@ -41,6 +41,16 @@ class ChatFoldersStore @Inject constructor(
     private val _separateChats = MutableStateFlow(preferences.getBoolean(KEY_SEPARATE_CHATS, true))
     val separateChatsFlow: StateFlow<Boolean> = _separateChats
 
+    private val _selectedFolderId = MutableStateFlow(preferences.getString(KEY_SELECTED_FOLDER, "all").orEmpty())
+    val selectedFolderIdFlow: StateFlow<String> = _selectedFolderId
+
+    fun selectedFolderId(): String = _selectedFolderId.value
+
+    fun setSelectedFolder(id: String) {
+        _selectedFolderId.value = id
+        preferences.edit().putString(KEY_SELECTED_FOLDER, id).apply()
+    }
+
     fun visibleFolders(): List<ChatFolderDefinition> {
         return _folders.value.filter { folder ->
             folder.enabled && (
@@ -73,12 +83,14 @@ class ChatFoldersStore @Inject constructor(
         }
         preferences.edit().putString(KEY_FOLDERS, json.toString()).apply()
         _folders.value = normalized
+        if (normalized.none { it.id == _selectedFolderId.value && it.enabled }) {
+            setSelectedFolder(normalized.firstOrNull { it.filter == HomeRoomFilter.ALL }?.id ?: "all")
+        }
     }
 
     fun createFolder(name: String, filter: HomeRoomFilter): Boolean {
         val cleanName = name.trim().take(MAX_FOLDER_NAME_LENGTH)
         if (cleanName.isBlank()) return false
-        if (_folders.value.any { it.filter == filter }) return false
         saveFolders(_folders.value + ChatFolderDefinition(UUID.randomUUID().toString(), cleanName, filter))
         return true
     }
@@ -132,10 +144,10 @@ class ChatFoldersStore @Inject constructor(
                         enabled = item.optBoolean("enabled", true)
                 )
             }
-            val unique = parsed.distinctBy { it.filter }
-            val all = unique.firstOrNull { it.filter == HomeRoomFilter.ALL }
+            val uniqueIds = parsed.distinctBy { it.id }
+            val all = uniqueIds.firstOrNull { it.filter == HomeRoomFilter.ALL }
                     ?: defaultFolders().first()
-            listOf(all.copy(enabled = true)) + unique.filterNot { it.filter == HomeRoomFilter.ALL }
+            listOf(all.copy(enabled = true)) + uniqueIds.filterNot { it.id == all.id || it.filter == HomeRoomFilter.ALL }
         }.getOrElse { defaultFolders() }
     }
 
@@ -151,6 +163,7 @@ class ChatFoldersStore @Inject constructor(
         private const val PREFS_NAME = "telegram_chat_folders"
         private const val KEY_FOLDERS = "folder_definitions"
         private const val KEY_SEPARATE_CHATS = "separate_chats"
+        private const val KEY_SELECTED_FOLDER = "selected_folder"
         private const val MAX_FOLDER_NAME_LENGTH = 28
     }
 }
