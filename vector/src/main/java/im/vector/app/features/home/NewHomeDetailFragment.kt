@@ -50,7 +50,6 @@ import im.vector.app.features.call.SharedKnownCallsViewModel
 import im.vector.app.features.call.VectorCallActivity
 import im.vector.app.features.call.dialpad.PstnDialActivity
 import im.vector.app.features.call.webrtc.WebRtcCallManager
-import im.vector.app.features.contactsbook.ContactsBookFragment
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.elementx.MigrationBannerAction
 import im.vector.app.features.elementx.MigrationBannerState
@@ -96,12 +95,14 @@ class NewHomeDetailFragment :
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var buildMeta: BuildMeta
+    @Inject lateinit var chatFoldersStore: ChatFoldersStore
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val newHomeDetailViewModel: NewHomeDetailViewModel by fragmentViewModel()
     private val homeRoomListViewModel: HomeRoomListViewModel by activityViewModel()
 
     private var isSyncingTelegramHomeTabs = false
+    private var activeHomeRoomFilter: HomeRoomFilter = HomeRoomFilter.ALL
     private var homeSearchTextWatcher: TextWatcher? = null
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
