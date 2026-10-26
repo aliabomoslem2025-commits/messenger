@@ -137,7 +137,7 @@ class ReactionButton @JvmOverloads constructor(
         val centerX = x + width / 2f
         val centerY = y + height / 2f
         val reactionGlyph = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: "✨"
-        val glyphs = listOf(reactionGlyph, "✨", reactionGlyph, "💫", reactionGlyph, "✨")
+        val glyphs = reactionBurstGlyphs(reactionGlyph)
         val radius = 22f * density
 
         glyphs.forEachIndexed { index, glyph ->
@@ -193,6 +193,27 @@ class ReactionButton @JvmOverloads constructor(
      * member reacts. Pop only the count label, not the entire timeline row, so
      * receipt and encryption-state rebinding cannot make the message flicker.
      */
+    /**
+     * Give common reactions their own visual language rather than playing the same
+     * generic sparkles for every emoji. These are independently rendered UI particles;
+     * the actual reaction still uses the Matrix event callbacks above.
+     */
+    private fun reactionBurstGlyphs(emoji: String): List<String> = when {
+        listOf("😂", "🤣", "😹", "😆", "😅").any { emoji.contains(it) } ->
+            listOf(emoji, "😂", "✨", "🤣", "💫", "😹")
+        listOf("😭", "😢", "🥹", "😿").any { emoji.contains(it) } ->
+            listOf(emoji, "💧", "😭", "💧", "😢", "✨")
+        listOf("❤️", "❤", "💕", "💖", "💗", "💓", "💞", "💘", "😍").any { emoji.contains(it) } ->
+            listOf(emoji, "💖", "💕", "💗", "❤️", "✨")
+        listOf("🔥", "💥").any { emoji.contains(it) } ->
+            listOf(emoji, "🔥", "✨", "💥", "🔥", "💫")
+        listOf("👍", "👎", "👏", "🙏", "💪").any { emoji.contains(it) } ->
+            listOf(emoji, "✨", "👍", "💫", emoji, "👏")
+        listOf("🎉", "🎊", "🥳", "✨", "🌟").any { emoji.contains(it) } ->
+            listOf(emoji, "🎉", "✨", "🎊", "🌟", "💫")
+        else -> listOf(emoji, "✨", emoji, "💫", emoji, "✨")
+    }
+
     /**
      * Shrink the selected emoji away when a reaction is removed. Matrix remains the
      * source of truth; this animation is only feedback and never changes event state.
