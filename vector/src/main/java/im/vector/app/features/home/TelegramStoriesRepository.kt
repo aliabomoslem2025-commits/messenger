@@ -100,7 +100,7 @@ class TelegramStoriesRepository @Inject constructor(
 
         val roomName = "${STORY_ROOM_NAME_PREFIX}|${session.myUserId}|$now"
         val params = CreateRoomParams().apply {
-            name = roomName
+            this.name = roomName
             roomType = STORY_ROOM_TYPE
             visibility = RoomDirectoryVisibility.PRIVATE
             preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
