@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="chat_bubble_fixed_size">420dp</dimen>
     <!-- Navigation Drawer -->
     <dimen name="navigation_drawer_max_width">400dp</dimen>
 
