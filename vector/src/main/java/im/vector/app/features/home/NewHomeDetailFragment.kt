@@ -351,28 +351,28 @@ class NewHomeDetailFragment :
         }
 
         views.telegramTabContacts.debouncedClicks {
-            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is ContactsBookFragment) {
+            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is TelegramChatFoldersFragment) {
                 if (childFragmentManager.backStackEntryCount > 0) {
                     childFragmentManager.popBackStackImmediate(
                             null,
                             androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
                     )
                 }
-                showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
                 childFragmentManager.commitTransaction {
-                    replace(R.id.roomListContainer, ContactsBookFragment())
-                    addToBackStack("telegram_contacts")
+                    replace(R.id.roomListContainer, TelegramChatFoldersFragment())
+                    addToBackStack("telegram_chat_folders")
                 }
             } else {
-                showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
             }
         }
 
         childFragmentManager.addOnBackStackChangedListener {
             if (!isAdded || view == null) return@addOnBackStackChangedListener
             when (childFragmentManager.findFragmentById(R.id.roomListContainer)) {
-                is ContactsBookFragment -> {
-                    showSecondaryTab(R.string.telegram_tab_contacts, views.telegramTabContacts)
+                is TelegramChatFoldersFragment -> {
+                    showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
                 }
                 is TelegramSettingsFragment -> {
                     showSecondaryTab(R.string.telegram_tab_settings, views.telegramTabSettings)
