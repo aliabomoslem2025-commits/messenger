@@ -15,6 +15,9 @@ import android.os.Build
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.HapticFeedbackConstants
+import android.view.animation.OvershootInterpolator
+import android.view.Gravity
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -227,6 +230,8 @@ class TimelineFragment :
         GalleryOrCameraDialogHelper.Listener,
         CurrentCallsView.Callback,
         VectorMenuProvider {
+    private val activeEmojiEffectParticles = mutableSetOf<TextView>()
+
 
     @Inject lateinit var session: Session
     @Inject lateinit var avatarRenderer: AvatarRenderer
@@ -539,6 +544,94 @@ class TimelineFragment :
                 views.viewSnowFall.isVisible = true
                 views.viewSnowFall.restartFalling()
             }
+            ChatEffect.LAUGHTER,
+            ChatEffect.CRYING,
+            ChatEffect.HEARTS,
+            ChatEffect.FIRE,
+            ChatEffect.THUMBS_UP,
+            ChatEffect.THUMBS_DOWN,
+            ChatEffect.THINKING -> playEmojiMessageEffect(chatEffect)
+        }
+    }
+
+    /**
+     * A lightweight, emotion-specific overlay for standalone emoji messages. It is attached to the
+     * timeline root (not to a recycled message bubble), so media and text bubble measurements stay
+     * unchanged. The particles are always removed on completion or when the effect is stopped.
+     */
+    private fun playEmojiMessageEffect(effect: ChatEffect) {
+        val root = views.rootConstraintLayout
+        if (root.width <= 0 || root.height <= 0) return
+
+        val glyphs = when (effect) {
+            ChatEffect.LAUGHTER -> listOf("😂", "🤣", "💧", "😆", "😂", "🤣", "✨")
+            ChatEffect.CRYING -> listOf("😭", "💧", "😢", "💧", "😭", "😥", "💦")
+            ChatEffect.HEARTS -> listOf("❤️", "💖", "💕", "💗", "💓", "❤️", "💘")
+            ChatEffect.FIRE -> listOf("🔥", "🔥", "✨", "🔥", "💥", "🔥", "✨")
+            ChatEffect.THUMBS_UP -> listOf("👍", "✨", "👍", "💫", "👍", "✨", "💥")
+            ChatEffect.THUMBS_DOWN -> listOf("👎", "💨", "👎", "💫", "👎", "💨", "✨")
+            ChatEffect.THINKING -> listOf("🤔", "💭", "❔", "🤔", "💭", "❔", "✨")
+            else -> return
+        }
+        val density = resources.displayMetrics.density
+        val centerX = root.width / 2f
+        val centerY = root.height * 0.42f
+        val particleSize = (54f * density).toInt()
+        val radiusX = (minOf(root.width * 0.34f, 112f * density))
+        val radiusY = minOf(root.height * 0.12f, 104f * density)
+
+        glyphs.forEachIndexed { index, glyph ->
+            val angle = (Math.PI * 2.0 * index / glyphs.size) - Math.PI / 2.0
+            val targetX = (kotlin.math.cos(angle) * radiusX).toFloat()
+            val yDirection = if (effect == ChatEffect.CRYING) 1f else -1f
+            val targetY = (kotlin.math.sin(angle) * radiusY * yDirection).toFloat()
+            val particle = TextView(requireContext()).apply {
+                text = glyph
+                textSize = if (index == 0) 36f else 27f
+                gravity = Gravity.CENTER
+                includeFontPadding = false
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                alpha = 0f
+                scaleX = 0.25f
+                scaleY = 0.25f
+                rotation = if (index % 2 == 0) -12f else 12f
+                setShadowLayer(3f * density, 0f, 1f * density, Color.DKGRAY)
+            }
+            particle.measure(
+                    View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY)
+            )
+            particle.layout(
+                    (centerX - particleSize / 2f).toInt(),
+                    (centerY - particleSize / 2f).toInt(),
+                    (centerX + particleSize / 2f).toInt(),
+                    (centerY + particleSize / 2f).toInt()
+            )
+            root.overlay.add(particle)
+            activeEmojiEffectParticles.add(particle)
+            particle.animate()
+                    .alpha(1f)
+                    .scaleX(1.08f)
+                    .scaleY(1.08f)
+                    .setStartDelay(index * 18L)
+                    .setDuration(135L)
+                    .setInterpolator(OvershootInterpolator(1.1f))
+                    .withEndAction {
+                        particle.animate()
+                                .translationX(targetX)
+                                .translationY(targetY)
+                                .rotation(if (index % 2 == 0) 18f else -18f)
+                                .alpha(0f)
+                                .scaleX(0.68f)
+                                .scaleY(0.68f)
+                                .setDuration(500L)
+                                .withEndAction {
+                                    root.overlay.remove(particle)
+                                    activeEmojiEffectParticles.remove(particle)
+                                }
+                                .start()
+                    }
+                    .start()
         }
     }
 
@@ -547,6 +640,11 @@ class TimelineFragment :
         views.viewSnowFall.isVisible = false
         // when gone the effect is a bit buggy
         views.viewKonfetti.isInvisible = true
+        activeEmojiEffectParticles.toList().forEach { particle ->
+            particle.animate().cancel()
+            views.rootConstraintLayout.overlay.remove(particle)
+        }
+        activeEmojiEffectParticles.clear()
     }
 
     override fun onImageReady(uri: Uri?) {
