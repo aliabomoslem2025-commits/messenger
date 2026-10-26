@@ -143,11 +143,16 @@ class TelegramChatFoldersFragment : Fragment(R.layout.fragment_telegram_chat_fol
 
     private fun showFolderMenu(anchor: View, folder: ChatFolderDefinition) {
         PopupMenu(requireContext(), anchor).apply {
-            menu.add(0, ACTION_RENAME, 0, R.string.telegram_folder_action_rename)
-            menu.add(0, ACTION_TOGGLE, 1, if (folder.enabled) R.string.telegram_folder_action_hide else R.string.telegram_folder_action_show)
-            menu.add(0, ACTION_MOVE_UP, 2, R.string.telegram_folder_action_move_up)
-            menu.add(0, ACTION_MOVE_DOWN, 3, R.string.telegram_folder_action_move_down)
-            menu.add(0, ACTION_DELETE, 4, R.string.telegram_folder_action_delete)
+            menu.add(0, ACTION_RENAME, 0, getString(R.string.telegram_folder_action_rename))
+            menu.add(
+                    0,
+                    ACTION_TOGGLE,
+                    1,
+                    getString(if (folder.enabled) R.string.telegram_folder_action_hide else R.string.telegram_folder_action_show)
+            )
+            menu.add(0, ACTION_MOVE_UP, 2, getString(R.string.telegram_folder_action_move_up))
+            menu.add(0, ACTION_MOVE_DOWN, 3, getString(R.string.telegram_folder_action_move_down))
+            menu.add(0, ACTION_DELETE, 4, getString(R.string.telegram_folder_action_delete))
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
                     ACTION_RENAME -> showRenameDialog(folder)
