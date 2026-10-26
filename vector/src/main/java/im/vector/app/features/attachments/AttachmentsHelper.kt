@@ -19,6 +19,7 @@ import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import im.vector.lib.core.utils.compat.getSerializableCompat
+import im.vector.lib.multipicker.CameraVideoPicker
 import im.vector.lib.multipicker.MultiPicker
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import timber.log.Timber
@@ -111,12 +112,14 @@ class AttachmentsHelper(
      * photo and video first. The result follows the same preview and Matrix send path.
      */
     fun recordVideo(cameraVideoActivityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
-        captureUri = MultiPicker.get(MultiPicker.CAMERA_VIDEO)
-                .startWithExpectingFile(
-                        context = context,
-                        activityResultLauncher = cameraVideoActivityResultLauncher,
-                        maxDurationSeconds = 60
-                )
+        // Video notes use an in-app circular preview/recorder. The resulting file is
+        // still passed to MultiPicker below and then through the existing Matrix media
+        // preview/upload path; the recorder itself does not fake a successful send.
+        val output = CameraVideoPicker.createVideoCaptureOutput(context, videoNote = true)
+        captureUri = output.uri
+        val intent = Intent(context, VideoNoteCaptureActivity::class.java)
+                .putExtra(VideoNoteCaptureActivity.EXTRA_OUTPUT_PATH, output.file.absolutePath)
+        cameraVideoActivityResultLauncher.launch(intent)
     }
 
     /**
