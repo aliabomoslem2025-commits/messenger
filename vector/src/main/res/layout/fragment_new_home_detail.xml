@@ -144,10 +144,10 @@
                     android:layout_height="match_parent"
                     android:background="@android:color/transparent"
                     app:tabBackground="@drawable/bg_telegram_home_tab"
-                    app:tabGravity="fill"
+                    app:tabGravity="center"
                     app:tabIndicatorHeight="0dp"
                     app:tabMinHeight="26dp"
-                    app:tabMode="fixed"
+                    app:tabMode="scrollable"
                     app:tabRippleColor="@android:color/transparent"
                     app:tabSelectedTextColor="@color/telegram_accent_blue"
                     app:tabTextColor="?vctr_content_secondary" />
