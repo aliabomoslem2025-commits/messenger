@@ -9,6 +9,8 @@ package im.vector.app.features.home
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Outline
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.provider.MediaStore
 import android.text.Editable
@@ -17,9 +19,12 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.Gravity
 import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isGone
@@ -63,6 +68,7 @@ import im.vector.app.features.home.room.list.home.HomeRoomListViewModel
 import im.vector.app.features.home.room.list.home.HomeRoomListViewState
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.home.room.list.home.NewChatBottomSheet
+import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.qrcode.QrCodeScannerActivity
@@ -75,6 +81,7 @@ import im.vector.app.features.workers.signout.ServerBackupStatusViewModel
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import javax.inject.Inject
@@ -96,6 +103,8 @@ class NewHomeDetailFragment :
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
     @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var chatFoldersStore: ChatFoldersStore
+    @Inject lateinit var telegramStoriesRepository: TelegramStoriesRepository
+    @Inject lateinit var imageContentRenderer: ImageContentRenderer
 
     private val viewModel: HomeDetailViewModel by fragmentViewModel()
     private val newHomeDetailViewModel: NewHomeDetailViewModel by fragmentViewModel()
@@ -186,6 +195,7 @@ class NewHomeDetailFragment :
 
         setupTelegramHomeSearch()
         setupTelegramBottomNavigation()
+        setupTelegramStoriesPreview()
 
         childFragmentManager.commitTransaction {
             add(R.id.roomListContainer, HomeRoomListFragment::class.java, null, HOME_ROOM_LIST_FRAGMENT_TAG)
