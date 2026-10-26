@@ -111,4 +111,5 @@
     <string name="telegram_stories_photo">Photo</string>
     <string name="telegram_stories_video">Video</string>
     <string name="telegram_stories_open_viewer">Open Stories</string>
+    <string name="telegram_stories_yours">Your story</string>
 </resources>
