@@ -44,6 +44,9 @@ class AttachmentsHelper(
     // Capture path allows to handle camera image picking. It must be restored if the activity gets killed.
     private var captureUri: Uri? = null
 
+    // Distinguishes the dedicated circular-note action from a regular camera video.
+    private var captureAsVideoMessage = false
+
     // The pending type is set if we have to handle permission request. It must be restored if the activity gets killed.
     var pendingType: AttachmentType? = null
 
@@ -101,6 +104,7 @@ class AttachmentsHelper(
             }
 
             override fun takeVideo() = doSafe {
+                captureAsVideoMessage = false
                 captureUri = MultiPicker.get(MultiPicker.CAMERA_VIDEO).startWithExpectingFile(context, cameraVideoActivityResultLauncher)
             }
         })
@@ -111,6 +115,7 @@ class AttachmentsHelper(
      * photo and video first. The result follows the same preview and Matrix send path.
      */
     fun recordVideo(cameraVideoActivityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
+        captureAsVideoMessage = true
         captureUri = MultiPicker.get(MultiPicker.CAMERA_VIDEO)
                 .startWithExpectingFile(
                         context = context,
@@ -187,13 +192,26 @@ class AttachmentsHelper(
     }
 
     fun onCameraVideoResult() {
+        val isVideoNote = captureAsVideoMessage
+        captureAsVideoMessage = false
         captureUri?.let { captureUri ->
             MultiPicker.get(MultiPicker.CAMERA_VIDEO)
                     .getTakenVideo(context, captureUri)
-                    ?.let {
-                        callback.onContentAttachmentsReady(
-                                listOf(it).map { it.toContentAttachmentData() }
-                        )
+                    ?.let { takenVideo ->
+                        val attachment = takenVideo.toContentAttachmentData()
+                        val preparedAttachment = if (isVideoNote) {
+                            val originalName = attachment.name?.takeIf { it.isNotBlank() } ?: "video.mp4"
+                            attachment.copy(
+                                    name = if (originalName.startsWith(TelegramMediaMarkers.VIDEO_NOTE_FILENAME_PREFIX)) {
+                                        originalName
+                                    } else {
+                                        TelegramMediaMarkers.VIDEO_NOTE_FILENAME_PREFIX + originalName
+                                    }
+                            )
+                        } else {
+                            attachment
+                        }
+                        callback.onContentAttachmentsReady(listOf(preparedAttachment))
                     }
         }
     }
