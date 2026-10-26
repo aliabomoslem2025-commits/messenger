@@ -56,6 +56,7 @@ class AttachmentTypeSelectorView(
         contentView = inflater.inflate(R.layout.view_attachment_type_selector, null, false)
         views = ViewAttachmentTypeSelectorBinding.bind(contentView)
         views.attachmentGalleryButton.configure(AttachmentType.GALLERY)
+        views.attachmentVideoMessageButton.configure(AttachmentType.VIDEO_MESSAGE)
         views.attachmentCameraButton.configure(AttachmentType.CAMERA)
         views.attachmentFileButton.configure(AttachmentType.FILE)
         views.attachmentStickersButton.configure(AttachmentType.STICKER)
@@ -116,6 +117,7 @@ class AttachmentTypeSelectorView(
     fun setAttachmentVisibility(type: AttachmentType, isVisible: Boolean) {
         when (type) {
             AttachmentType.CAMERA -> views.attachmentCameraButton
+            AttachmentType.VIDEO_MESSAGE -> views.attachmentVideoMessageButton
             AttachmentType.GALLERY -> views.attachmentGalleryButton
             AttachmentType.FILE -> views.attachmentFileButton
             AttachmentType.STICKER -> views.attachmentStickersButton
@@ -207,6 +209,7 @@ class AttachmentTypeSelectorView(
         private val attachmentTooltipLabels: Map<AttachmentType, Int> = AttachmentType.values().associateWith {
             when (it) {
                 AttachmentType.CAMERA -> CommonStrings.tooltip_attachment_photo
+                AttachmentType.VIDEO_MESSAGE -> R.string.telegram_attachment_record_video
                 AttachmentType.GALLERY -> CommonStrings.tooltip_attachment_gallery
                 AttachmentType.FILE -> CommonStrings.tooltip_attachment_file
                 AttachmentType.STICKER -> CommonStrings.tooltip_attachment_sticker
