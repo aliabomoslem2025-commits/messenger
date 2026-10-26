@@ -40,10 +40,10 @@ import im.vector.app.databinding.FragmentTelegramStoriesBinding
 import im.vector.app.features.media.ImageContentRenderer
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 private const val STORY_PHOTO_DURATION_MS = 5_000L
 private const val ARG_INITIAL_STORY_EVENT_ID = "initial_story_event_id"
-import kotlin.math.roundToInt
 
 /**
  * Story hub for Messenger's app-specific encrypted Matrix Stories format.
