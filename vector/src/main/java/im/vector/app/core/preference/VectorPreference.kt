@@ -85,7 +85,7 @@ open class VectorPreference : Preference {
     override fun onBindViewHolder(holder: PreferenceViewHolder) {
         val itemView = holder.itemView
         addClickListeners(itemView)
-        applyTelegramPreferenceCard(holder, itemView)
+        applyTelegramPreferenceCard(itemView)
 
         // display the title in multi-line to avoid ellipsis.
         try {
@@ -101,7 +101,7 @@ open class VectorPreference : Preference {
             val icon = holder.findViewById(android.R.id.icon) as? ImageView
             icon?.let {
                 val (fallbackIcon, accentColor) = getPreferenceIconStyle()
-                if (it.drawable == null || icon == null) {
+                if (it.drawable == null) {
                     it.setImageResource(fallbackIcon)
                 }
                 it.isVisible = true
@@ -150,7 +150,7 @@ open class VectorPreference : Preference {
         if (!isHighlighted) TelegramPreferenceStyler.apply(this, holder)
     }
 
-    private fun applyTelegramPreferenceCard(holder: PreferenceViewHolder, itemView: View) {
+    private fun applyTelegramPreferenceCard(itemView: View) {
         val horizontalPadding = dp(14)
         itemView.setPadding(horizontalPadding, dp(12), horizontalPadding, dp(12))
         (itemView.layoutParams as? ViewGroup.MarginLayoutParams)?.let { params ->
