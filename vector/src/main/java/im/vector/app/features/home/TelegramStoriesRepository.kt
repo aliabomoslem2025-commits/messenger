@@ -137,7 +137,7 @@ class TelegramStoriesRepository @Inject constructor(
         roomId
     }
 
-    suspend fun loadStories(): List<Story> = withContext(Dispatchers.IO) {
+    suspend fun loadStories(joinInvitations: Boolean = true): List<Story> = withContext(Dispatchers.IO) {
         val session = activeSessionHolder.getSafeActiveSession() ?: return@withContext emptyList()
         val query = RoomSummaryQueryParams.Builder().also {
             it.memberships = listOf(Membership.JOIN, Membership.INVITE)
@@ -148,11 +148,15 @@ class TelegramStoriesRepository @Inject constructor(
         // Invitations are joined only after the user opens Stories, so the home
         // screen itself does not silently join newly invited rooms.
         val initialSummaries = session.roomService().getRoomSummaries(query)
-        initialSummaries.filter { it.membership == Membership.INVITE }.forEach { summary ->
-            runCatching { session.roomService().joinRoom(summary.roomId) }
+        if (joinInvitations) {
+            initialSummaries.filter { it.membership == Membership.INVITE }.forEach { summary ->
+                runCatching { session.roomService().joinRoom(summary.roomId) }
+            }
         }
 
-        val summaries = session.roomService().getRoomSummaries(query)
+        val summaries = session.roomService().getRoomSummaries(query).filter { summary ->
+            joinInvitations || summary.membership == Membership.JOIN
+        }
         val seenIds = session.accountDataService()
                 .getUserAccountDataEvent(STORY_SEEN_ACCOUNT_DATA)
                 ?.content
@@ -175,6 +179,8 @@ class TelegramStoriesRepository @Inject constructor(
                 if (message.msgType != MSGTYPE_IMAGE && message.msgType != MSGTYPE_VIDEO) return@eventLoop
                 val createdAt = (metadata["created_at"] as? Number)?.toLong()
                         ?: event.root.originServerTs
+                        ?: event.root.ageLocalTs
+                        ?: now
                 result += Story(
                         roomId = summary.roomId,
                         event = event,
