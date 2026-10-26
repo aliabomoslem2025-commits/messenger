@@ -21,6 +21,7 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
@@ -125,13 +126,24 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     }
 
     /**
-     * Telegram-style large emoji messages pop into view when newly sent. Only animate
-     * recent outgoing local events, and remember their event IDs so Epoxy rebinds or
-     * scrolling do not replay the effect on older messages.
+     * Telegram-inspired entrance for a standalone large-emoji message. Run it for
+     * freshly received as well as locally sent events, but never for old history.
+     * Remember event IDs so RecyclerView/Epoxy rebinding cannot replay it while
+     * the user scrolls through the same timeline.
      */
     private fun animateNewOutgoingEmoji(messageView: AppCompatTextView) {
         val info = attributes.informationData
-        if (!useBigFont || !info.sentByMe) return
+
+        // Epoxy may recycle a TextView that was animated for a previous message.
+        // Restore its baseline before checking whether this event should animate.
+        messageView.animate().cancel()
+        messageView.scaleX = 1f
+        messageView.scaleY = 1f
+        messageView.alpha = 1f
+        messageView.rotation = 0f
+        messageView.translationY = 0f
+
+        if (!useBigFont || !messageView.context.isAnimationEnabled()) return
         val localTimestamp = info.ageLocalTS ?: return
         val ageMs = System.currentTimeMillis() - localTimestamp
         if (ageMs !in -2_000L..8_000L) return
@@ -153,16 +165,29 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         if (!shouldAnimate) return
 
-        messageView.animate().cancel()
-        messageView.scaleX = 0.68f
-        messageView.scaleY = 0.68f
-        messageView.alpha = 0.75f
+        val density = messageView.resources.displayMetrics.density
+        messageView.pivotX = messageView.width / 2f
+        messageView.pivotY = messageView.height / 2f
+        messageView.scaleX = 0.48f
+        messageView.scaleY = 0.48f
+        messageView.alpha = 0.25f
+        messageView.rotation = if (info.sentByMe) -8f else 8f
+        messageView.translationY = 8f * density
         messageView.animate()
-                .scaleX(1f)
-                .scaleY(1f)
+                .scaleX(1.08f)
+                .scaleY(1.08f)
                 .alpha(1f)
-                .setDuration(430L)
-                .setInterpolator(OvershootInterpolator(1.2f))
+                .rotation(0f)
+                .translationY(0f)
+                .setDuration(360L)
+                .setInterpolator(OvershootInterpolator(1.35f))
+                .withEndAction {
+                    messageView.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(120L)
+                            .start()
+                }
                 .start()
     }
 
