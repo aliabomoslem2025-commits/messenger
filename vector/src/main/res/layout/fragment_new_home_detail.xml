@@ -276,10 +276,10 @@
                 android:layout_width="22dp"
                 android:layout_height="22dp"
                 android:visibility="gone"
-                android:contentDescription="@string/telegram_tab_contacts"
+                android:contentDescription="@string/telegram_tab_chat_folders"
                 android:duplicateParentState="true"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_baseline_perm_contact_calendar_24"
+                android:src="@drawable/ic_telegram_chat_folder"
                 android:tint="@color/telegram_bottom_tab_tint" />
 
             <TextView
@@ -290,7 +290,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:text="@string/telegram_tab_contacts"
+                android:text="@string/telegram_tab_chat_folders"
                 android:textColor="@color/telegram_bottom_tab_tint"
                 android:textSize="14sp" />
 
