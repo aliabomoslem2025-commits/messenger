@@ -155,11 +155,13 @@ class ChatFoldersStore @Inject constructor(
     }
 
     private fun defaultFolders(): List<ChatFolderDefinition> = listOf(
+            // Keep the four requested Telegram-style defaults visible in this exact order.
             ChatFolderDefinition("all", context.getString(R.string.telegram_folder_all_chats), HomeRoomFilter.ALL, true),
-            ChatFolderDefinition("personal", context.getString(R.string.telegram_folder_personal), HomeRoomFilter.PEOPlE, true),
-            ChatFolderDefinition("groups", context.getString(R.string.telegram_folder_groups), HomeRoomFilter.ROOMS, true),
             ChatFolderDefinition("unread", context.getString(R.string.telegram_folder_unread), HomeRoomFilter.UNREADS, true),
-            ChatFolderDefinition("favorites", context.getString(R.string.telegram_folder_favorites), HomeRoomFilter.FAVOURITES, true)
+            ChatFolderDefinition("favorites", context.getString(R.string.telegram_folder_favorites), HomeRoomFilter.FAVOURITES, true),
+            ChatFolderDefinition("personal", context.getString(R.string.telegram_folder_personal), HomeRoomFilter.PEOPlE, true),
+            // Additional categories remain available in folder management, but do not crowd the default tabs.
+            ChatFolderDefinition("groups", context.getString(R.string.telegram_folder_groups), HomeRoomFilter.ROOMS, false)
     )
 
     companion object {
