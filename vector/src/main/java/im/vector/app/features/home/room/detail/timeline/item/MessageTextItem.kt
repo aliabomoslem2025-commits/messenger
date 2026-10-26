@@ -27,6 +27,7 @@ import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLay
 import im.vector.app.features.home.room.detail.timeline.tools.findPillsAndProcess
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlRetriever
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlUiState
+import im.vector.app.features.home.room.detail.timeline.view.MessageBubbleView
 import im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
@@ -114,6 +115,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
         animateNewOutgoingEmoji(messageView)
+        // The send-state binder applies Element's generic text tint; restore the
+        // bubble-specific palette so the outgoing Telegram-blue bubble stays readable.
+        val bubbleLayout = attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble
+        if (bubbleLayout != null) {
+            (holder.view as? MessageBubbleView)?.refreshBubbleTextColor(bubbleLayout)
+        }
         markwonPlugins?.forEach { plugin -> plugin.afterSetText(messageView) }
     }
 
