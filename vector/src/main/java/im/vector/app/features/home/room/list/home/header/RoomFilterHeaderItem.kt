@@ -64,6 +64,8 @@ abstract class RoomFilterHeaderItem : VectorEpoxyModel<RoomFilterHeaderItem.Hold
             HomeRoomFilter.UNREADS -> Interaction.Name.MobileAllChatsFilterUnreads
             HomeRoomFilter.FAVOURITES -> Interaction.Name.MobileAllChatsFilterFavourites
             HomeRoomFilter.PEOPlE -> Interaction.Name.MobileAllChatsFilterPeople
+            // Matrix rooms/groups do not have an existing dedicated analytics event.
+            HomeRoomFilter.ROOMS -> return
         }
 
         analyticsTracker?.capture(
