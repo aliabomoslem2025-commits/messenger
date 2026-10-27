@@ -45,3 +45,11 @@ jobs:
 
       - name: Assemble debug APK
         run: ./gradlew assemble${{ matrix.target }}Debug --stacktrace -PpreDexEnable=false --max-workers 2 --no-daemon
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: messenger-${{ matrix.target }}-debug-${{ github.sha }}
+          path: vector-app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+          retention-days: 14
