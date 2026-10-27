@@ -8,6 +8,8 @@
 package im.vector.app.features.home.room.detail.timeline.style
 
 import android.content.res.Resources
+import android.icu.text.BreakIterator
+import im.vector.app.core.utils.containsOnlyEmojis
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
@@ -15,6 +17,8 @@ import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
+import java.util.Locale
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -117,15 +121,17 @@ class TimelineMessageLayoutFactory @Inject constructor(
                     )
 
                     val messageContent = event.getVectorLastMessageContent()
+                    val isStandaloneEmoji = messageContent.isStandaloneEmoji()
                     TimelineMessageLayout.Bubble(
                             showAvatar = showInformation && !isSentByMe,
                             showDisplayName = showInformation && !isSentByMe,
                             addTopMargin = isFirstFromThisSender && isSentByMe,
                             isIncoming = !isSentByMe,
                             cornersRadius = cornersRadius,
-                            isPseudoBubble = messageContent.isPseudoBubble(),
-                            timestampInsideMessage = messageContent.timestampInsideMessage(),
-                            addMessageOverlay = messageContent.shouldAddMessageOverlay(),
+                            // Telegram-style standalone emoji messages have no filled bubble.
+                            isPseudoBubble = messageContent.isPseudoBubble() || isStandaloneEmoji,
+                            timestampInsideMessage = messageContent.timestampInsideMessage() || isStandaloneEmoji,
+                            addMessageOverlay = messageContent.shouldAddMessageOverlay() || isStandaloneEmoji,
                     )
                 } else {
                     buildModernLayout(showInformation)
@@ -133,6 +139,20 @@ class TimelineMessageLayoutFactory @Inject constructor(
             }
         }
         return messageLayout
+    }
+
+    /**
+     * Telegram renders a message containing exactly one emoji as a large, transparent
+     * animated emoji instead of a colored text bubble. Use Unicode grapheme boundaries
+     * so skin-tone, flag, and ZWJ family emoji are treated as one emoji.
+     */
+    private fun MessageContent?.isStandaloneEmoji(): Boolean {
+        val body = (this as? MessageTextContent)?.body?.trim().orEmpty()
+        if (body.isEmpty() || !containsOnlyEmojis(body)) return false
+        val iterator = BreakIterator.getCharacterInstance(Locale.ROOT)
+        iterator.setText(body)
+        iterator.first()
+        return iterator.next() == body.length
     }
 
     private fun MessageContent?.isPseudoBubble(): Boolean {
