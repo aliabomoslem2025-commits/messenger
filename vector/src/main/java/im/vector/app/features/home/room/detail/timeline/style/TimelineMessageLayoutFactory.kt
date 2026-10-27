@@ -7,7 +7,9 @@
 
 package im.vector.app.features.home.room.detail.timeline.style
 
+import android.content.Context
 import android.content.res.Resources
+import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
@@ -28,6 +30,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
         private val session: Session,
         private val layoutSettingsProvider: TimelineLayoutSettingsProvider,
         private val resources: Resources,
+        @ApplicationContext private val context: Context,
         private val vectorPreferences: VectorPreferences
 ) {
 
@@ -143,11 +146,11 @@ class TimelineMessageLayoutFactory @Inject constructor(
     }
 
     /**
-     * Telegram renders one emoji as a transparent animated sticker, not a colored text bubble.
-     * Limit this to emoji-only bodies so normal text messages retain the regular bubble color.
+     * Only emoji present in the animated-emoji manifest are promoted to Telegram's transparent
+     * sticker-style rendering. Unsupported Unicode emoji keep the normal Matrix chat bubble.
      */
     private fun MessageContent?.isStandaloneEmoji(): Boolean {
-        return this is MessageTextContent && TelegramEmojiText.isSingleEmoji(body)
+        return this is MessageTextContent && TelegramEmojiText.isAnimatedEmoji(context, body)
     }
 
     private fun MessageContent?.timestampInsideMessage(): Boolean {
