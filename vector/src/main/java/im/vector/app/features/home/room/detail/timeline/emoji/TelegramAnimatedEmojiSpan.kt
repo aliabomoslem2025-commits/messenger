@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.LruCache
 import android.text.style.ReplacementSpan
 import android.util.Base64
 import android.util.Base64InputStream
@@ -27,7 +28,6 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.zip.GZIPInputStream
 import timber.log.Timber
@@ -107,7 +107,7 @@ internal class TelegramAnimatedEmojiSpan(
 
             mainHandler.post {
                 if (boundView !== viewAtRequest) return@post
-                val cachedComposition = compositions[assetFileName]
+                val cachedComposition = synchronized(compositions) { compositions.get(assetFileName) }
                 if (cachedComposition != null) {
                     applyComposition(cachedComposition, viewAtRequest)
                     return@post
@@ -115,8 +115,12 @@ internal class TelegramAnimatedEmojiSpan(
                 LottieCompositionFactory.fromJsonString(json, "telegram-emoji-" + assetFileName)
                         .addListener { composition ->
                             if (boundView !== viewAtRequest) return@addListener
-                            compositions.putIfAbsent(assetFileName, composition)
-                            applyComposition(compositions[assetFileName] ?: composition, viewAtRequest)
+                            val selectedComposition = synchronized(compositions) {
+                                compositions.get(assetFileName) ?: composition.also {
+                                    compositions.put(assetFileName, it)
+                                }
+                            }
+                            applyComposition(selectedComposition, viewAtRequest)
                         }
                         .addFailureListener { failure ->
                             if (boundView === viewAtRequest) fail(viewAtRequest, failure)
@@ -349,6 +353,8 @@ internal class TelegramAnimatedEmojiSpan(
             Thread(runnable, "telegram-tgs-decode").apply { isDaemon = true }
         }
         private val mainHandler = Handler(Looper.getMainLooper())
-        private val compositions = ConcurrentHashMap<String, LottieComposition>()
+        // Bound parsed compositions in memory; the disk TGS cache is separately size-limited.
+        private val compositions = LruCache<String, LottieComposition>(MAX_CACHED_COMPOSITIONS)
+        private const val MAX_CACHED_COMPOSITIONS = 32
     }
 }
