@@ -666,7 +666,7 @@ class MessageItemFactory @Inject constructor(
                             linkifiedBody
                         }.toEpoxyCharSequence()
                 )
-                .useBigFont(isSingleEmoji(linkifiedBody.toString()) || (linkifiedBody.length <= MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT * 2 && containsOnlyEmojis(linkifiedBody.toString())))
+                .useBigFont(isSingleEmoji(linkifiedBody.toString()) || (linkifiedBody.length <= MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT * 2 && containsOnlyEmojis(linkifiedBody.toString()) && linkifiedBody.any { it.code > 0x7F }))
                 .bindingOptions(bindingOptions)
                 .markwonPlugins(htmlRenderer.get().plugins)
                 .searchForPills(isFormatted)
