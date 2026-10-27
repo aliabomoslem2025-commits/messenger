@@ -2,7 +2,7 @@ Telegram Animated Emoji Asset Manifest
 ========================================
 
 The manifest lists the 599 standard animated emoji TGS entries currently indexed by:
-https://github.com/saeedtahmtan/telemoji
+https://github.com/saeedtahmtan/telemoji (revision 4f45fca016c71de9d2a9e15c07ae1fe3d8327a28)
 
 The underlying animation payloads are Telegram-created assets and are not original artwork by this project. The app resolves the required TGS file on demand and caches it locally; the manifest itself is bundled with the Android application.
 
