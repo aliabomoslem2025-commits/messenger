@@ -122,8 +122,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         val messageText = message?.charSequence
         val standaloneEmoji = messageText?.toString()?.trim()
         val animationAsset = if (useBigFont && standaloneEmoji != null &&
-                TelegramEmojiText.isSingleEmoji(standaloneEmoji)) {
-            TelegramEmojiText.animationAssetName(standaloneEmoji)
+                TelegramEmojiText.isAnimatedEmoji(messageView.context, standaloneEmoji)) {
+            TelegramEmojiText.animationAssetName(
+                    context = messageView.context,
+                    rawEmoji = standaloneEmoji,
+                    stableKey = attributes.informationData.eventId
+            )
         } else {
             null
         }
