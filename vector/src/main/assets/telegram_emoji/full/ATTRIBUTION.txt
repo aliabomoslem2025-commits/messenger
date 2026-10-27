@@ -1,0 +1,13 @@
+Telegram Animated Emoji Asset Manifest
+========================================
+
+The manifest lists the 599 standard animated emoji TGS entries currently indexed by:
+https://github.com/saeedtahmtan/telemoji
+
+The underlying animation payloads are Telegram-created assets and are not original artwork by this project. The app resolves the required TGS file on demand and caches it locally; the manifest itself is bundled with the Android application.
+
+Consult Telegram's current terms before redistribution or use:
+https://core.telegram.org/api/animated-emojis
+https://core.telegram.org/api/stickers
+
+Rendering uses Airbnb Lottie for Android (Apache-2.0). TGS is gzip-compressed Lottie JSON. Telegram's official Android renderer uses its own TGS-compatible rendering stack, so the Lottie rendering may not be pixel-identical for every animation.
