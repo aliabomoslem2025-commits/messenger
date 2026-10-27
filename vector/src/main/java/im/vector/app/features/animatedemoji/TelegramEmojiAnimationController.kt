@@ -270,7 +270,7 @@ object TelegramEmojiAnimationController {
                     override fun onAnimationEnd(animation: Animator) = removeAnimation()
                     override fun onAnimationCancel(animation: Animator) = removeAnimation()
                 })
-                detachListener?.let { host.addOnAttachStateChangeListener(it) }
+                host.addOnAttachStateChangeListener(detachListener)
                 overlay.add(animationView)
                 animationView.progress = 0f
                 animationView.playAnimation()
