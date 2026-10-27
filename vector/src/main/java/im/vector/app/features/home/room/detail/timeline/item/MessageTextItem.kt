@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.item
 import android.text.Spanned
 import android.text.method.MovementMethod
 import android.view.View
+import android.view.Gravity
 import android.view.ViewStub
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.text.PrecomputedTextCompat
@@ -89,6 +90,10 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             holder.richMessageView?.isVisible = false
         }
         val messageView: AppCompatTextView = if (useRichTextEditorStyle) holder.requireRichMessageView() else holder.requirePlainMessageView()
+        val eventId = attributes.informationData.eventId
+        val candidateEmoji = message?.charSequence?.toString()?.trim()
+                ?.takeIf { useBigFont && isSingleEmoji(it) }
+        TelegramEmojiAnimationController.prepareForMessage(messageView, eventId, candidateEmoji)
         messageView.isVisible = true
         // Resolve paragraph direction from the message text, not from the app's
         // global layout direction. This keeps Persian/Arabic text right-aligned
@@ -96,10 +101,12 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
         messageView.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
         if (useBigFont) {
-            messageView.textSize = 44F
+            messageView.textSize = if (candidateEmoji != null) 48F else 44F
         } else {
             messageView.textSize = 16F
         }
+        // Center the standalone glyph underneath the transparent animation overlay.
+        messageView.gravity = if (candidateEmoji != null) Gravity.CENTER else Gravity.TOP or Gravity.START
         if (searchForPills) {
             message?.charSequence?.findPillsAndProcess(coroutineScope) {
                 // mmm.. not sure this is so safe in regards to cell reuse
@@ -114,10 +121,11 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         renderSendState(messageView, messageView)
         messageView.onClick { view ->
             if (!TelegramEmojiAnimationController.replay(view) && useBigFont) {
-                messageView.text?.toString()?.trim()?.takeIf { it.isNotEmpty() }?.let { emoji ->
+                messageView.text?.toString()?.trim()?.takeIf { isSingleEmoji(it) }?.let { emoji ->
                     TelegramEmojiAnimationController.playStandalone(
                             messageView,
                             emoji,
+                            attributes.informationData.eventId,
                             attributes.informationData.eventId.hashCode()
                     )
                 }
@@ -125,7 +133,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             attributes.itemClickListener?.invoke(view)
         }
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
-        TelegramEmojiAnimationController.clear(messageView)
+        // prepareForMessage() above preserves a running animation for the same Matrix event.
         messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
         animateRecentStandaloneEmoji(messageView)
         // The send-state binder applies Element's generic text tint; restore the
@@ -143,8 +151,15 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
      */
     private fun animateRecentStandaloneEmoji(messageView: AppCompatTextView) {
         val info = attributes.informationData
+        if (!useBigFont || !messageView.context.isAnimationEnabled()) return
 
-        // Reset properties potentially left behind by view recycling.
+        val emoji = messageView.text?.toString()?.trim().orEmpty()
+        if (!isSingleEmoji(emoji)) return
+
+        // A send-state rebind of the same event must not replace an already-running
+        // animation with the static glyph.
+        if (TelegramEmojiAnimationController.hasStateForMessage(messageView, info.eventId, emoji)) return
+
         messageView.animate().cancel()
         messageView.scaleX = 1f
         messageView.scaleY = 1f
@@ -153,16 +168,13 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.translationX = 0f
         messageView.translationY = 0f
 
-        if (!useBigFont || !messageView.context.isAnimationEnabled()) return
-        val emoji = messageView.text?.toString()?.trim().orEmpty()
-        if (!isSingleEmoji(emoji)) return
-
-        // Either clock may be absent or stale for a local echo that just synced.
-        // Accept the event if at least one trustworthy event timestamp is recent.
         val now = System.currentTimeMillis()
-        val isRecent = listOfNotNull(info.ageLocalTS, info.eventTimestamp)
-                .any { timestamp -> (now - timestamp) in -2_000L..8_000L }
-        if (!isRecent) return
+        val hasRecentTimestamp = listOfNotNull(info.ageLocalTS, info.eventTimestamp)
+                .any { timestamp -> (now - timestamp) in -2_000L..15_000L }
+        // Matrix's local echo is available before a server timestamp exists. Start
+        // the animation immediately for our own pending send instead of waiting for sync.
+        val isLocalEcho = info.sentByMe && info.sendState.isSending()
+        if (!isLocalEcho && !hasRecentTimestamp) return
 
         val shouldAnimate = synchronized(animatedBigEmojiEventIds) {
             if (animatedBigEmojiEventIds.contains(info.eventId)) {
@@ -181,11 +193,17 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         if (!shouldAnimate) return
 
-        TelegramEmojiAnimationController.playStandalone(
+        val started = TelegramEmojiAnimationController.playStandalone(
                 messageView,
                 emoji,
+                info.eventId,
                 info.eventId.hashCode()
         )
+        if (!started) {
+            synchronized(animatedBigEmojiEventIds) {
+                animatedBigEmojiEventIds.remove(info.eventId)
+            }
+        }
     }
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {

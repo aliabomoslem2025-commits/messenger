@@ -98,45 +98,64 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 event.isRootThread() ||
                 nextDisplayableEvent.isEdition()
 
-        val messageLayout = when (layoutSettingsProvider.getLayoutSettings()) {
-            TimelineLayoutSettings.MODERN -> {
-                buildModernLayout(showInformation)
-            }
-            TimelineLayoutSettings.BUBBLE -> {
-                val shouldBuildBubbleLayout = event.shouldBuildBubbleLayout()
-                if (shouldBuildBubbleLayout) {
-                    val isFirstFromThisSender = nextDisplayableEvent == null || !nextDisplayableEvent.shouldBuildBubbleLayout() ||
-                            nextDisplayableEvent.root.senderId != event.root.senderId || addDaySeparator
+        val messageContent = event.getVectorLastMessageContent()
+        val isStandaloneEmoji = messageContent.isStandaloneEmoji()
+        val shouldBuildBubble = event.shouldBuildBubbleLayout()
+        val useBubbleLayout = layoutSettingsProvider.getLayoutSettings() == TimelineLayoutSettings.BUBBLE
 
-                    val isLastFromThisSender = prevDisplayableEvent == null || !prevDisplayableEvent.shouldBuildBubbleLayout() ||
-                            prevDisplayableEvent.root.senderId != event.root.senderId ||
-                            prevDisplayableEvent.root.localDateTime().toLocalDate() != date.toLocalDate()
-
-                    val cornersRadius = buildCornersRadius(
-                            isIncoming = !isSentByMe,
-                            isFirstFromThisSender = isFirstFromThisSender,
-                            isLastFromThisSender = isLastFromThisSender
-                    )
-
-                    val messageContent = event.getVectorLastMessageContent()
-                    val isStandaloneEmoji = messageContent.isStandaloneEmoji()
-                    TimelineMessageLayout.Bubble(
-                            showAvatar = showInformation && !isSentByMe,
-                            showDisplayName = showInformation && !isSentByMe,
-                            addTopMargin = isFirstFromThisSender && isSentByMe,
-                            isIncoming = !isSentByMe,
-                            cornersRadius = cornersRadius,
-                            // Telegram-style standalone emoji messages have no filled bubble.
-                            isPseudoBubble = messageContent.isPseudoBubble() || isStandaloneEmoji,
-                            timestampInsideMessage = messageContent.timestampInsideMessage() || isStandaloneEmoji,
-                            addMessageOverlay = messageContent.shouldAddMessageOverlay() || isStandaloneEmoji,
-                    )
-                } else {
-                    buildModernLayout(showInformation)
-                }
-            }
+        // Standalone emoji messages must use transparent Telegram-style geometry even
+        // when the user's regular timeline preference is Element's modern layout.
+        val messageLayout = if (shouldBuildBubble && (useBubbleLayout || isStandaloneEmoji)) {
+            buildBubbleLayout(
+                    event = event,
+                    nextDisplayableEvent = nextDisplayableEvent,
+                    prevDisplayableEvent = prevDisplayableEvent,
+                    addDaySeparator = addDaySeparator,
+                    showInformation = showInformation,
+                    isSentByMe = isSentByMe,
+                    messageContent = messageContent,
+                    isStandaloneEmoji = isStandaloneEmoji
+            )
+        } else {
+            buildModernLayout(showInformation)
         }
         return messageLayout
+    }
+
+    private fun buildBubbleLayout(
+            event: TimelineEvent,
+            nextDisplayableEvent: TimelineEvent?,
+            prevDisplayableEvent: TimelineEvent?,
+            addDaySeparator: Boolean,
+            showInformation: Boolean,
+            isSentByMe: Boolean,
+            messageContent: MessageContent?,
+            isStandaloneEmoji: Boolean
+    ): TimelineMessageLayout.Bubble {
+        val isFirstFromThisSender = nextDisplayableEvent == null ||
+                !nextDisplayableEvent.shouldBuildBubbleLayout() ||
+                nextDisplayableEvent.root.senderId != event.root.senderId ||
+                addDaySeparator
+        val isLastFromThisSender = prevDisplayableEvent == null ||
+                !prevDisplayableEvent.shouldBuildBubbleLayout() ||
+                prevDisplayableEvent.root.senderId != event.root.senderId ||
+                prevDisplayableEvent.root.localDateTime().toLocalDate() != event.root.localDateTime().toLocalDate()
+
+        return TimelineMessageLayout.Bubble(
+                showAvatar = showInformation && !isSentByMe,
+                showDisplayName = showInformation && !isSentByMe,
+                addTopMargin = isFirstFromThisSender && isSentByMe,
+                isIncoming = !isSentByMe,
+                cornersRadius = buildCornersRadius(
+                        isIncoming = !isSentByMe,
+                        isFirstFromThisSender = isFirstFromThisSender,
+                        isLastFromThisSender = isLastFromThisSender
+                ),
+                isPseudoBubble = messageContent.isPseudoBubble() || isStandaloneEmoji,
+                timestampInsideMessage = messageContent.timestampInsideMessage() || isStandaloneEmoji,
+                // Do not draw the translucent media overlay behind a standalone emoji.
+                addMessageOverlay = if (isStandaloneEmoji) false else messageContent.shouldAddMessageOverlay()
+        )
     }
 
     /**

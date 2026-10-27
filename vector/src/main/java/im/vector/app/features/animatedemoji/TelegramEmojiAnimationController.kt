@@ -7,8 +7,8 @@ package im.vector.app.features.animatedemoji
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.util.TypedValue
+import android.graphics.Color
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -29,17 +29,21 @@ object TelegramEmojiAnimationController {
             val text: CharSequence?,
             val gravity: Int,
             val textSizePx: Float,
-            val drawables: Array<Drawable?>,
-            val compoundDrawablePadding: Int,
+            val alpha: Float,
+            val visibility: Int,
             val contentDescription: CharSequence?
     )
 
     private class StandaloneState(
-            private val snapshot: TextSnapshot
+            val eventId: String,
+            val emoji: String,
+            private val snapshot: TextSnapshot,
+            val animationView: LottieAnimationView
     ) : View.OnAttachStateChangeListener {
-        var drawable: LottieDrawable? = null
         var hasStarted = false
         var finished = false
+        var compositionReady = false
+        var animatorListener: Animator.AnimatorListener? = null
 
         override fun onViewAttachedToWindow(view: View) {
             val textView = view as? TextView ?: return
@@ -47,77 +51,129 @@ object TelegramEmojiAnimationController {
         }
 
         override fun onViewDetachedFromWindow(view: View) {
-            drawable?.pauseAnimation()
+            animationView.pauseAnimation()
         }
 
         fun startIfNeeded(view: TextView) {
-            val animation = drawable ?: return
-            if (!view.isAttachedToWindow || finished) return
+            if (!view.isAttachedToWindow || finished || !compositionReady) return
             if (!hasStarted) {
-                animation.progress = 0f
-                animation.playAnimation()
+                animationView.progress = 0f
+                animationView.playAnimation()
                 hasStarted = true
             } else {
-                animation.resumeAnimation()
+                animationView.resumeAnimation()
             }
         }
 
         fun replay(view: TextView): Boolean {
-            if (drawable == null) return false
+            if (!compositionReady) return false
             finished = false
             hasStarted = false
-            drawable?.progress = 0f
+            animationView.visibility = View.VISIBLE
+            view.alpha = 0f
+            animationView.progress = 0f
             startIfNeeded(view)
             return true
         }
 
         fun restore(view: TextView) {
             view.removeOnAttachStateChangeListener(this)
-            drawable?.stop()
-            drawable = null
-            view.setCompoundDrawables(
-                    snapshot.drawables.getOrNull(0),
-                    snapshot.drawables.getOrNull(1),
-                    snapshot.drawables.getOrNull(2),
-                    snapshot.drawables.getOrNull(3)
-            )
-            view.compoundDrawablePadding = snapshot.compoundDrawablePadding
+            animatorListener?.let(animationView::removeAnimatorListener)
+            animatorListener = null
+            animationView.cancelAnimation()
+            animationView.visibility = View.GONE
+            animationView.contentDescription = null
+            animationView.setBackgroundColor(Color.TRANSPARENT)
+            animationView.setImageDrawable(null)
             view.text = snapshot.text
             view.gravity = snapshot.gravity
             view.setTextSize(TypedValue.COMPLEX_UNIT_PX, snapshot.textSizePx)
             view.contentDescription = snapshot.contentDescription
+            view.alpha = snapshot.alpha
+            view.visibility = snapshot.visibility
             view.requestLayout()
+            animationView.requestLayout()
         }
     }
 
-    /** Clear animation state when Epoxy/RecyclerView reuses the message TextView. */
-    fun clear(textView: TextView) {
-        val state = textView.getTag(R.id.tag_telegram_animated_emoji_state) as? StandaloneState ?: return
-        textView.setTag(R.id.tag_telegram_animated_emoji_state, null)
-        state.restore(textView)
+    /**
+     * The emoji animation is a transparent sibling over the original TextView.
+     * Keeping the TextView underneath preserves message measurement, hit targets and
+     * a Unicode fallback while the Lottie composition loads.
+     */
+    fun animationViewFor(textView: TextView): LottieAnimationView? =
+            (textView.parent as? ViewGroup)?.findViewById(R.id.messageAnimatedEmojiView)
+
+    /**
+     * Keep the animation alive when Matrix updates a local echo from SENDING to SENT/SYNCED.
+     * Only a different event or different emoji resets the animation layer.
+     */
+    fun prepareForMessage(textView: TextView, eventId: String, emoji: String?) {
+        val existing = textView.getTag(R.id.tag_telegram_animated_emoji_state) as? StandaloneState
+        if (existing != null && emoji != null && existing.eventId == eventId && existing.emoji == emoji) {
+            return
+        }
+        clear(textView)
     }
 
-    /** Load a matching standalone emoji. Unicode remains visible while loading or on failure. */
-    fun playStandalone(textView: TextView, emoji: String, seed: Int = 0): Boolean {
+    fun hasStateForMessage(textView: TextView, eventId: String, emoji: String): Boolean {
+        val state = textView.getTag(R.id.tag_telegram_animated_emoji_state) as? StandaloneState
+        return state != null && state.eventId == eventId && state.emoji == emoji
+    }
+
+    /** Clear animation state when Epoxy/RecyclerView recycles the message TextView. */
+    fun clear(textView: TextView) {
+        val state = textView.getTag(R.id.tag_telegram_animated_emoji_state) as? StandaloneState
+        textView.setTag(R.id.tag_telegram_animated_emoji_state, null)
+        if (state != null) {
+            state.restore(textView)
+        } else {
+            animationViewFor(textView)?.let { animationView ->
+                animationView.cancelAnimation()
+                animationView.visibility = View.GONE
+                animationView.contentDescription = null
+                animationView.setBackgroundColor(Color.TRANSPARENT)
+                animationView.setImageDrawable(null)
+            }
+        }
+    }
+
+    /** Play the emoji animation above the transparent message content. */
+    fun playStandalone(textView: TextView, emoji: String, eventId: String, seed: Int = eventId.hashCode()): Boolean {
         if (!textView.context.isAnimationEnabled()) return false
+        val animationView = animationViewFor(textView) ?: return false
 
         val existing = textView.getTag(R.id.tag_telegram_animated_emoji_state) as? StandaloneState
         if (existing != null) {
-            return if (existing.drawable != null) existing.replay(textView) else true
+            if (existing.eventId == eventId && existing.emoji == emoji) {
+                return if (existing.compositionReady) existing.replay(textView) else true
+            }
+            clear(textView)
         }
 
         val snapshot = TextSnapshot(
                 text = textView.text,
                 gravity = textView.gravity,
                 textSizePx = textView.textSize,
-                drawables = textView.compoundDrawables,
-                compoundDrawablePadding = textView.compoundDrawablePadding,
+                alpha = textView.alpha,
+                visibility = textView.visibility,
                 contentDescription = textView.contentDescription
         )
-        val state = StandaloneState(snapshot)
+        val state = StandaloneState(eventId, emoji, snapshot, animationView)
         textView.setTag(R.id.tag_telegram_animated_emoji_state, state)
         textView.addOnAttachStateChangeListener(state)
 
+        loadCatalogAnimation(textView, animationView, state, emoji, seed)
+        return true
+    }
+
+    private fun loadCatalogAnimation(
+            textView: TextView,
+            animationView: LottieAnimationView,
+            state: StandaloneState,
+            emoji: String,
+            seed: Int
+    ) {
         TelegramEmojiAssetCatalog.findAsync(
                 context = textView.context,
                 emoji = emoji,
@@ -137,35 +193,44 @@ object TelegramEmojiAnimationController {
                     onSuccess = { composition ->
                         if (textView.getTag(R.id.tag_telegram_animated_emoji_state) !== state) return@loadComposition
                         try {
-                            val drawable = LottieDrawable().apply {
-                                this.composition = composition
-                                repeatCount = 0
-                                val size = dp(textView.context, STANDALONE_SIZE_DP)
-                                setBounds(0, 0, size, size)
-                            }
-                            drawable.addAnimatorListener(object : AnimatorListenerAdapter() {
+                            animationView.setBackgroundColor(Color.TRANSPARENT)
+                            animationView.setComposition(composition)
+                            animationView.repeatCount = 0
+                            animationView.speed = 1f
+                            animationView.progress = 0f
+                            animationView.contentDescription = null
+                            animationView.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                            animationView.isClickable = false
+                            animationView.isFocusable = false
+                            state.compositionReady = true
+                            state.animatorListener = object : AnimatorListenerAdapter() {
                                 override fun onAnimationEnd(animation: Animator) {
                                     if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
                                         state.finished = true
                                     }
                                 }
-                            })
-                            state.drawable = drawable
-                            textView.text = ""
-                            textView.gravity = Gravity.CENTER
-                            textView.compoundDrawablePadding = 0
-                            textView.contentDescription = snapshot.text?.toString() ?: emoji
-                            textView.setCompoundDrawables(null, drawable, null, null)
+
+                                override fun onAnimationCancel(animation: Animator) {
+                                    if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
+                                        state.finished = true
+                                    }
+                                }
+                            }.also(animationView::addAnimatorListener)
+                            // Hide only the glyph; its layout size and clickable target remain.
+                            textView.alpha = 0f
+                            animationView.visibility = View.VISIBLE
                             textView.requestLayout()
+                            animationView.requestLayout()
                             state.startIfNeeded(textView)
                         } catch (throwable: Throwable) {
                             restoreIfCurrent(textView, state)
                         }
                     },
-                    onFailure = { restoreIfCurrent(textView, state) }
+                    onFailure = {
+                        restoreIfCurrent(textView, state)
+                    }
             )
         }
-        return true
     }
 
     /**
@@ -215,10 +280,12 @@ object TelegramEmojiAnimationController {
         animationView.contentDescription = null
     }
 
-    /** Replay the animation when a user taps a previously animated emoji message. */
+    /** Replay a loaded animation when the user taps the emoji message. */
     fun replay(view: View): Boolean {
         val textView = view as? TextView ?: return false
         val state = textView.getTag(R.id.tag_telegram_animated_emoji_state) as? StandaloneState ?: return false
+        // Do not dispatch a second load while the first composition is still downloading.
+        if (!state.compositionReady) return true
         return state.replay(textView)
     }
 

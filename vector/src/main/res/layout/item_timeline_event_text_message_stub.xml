@@ -7,17 +7,37 @@
     android:orientation="vertical"
     tools:viewBindingIgnore="true">
 
-    <ViewStub
-        android:id="@+id/plainMessageTextViewStub"
+    <FrameLayout
+        android:id="@+id/messageTextAnimationContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout="@layout/item_timeline_event_text_message_plain_stub" />
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
-    <ViewStub
-        android:id="@+id/richMessageTextViewStub"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout="@layout/item_timeline_event_text_message_rich_stub" />
+        <ViewStub
+            android:id="@+id/plainMessageTextViewStub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout="@layout/item_timeline_event_text_message_plain_stub" />
+
+        <ViewStub
+            android:id="@+id/richMessageTextViewStub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout="@layout/item_timeline_event_text_message_rich_stub" />
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/messageAnimatedEmojiView"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:background="@android:color/transparent"
+            android:clickable="false"
+            android:focusable="false"
+            android:importantForAccessibility="no"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
     <im.vector.app.features.home.room.detail.timeline.url.PreviewUrlView
         android:id="@+id/messageUrlPreview"

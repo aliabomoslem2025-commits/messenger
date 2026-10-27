@@ -130,7 +130,9 @@ class MessageBubbleView @JvmOverloads constructor(
     private fun TimelineMessageLayout.Bubble.setMessageTextColor() = apply {
         val messageText = views.viewStubContainer.root.findViewById<TextView>(R.id.messageTextView)
         if (messageText != null) {
-            val textColorAttribute = if (isIncoming) {
+            val textColorAttribute = if (isPseudoBubble && timestampInsideMessage && !addMessageOverlay) {
+                im.vector.lib.ui.styles.R.attr.vctr_content_primary
+            } else if (isIncoming) {
                 im.vector.lib.ui.styles.R.attr.vctr_content_primary
             } else {
                 im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
@@ -159,7 +161,9 @@ class MessageBubbleView @JvmOverloads constructor(
             views.messageOverlayView.isVisible = true
             (views.messageOverlayView.background as? GradientDrawable)?.cornerRadii = cornersRadius.toFloatArray()
         } else {
-            val timeColor = if (!isIncoming) {
+            val timeColor = if (isPseudoBubble && timestampInsideMessage && !addMessageOverlay) {
+                ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+            } else if (!isIncoming) {
                 ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text)
             } else {
                 ThemeUtils.getColor(context, im.vector.lib.ui.styles.R.attr.vctr_content_tertiary)
