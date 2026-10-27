@@ -15,7 +15,9 @@ import im.vector.app.features.settings.VectorPreferences
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import im.vector.app.features.home.room.detail.timeline.emoji.TelegramEmojiText
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.isEdition
@@ -137,12 +139,21 @@ class TimelineMessageLayoutFactory @Inject constructor(
 
     private fun MessageContent?.isPseudoBubble(): Boolean {
         if (this == null) return false
-        return this.msgType in MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT
+        return this.msgType in MSG_TYPES_WITH_PSEUDO_BUBBLE_LAYOUT || isStandaloneEmoji()
+    }
+
+    /**
+     * Telegram renders one emoji as a transparent animated sticker, not a colored text bubble.
+     * Limit this to emoji-only bodies so normal text messages retain the regular bubble color.
+     */
+    private fun MessageContent?.isStandaloneEmoji(): Boolean {
+        return this is MessageTextContent && TelegramEmojiText.isSingleEmoji(body)
     }
 
     private fun MessageContent?.timestampInsideMessage(): Boolean {
         return when {
             this == null -> false
+            isStandaloneEmoji() -> false
             else -> msgType in MSG_TYPES_WITH_TIMESTAMP_INSIDE_MESSAGE
         }
     }
