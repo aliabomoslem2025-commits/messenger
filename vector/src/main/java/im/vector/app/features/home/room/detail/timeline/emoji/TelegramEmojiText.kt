@@ -5,27 +5,114 @@
  */
 package im.vector.app.features.home.room.detail.timeline.emoji
 
+import android.content.Context
+import org.json.JSONArray
+import java.util.LinkedHashMap
+
 /**
- * Unicode-only emoji detection and the locally bundled Telegram animation assets.
- * Unknown emoji remain normal Unicode glyphs; they are not given a fake scale animation.
+ * Maps Unicode emoji graphemes to the complete standard Telegram animated-emoji set.
+ *
+ * The bundled manifest includes every TGS entry in the source set. The binary animation is fetched
+ * lazily by TelegramAnimatedEmojiSpan and cached in the app's private cache directory, avoiding
+ * a multi-megabyte APK increase while allowing every listed emoji and variant to be played.
  */
 object TelegramEmojiText {
-    private val animationAssets = mapOf(
-            "😀" to "U+1F600_1.tgs.b64",
-            "😂" to "U+1F602_1.tgs.b64",
-            "🤣" to "U+1F923_1.tgs.b64",
+    private const val MANIFEST_PATH = "telegram_emoji/full/manifest.json"
+    private const val MAX_MANIFEST_BYTES = 1_000_000
+
+    private data class AssetVariant(
+            val assetName: String,
+            val variant: Int,
     )
 
-    fun animationAssetName(emoji: String): String? {
-        return animationAssets[emoji.trim().replace("\uFE0F", "")]
+    @Volatile
+    private var manifestIndex: Map<String, List<AssetVariant>>? = null
+
+    private val manifestLock = Any()
+
+    /**
+     * True only when text consists of one Unicode emoji grapheme and an animation for it exists
+     * in the official-set manifest. Unsupported/newer emoji remain ordinary text messages.
+     */
+    fun isAnimatedEmoji(context: Context, rawText: String): Boolean {
+        val emoji = rawText.trim()
+        return isSingleEmoji(emoji) && animationAssetName(context, emoji) != null
     }
 
     /**
-     * Returns true only when the body contains one emoji grapheme. Handles variation selectors,
-     * skin tones, paired regional indicators, keycaps and ZWJ emoji such as family sequences.
+     * Selects an asset variant deterministically for this message so RecyclerView rebinding does
+     * not change animation identity. If Telegram's set has more than one TGS document for an
+     * emoticon, all variants remain indexed and different message IDs can use different variants.
+     */
+    fun animationAssetName(context: Context, rawEmoji: String, stableKey: String = rawEmoji): String? {
+        val emoji = normalize(rawEmoji.trim())
+        if (emoji.isEmpty()) return null
+        val variants = loadManifest(context)[emoji] ?: return fallbackAsset(emoji)
+        if (variants.isEmpty()) return fallbackAsset(emoji)
+        val index = ((stableKey.hashCode().toLong() and 0x7fffffffL) % variants.size).toInt()
+        return variants[index].assetName
+    }
+
+    private fun fallbackAsset(emoji: String): String? = when (normalize(emoji)) {
+        "😀" -> "U+1F600_1.tgs"
+        "😂" -> "U+1F602_1.tgs"
+        "🤣" -> "U+1F923_1.tgs"
+        else -> null
+    }
+
+    private fun loadManifest(context: Context): Map<String, List<AssetVariant>> {
+        manifestIndex?.let { return it }
+        synchronized(manifestLock) {
+            manifestIndex?.let { return it }
+            val result = runCatching {
+                context.applicationContext.assets.open(MANIFEST_PATH).use { stream ->
+                    val bytes = stream.readBytes()
+                    require(bytes.size <= MAX_MANIFEST_BYTES) { "Animated emoji manifest is too large" }
+                    val root = org.json.JSONObject(String(bytes, Charsets.UTF_8))
+                    val items = root.getJSONArray("items")
+                    val mutable = LinkedHashMap<String, MutableList<AssetVariant>>()
+                    for (index in 0 until items.length()) {
+                        val item = items.getJSONObject(index)
+                        val emoji = normalize(item.optString("emoji"))
+                        val file = item.optString("assetName")
+                        val variant = item.optInt("variant", 1)
+                        if (emoji.isEmpty() || !isSafeAssetName(file)) continue
+                        val variants = mutable.getOrPut(emoji) { mutableListOf() }
+                        if (variants.none { it.assetName == file }) {
+                            variants.add(AssetVariant(file, variant))
+                        }
+                    }
+                    mutable.mapValues { (_, variants) -> variants.sortedBy { it.variant } }
+                }
+            }.getOrElse { error ->
+                // If the manifest is damaged, keep the three explicitly bundled animations usable.
+                android.util.Log.e("TelegramEmojiText", "Failed to read animated emoji manifest", error)
+                mapOf(
+                        "😀" to listOf(AssetVariant("U+1F600_1.tgs", 1)),
+                        "😂" to listOf(AssetVariant("U+1F602_1.tgs", 1)),
+                        "🤣" to listOf(AssetVariant("U+1F923_1.tgs", 1)),
+                )
+            }
+            manifestIndex = result
+            return result
+        }
+    }
+
+    private fun isSafeAssetName(file: String): Boolean {
+        return file.endsWith(".tgs") && file.isNotBlank() &&
+                file.all { it.isLetterOrDigit() || it == '_' || it == '+' || it == '.' || it == '-' }
+    }
+
+    private fun normalize(emoji: String): String {
+        return emoji.replace("\uFE0F", "").replace("\uFE0E", "")
+    }
+
+    /**
+     * Returns true only when the trimmed body contains one emoji grapheme. Handles variation
+     * selectors, skin tones, paired regional indicators, keycaps and zero-width-joiner sequences.
      */
     fun isSingleEmoji(rawText: String): Boolean {
-        val text = rawText.trim()
+        val text = normalize(rawText.trim())
         if (text.isEmpty() || text.any { it.isWhitespace() }) return false
 
         val points = ArrayList<Int>()
@@ -37,7 +124,6 @@ object TelegramEmojiText {
         }
         if (points.isEmpty()) return false
 
-        // Keycap emoji (for example 1️⃣, #️⃣ and *️⃣).
         if (points.last() == KEYCAP) {
             val visible = points.filterNot { isVariationSelector(it) }
             return visible.size == 2 &&
@@ -70,7 +156,7 @@ object TelegramEmojiText {
                 else -> return false
             }
         }
-        return emojiClusters == 1 && !expectsJoinedEmoji
+        return emojiClusters == 1 && !expectsJoinedEmoji && regionalIndicatorCount == 0
     }
 
     private fun isVariationSelector(point: Int): Boolean {
