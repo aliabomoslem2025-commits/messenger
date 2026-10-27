@@ -112,7 +112,10 @@ object TelegramEmojiText {
      */
     fun isSingleEmoji(rawText: String): Boolean {
         val text = normalize(rawText.trim())
-        if (text.isEmpty() || text.any { it.isWhitespace() }) return false
+        // A Unicode emoji grapheme (including the longest supported ZWJ sequences) is short.
+        // Reject long message bodies before walking code points in the timeline layout hot path.
+        if (text.isEmpty() || text.length > MAX_STANDALONE_EMOJI_UTF16_LENGTH ||
+                text.any { it.isWhitespace() }) return false
 
         val points = ArrayList<Int>()
         var index = 0
@@ -170,6 +173,7 @@ object TelegramEmojiText {
                 point in setOf(0x00A9, 0x00AE, 0x203C, 0x2049, 0x2122, 0x2139, 0x3030, 0x303D, 0x3297, 0x3299)
     }
 
+    private const val MAX_STANDALONE_EMOJI_UTF16_LENGTH = 64
     private const val ZERO_WIDTH_JOINER = 0x200D
     private const val KEYCAP = 0x20E3
     private val REGIONAL_INDICATORS = 0x1F1E6..0x1F1FF
