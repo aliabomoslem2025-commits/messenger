@@ -32,6 +32,11 @@ fun isSingleEmoji(str: String?): Boolean {
     val text = str?.trim().orEmpty()
     if (text.isEmpty() || !containsOnlyEmojis(text)) return false
 
+    // Some emoji libraries treat ASCII digits/punctuation as emoji-capable bases.
+    // Telegram only treats these as emoji when they form a complete keycap sequence.
+    val firstCodePoint = Character.codePointAt(text, 0)
+    if (firstCodePoint in 0x20..0x7E && '\u20E3' !in text) return false
+
     var clusterCount = 0
     var hasPendingRegionalIndicator = false
     var joinNext = false
