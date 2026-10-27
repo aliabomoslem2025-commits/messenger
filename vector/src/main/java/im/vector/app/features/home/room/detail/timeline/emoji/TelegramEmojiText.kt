@@ -139,7 +139,7 @@ object TelegramEmojiText {
                 .removeSuffix(".json") + ".webp"
         val appContext = context.applicationContext
         val cachedFile = cacheFile(appContext, webpPath, "webp")
-        if (cachedFile.isFile && cachedFile.length() in 12..MAX_WEBP_BYTES.toLong()) {
+        if (cachedFile.isFile && cachedFile.length() in 12L..MAX_WEBP_BYTES.toLong()) {
             return cachedFile
         }
         runCatching { cachedFile.delete() }
