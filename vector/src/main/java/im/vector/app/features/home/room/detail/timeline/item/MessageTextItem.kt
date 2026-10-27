@@ -8,6 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.item
 
 import android.text.Spanned
+import android.icu.text.BreakIterator
 import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewStub
@@ -20,6 +21,7 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
+import im.vector.app.core.utils.containsOnlyEmojis
 import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.features.animatedemoji.TelegramEmojiAnimationController
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
@@ -153,11 +155,15 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.translationY = 0f
 
         if (!useBigFont || !messageView.context.isAnimationEnabled()) return
-        // Some synced Matrix events no longer carry a local timestamp. Fall back to
-        // the server event timestamp so a just-sent/received emoji can still animate.
-        val eventTimestamp = info.ageLocalTS ?: info.eventTimestamp ?: return
-        val ageMs = System.currentTimeMillis() - eventTimestamp
-        if (ageMs !in -2_000L..8_000L) return
+        val emoji = messageView.text?.toString()?.trim().orEmpty()
+        if (!isSingleEmoji(emoji)) return
+
+        // Either clock may be absent or stale for a local echo that just synced.
+        // Accept the event if at least one trustworthy event timestamp is recent.
+        val now = System.currentTimeMillis()
+        val isRecent = listOfNotNull(info.ageLocalTS, info.eventTimestamp)
+                .any { timestamp -> (now - timestamp) in -2_000L..8_000L }
+        if (!isRecent) return
 
         val shouldAnimate = synchronized(animatedBigEmojiEventIds) {
             if (animatedBigEmojiEventIds.contains(info.eventId)) {
@@ -176,14 +182,19 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         if (!shouldAnimate) return
 
-        val emoji = messageView.text?.toString()?.trim().orEmpty()
-        if (emoji.isNotEmpty()) {
-            TelegramEmojiAnimationController.playStandalone(
-                    messageView,
-                    emoji,
-                    info.eventId.hashCode()
-            )
-        }
+        TelegramEmojiAnimationController.playStandalone(
+                messageView,
+                emoji,
+                info.eventId.hashCode()
+        )
+    }
+
+    private fun isSingleEmoji(value: String): Boolean {
+        if (value.isEmpty() || !containsOnlyEmojis(value)) return false
+        val iterator = BreakIterator.getCharacterInstance(java.util.Locale.ROOT)
+        iterator.setText(value)
+        iterator.first()
+        return iterator.next() == value.length
     }
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {
