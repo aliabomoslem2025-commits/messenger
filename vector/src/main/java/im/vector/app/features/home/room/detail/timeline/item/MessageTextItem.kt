@@ -21,6 +21,7 @@ import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.epoxy.onLongClickIgnoringLinks
+import im.vector.app.core.utils.isAnimationEnabled
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.emoji.TelegramEmojiText
 import im.vector.app.features.home.room.detail.timeline.emoji.TelegramAnimatedEmojiSpan
