@@ -42,6 +42,7 @@ object TelegramEmojiText {
     private const val READ_TIMEOUT_MS = 15_000
     private const val MAX_COMPRESSED_BYTES = 512 * 1024
     private const val MAX_JSON_BYTES = 2 * 1024 * 1024
+    private const val MAX_WEBP_BYTES = 8 * 1024 * 1024
 
     private val manifestLock = Any()
 
@@ -124,6 +125,71 @@ object TelegramEmojiText {
         }.onFailure { Log.w(TAG, "Unable to cache emoji asset $path", it) }
 
         return json
+    }
+
+    /**
+     * Downloads the RLottie-rendered animated WebP variant where available. Modern Android
+     * decodes animated WebP natively; this is closer to Telegram's RLottie output than a
+     * generic Lottie renderer. The Lottie JSON path remains the compatibility fallback.
+     */
+    internal fun loadAnimationWebpFile(context: Context, lottiePath: String): File {
+        require(isAllowedAssetPath(lottiePath)) { "Unsupported Telegram emoji asset path" }
+        val webpPath = lottiePath
+                .replaceFirst("lottie/animated/", "webp/animated/")
+                .removeSuffix(".json") + ".webp"
+        val appContext = context.applicationContext
+        val cachedFile = cacheFile(appContext, webpPath, "webp")
+        if (cachedFile.isFile && cachedFile.length() in 12..MAX_WEBP_BYTES.toLong()) {
+            return cachedFile
+        }
+        runCatching { cachedFile.delete() }
+
+        val connection = URL(
+                "https://media.githubusercontent.com/media/saeedtahmtan/telemoji/$SOURCE_REVISION/$webpPath"
+        ).openConnection() as HttpsURLConnection
+        val payload: ByteArray
+        try {
+            connection.connectTimeout = CONNECT_TIMEOUT_MS
+            connection.readTimeout = READ_TIMEOUT_MS
+            connection.requestMethod = "GET"
+            connection.instanceFollowRedirects = true
+            connection.setRequestProperty("Accept", "image/webp, application/octet-stream")
+            connection.setRequestProperty("Accept-Encoding", "identity")
+            connection.setRequestProperty("User-Agent", "Messenger-Telegram-Emoji/1.0")
+
+            val status = connection.responseCode
+            if (status != HttpURLConnection.HTTP_OK) {
+                throw IOException("Emoji WebP request failed with HTTP $status")
+            }
+            if (connection.contentLength > MAX_WEBP_BYTES) {
+                throw IOException("Emoji WebP exceeds size limit")
+            }
+            payload = connection.inputStream.use { readBytesLimited(it, MAX_WEBP_BYTES) }
+        } finally {
+            connection.disconnect()
+        }
+        if (!isWebpPayload(payload)) throw IOException("Invalid Telegram emoji WebP payload")
+
+        cachedFile.parentFile?.mkdirs()
+        val temporary = File(cachedFile.parentFile, cachedFile.name + ".tmp")
+        temporary.writeBytes(payload)
+        if (!temporary.renameTo(cachedFile)) {
+            temporary.copyTo(cachedFile, overwrite = true)
+            temporary.delete()
+        }
+        return cachedFile
+    }
+
+    private fun isWebpPayload(bytes: ByteArray): Boolean {
+        if (bytes.size < 12) return false
+        return bytes[0] == 'R'.code.toByte() &&
+                bytes[1] == 'I'.code.toByte() &&
+                bytes[2] == 'F'.code.toByte() &&
+                bytes[3] == 'F'.code.toByte() &&
+                bytes[8] == 'W'.code.toByte() &&
+                bytes[9] == 'E'.code.toByte() &&
+                bytes[10] == 'B'.code.toByte() &&
+                bytes[11] == 'P'.code.toByte()
     }
 
     /**
@@ -228,11 +294,11 @@ object TelegramEmojiText {
                 path.all { it.isLetterOrDigit() || it in "/_+.-" }
     }
 
-    private fun cacheFile(context: Context, path: String): File {
+    private fun cacheFile(context: Context, path: String, extension: String = "json"): File {
         val digest = MessageDigest.getInstance("SHA-256")
                 .digest((SOURCE_REVISION + "/" + path).toByteArray(Charsets.UTF_8))
                 .joinToString("") { byte -> "%02x".format(byte.toInt() and 0xff) }
-        return File(File(context.filesDir, CACHE_DIRECTORY), "$digest.json")
+        return File(File(context.filesDir, CACHE_DIRECTORY), "$digest.$extension")
     }
 
     private fun decodePayload(payload: ByteArray): String {
