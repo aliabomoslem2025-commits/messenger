@@ -28,8 +28,8 @@
 
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/messageAnimatedEmojiView"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:layout_gravity="center"
             android:background="@android:color/transparent"
             android:clickable="false"

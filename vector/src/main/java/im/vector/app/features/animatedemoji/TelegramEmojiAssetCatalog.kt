@@ -13,7 +13,7 @@ import timber.log.Timber
 import java.util.concurrent.Executors
 
 internal object TelegramEmojiAssetCatalog {
-    private const val ASSET_BASE_URL = "https://raw.githubusercontent.com/saeedtahmtan/telemoji/main/"
+    private const val ASSET_BASE_URL = "https://saeedtahmtan.github.io/telemoji/"
     private val acceptedTypes = setOf("animated", "reactions", "generic_anim", "dice")
     private val loader = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "telegram-emoji-catalog").apply { isDaemon = true }
@@ -33,7 +33,7 @@ internal object TelegramEmojiAssetCatalog {
             get() = TelegramEmojiAssetCatalog.assetUrl(path)
     }
 
-    fun assetUrl(path: String): String = ASSET_BASE_URL + path
+    fun assetUrl(path: String): String = ASSET_BASE_URL + path.replace("+", "%2B")
 
     /** Parse the compact manifest away from the UI thread. Callback always runs on main. */
     fun findAsync(

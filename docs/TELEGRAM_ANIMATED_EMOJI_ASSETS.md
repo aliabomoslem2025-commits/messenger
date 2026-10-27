@@ -13,7 +13,7 @@ uses a local composition, starts without an asset-network round trip, and contin
 animate offline after installation. The runtime retains a fallback for APKs built
 without the generated asset set:
 
-https://raw.githubusercontent.com/saeedtahmtan/telemoji/main/
+https://saeedtahmtan.github.io/telemoji/
 
 When the machine building the app is fully offline, the bundle step is skipped and the
 runtime fallback remains available; first playback then requires network access. The

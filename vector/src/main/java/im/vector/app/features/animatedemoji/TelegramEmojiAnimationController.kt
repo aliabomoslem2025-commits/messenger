@@ -22,7 +22,7 @@ import im.vector.app.core.utils.isAnimationEnabled
 import kotlin.random.Random
 
 object TelegramEmojiAnimationController {
-    private const val STANDALONE_SIZE_DP = 48
+    private const val STANDALONE_SIZE_DP = 72
     private const val REACTION_SIZE_DP = 104
 
     private class TextSnapshot(
@@ -162,6 +162,16 @@ object TelegramEmojiAnimationController {
     fun playStandalone(textView: TextView, emoji: String, eventId: String, seed: Int = eventId.hashCode()): Boolean {
         if (!textView.context.isAnimationEnabled()) return false
         val animationView = animationViewFor(textView) ?: return false
+        // Keep the overlay at Telegram-style large-emoji dimensions even when the
+        // surrounding message layout measures the Unicode fallback more narrowly.
+        val standaloneSize = dp(textView.context, STANDALONE_SIZE_DP)
+        animationView.layoutParams?.let { params ->
+            if (params.width != standaloneSize || params.height != standaloneSize) {
+                params.width = standaloneSize
+                params.height = standaloneSize
+                animationView.layoutParams = params
+            }
+        }
 
         val existing = textView.getTag(R.id.tag_telegram_animated_emoji_state) as? StandaloneState
         if (existing != null) {
@@ -387,14 +397,14 @@ object TelegramEmojiAnimationController {
         LottieCompositionFactory.fromAsset(
                 appContext,
                 "telegram_emoji/${asset.path}",
-                cacheKey
+                "$cacheKey:asset"
         ).addListener { composition ->
             onSuccess(composition)
         }.addFailureListener {
             LottieCompositionFactory.fromUrl(
                     appContext,
                     asset.url,
-                    cacheKey
+                    "$cacheKey:remote"
             ).addListener { composition ->
                 onSuccess(composition)
             }.addFailureListener {

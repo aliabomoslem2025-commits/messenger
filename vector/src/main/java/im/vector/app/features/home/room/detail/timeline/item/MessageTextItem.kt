@@ -91,8 +91,10 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         val messageView: AppCompatTextView = if (useRichTextEditorStyle) holder.requireRichMessageView() else holder.requirePlainMessageView()
         val eventId = attributes.informationData.eventId
+        // Detect a single emoji from the actual message text, not from the optional
+        // big-font heuristic. Sending one emoji must always use Telegram-style layout.
         val candidateEmoji = message?.charSequence?.toString()?.trim()
-                ?.takeIf { useBigFont && isSingleEmoji(it) }
+                ?.takeIf { isSingleEmoji(it) }
         TelegramEmojiAnimationController.prepareForMessage(messageView, eventId, candidateEmoji)
         messageView.isVisible = true
         // Resolve paragraph direction from the message text, not from the app's
@@ -100,10 +102,10 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         // while leaving navigation and the overall chat layout in LTR when needed.
         messageView.textDirection = View.TEXT_DIRECTION_FIRST_STRONG_LTR
         messageView.textAlignment = View.TEXT_ALIGNMENT_TEXT_START
-        if (useBigFont) {
-            messageView.textSize = if (candidateEmoji != null) 48F else 44F
-        } else {
-            messageView.textSize = 16F
+        messageView.textSize = when {
+            candidateEmoji != null -> 54F
+            useBigFont -> 44F
+            else -> 16F
         }
         // Center the standalone glyph underneath the transparent animation overlay.
         messageView.gravity = if (candidateEmoji != null) Gravity.CENTER else Gravity.TOP or Gravity.START
@@ -134,7 +136,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         messageView.onLongClickIgnoringLinks(attributes.itemLongClickListener)
         // prepareForMessage() above preserves a running animation for the same Matrix event.
-        messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions)
+        messageView.setTextWithEmojiSupport(message?.charSequence, bindingOptions, candidateEmoji != null)
         animateRecentStandaloneEmoji(messageView)
         // The send-state binder applies Element's generic text tint; restore the
         // bubble-specific palette so the outgoing Telegram-blue bubble stays readable.
@@ -151,7 +153,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
      */
     private fun animateRecentStandaloneEmoji(messageView: AppCompatTextView) {
         val info = attributes.informationData
-        if (!useBigFont || !messageView.context.isAnimationEnabled()) return
+        if (!messageView.context.isAnimationEnabled()) return
 
         val emoji = messageView.text?.toString()?.trim().orEmpty()
         if (!isSingleEmoji(emoji)) return
@@ -206,11 +208,15 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
     }
 
-    private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {
-        // Large standalone emoji must be available synchronously: the Lottie
-        // binder reads the emoji immediately after this call. A TextFuture can
-        // leave the previous/empty text in the view and silently skip playback.
-        if (useBigFont || !bindingOptions?.canUseTextFuture.orFalse() || message == null) {
+    private fun AppCompatTextView.setTextWithEmojiSupport(
+            message: CharSequence?,
+            bindingOptions: BindingOptions?,
+            forceSynchronousText: Boolean = false
+    ) {
+        // Standalone emoji must be available synchronously: the Lottie binder reads
+        // the actual glyph immediately after this call. A TextFuture can leave the
+        // previous/empty text in the view and silently skip playback.
+        if (forceSynchronousText || useBigFont || !bindingOptions?.canUseTextFuture.orFalse() || message == null) {
             setTextFuture(null)
             text = message
         } else {

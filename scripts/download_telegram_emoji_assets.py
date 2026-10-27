@@ -10,8 +10,9 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path, PurePosixPath
+from urllib.parse import quote
 
-ASSET_BASE_URL = "https://raw.githubusercontent.com/saeedtahmtan/telemoji/main/"
+ASSET_BASE_URL = "https://saeedtahmtan.github.io/telemoji/"
 MAX_WORKERS = 12
 RETRIES = 4
 USER_AGENT = "Messenger-Animated-Emoji-Asset-Bundler/1.0"
@@ -41,7 +42,7 @@ def download_one(relative_path: str, output_dir: Path) -> tuple[str, int, str | 
     if destination.is_file() and destination.stat().st_size > 100:
         return relative_path, destination.stat().st_size, None
     destination.parent.mkdir(parents=True, exist_ok=True)
-    url = ASSET_BASE_URL + relative_path
+    url = ASSET_BASE_URL + quote(relative_path, safe="/")
     last_error: str | None = None
     for attempt in range(RETRIES):
         try:
@@ -80,7 +81,7 @@ def main() -> int:
     # Skip downloads quickly when building offline. The app retains a runtime fallback.
     try:
         request = urllib.request.Request(
-            ASSET_BASE_URL + paths[0],
+            ASSET_BASE_URL + quote(paths[0], safe="/"),
             headers={"User-Agent": USER_AGENT},
         )
         with urllib.request.urlopen(request, timeout=5) as response:
