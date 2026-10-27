@@ -192,7 +192,7 @@ internal class TelegramAnimatedEmojiSpan(
             if (status != HttpURLConnection.HTTP_OK) {
                 throw IOException("TGS server returned HTTP $status for $fileName")
             }
-            val declaredLength = connection.contentLengthLong
+            val declaredLength = connection.contentLength.toLong()
             if (declaredLength > MAX_COMPRESSED_TGS_BYTES) {
                 throw IOException("TGS asset exceeds size limit: $fileName")
             }
