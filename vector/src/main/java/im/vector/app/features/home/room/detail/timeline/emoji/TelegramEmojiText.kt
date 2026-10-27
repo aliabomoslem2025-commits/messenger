@@ -6,7 +6,6 @@
 package im.vector.app.features.home.room.detail.timeline.emoji
 
 import android.content.Context
-import org.json.JSONArray
 import java.util.LinkedHashMap
 
 /**
