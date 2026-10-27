@@ -137,12 +137,6 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     }
 
     /**
-     * Telegram-inspired entrance for a standalone large-emoji message. Run it for
-     * freshly received as well as locally sent events, but never for old history.
-     * Remember event IDs so RecyclerView/Epoxy rebinding cannot replay it while
-     * the user scrolls through the same timeline.
-     */
-    /**
      * Replace a recent standalone Unicode emoji with its real Lottie asset where
      * available. The event-id guard prevents RecyclerView rebinding from replaying it.
      */

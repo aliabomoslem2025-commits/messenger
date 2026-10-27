@@ -108,24 +108,17 @@ class ReactionButton @JvmOverloads constructor(
         performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         background = if (isChecked) onDrawable else offDrawable
 
-        // Keep the existing Matrix reaction callback while adding a short
-        // selection bounce. The emoji always returns to its resting scale.
+        // Play the local visual response before dispatching the Matrix event so a
+        // timeline refresh cannot detach the pill before the animation is started.
+        animateReactionSelection()
         if (isChecked) {
+            playReactionBurst()
             reactedListener?.onReacted(this)
         } else {
             reactedListener?.onUnReacted(this)
         }
-
-        animateReactionSelection()
-        if (isChecked) {
-            playReactionBurst()
-        }
     }
 
-    /**
-     * A short Telegram-inspired emoji burst layered above the message timeline.
-     * The underlying reaction still goes through the existing Matrix callback.
-     */
     /**
      * Use a matching real Lottie reaction instead of synthetic text particles.
      * Matrix remains authoritative for the reaction event and its aggregate count.

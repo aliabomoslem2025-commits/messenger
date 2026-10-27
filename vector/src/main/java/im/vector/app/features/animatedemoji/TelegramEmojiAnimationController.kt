@@ -176,8 +176,8 @@ object TelegramEmojiAnimationController {
             emoji: String,
             onAnimationReady: () -> Unit
     ) {
-        if (!animationView.context.isAnimationEnabled()) return
         clearPickerPreview(animationView)
+        if (!animationView.context.isAnimationEnabled()) return
         val token = Any()
         animationView.setTag(R.id.tag_telegram_picker_emoji_state, token)
         TelegramEmojiAssetCatalog.findAsync(

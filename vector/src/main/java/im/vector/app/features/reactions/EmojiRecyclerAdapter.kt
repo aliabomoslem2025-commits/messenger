@@ -195,7 +195,10 @@ class EmojiRecyclerAdapter @Inject constructor() :
             (holder as EmojiViewHolder).data = item
             if (scrollState != ScrollState.SETTLING || !isFastScroll) {
 //                    Log.i("PERF","Bind with draw at position:$position")
-                holder.bind(item)
+                holder.bindEmoji(
+                        item,
+                        previewAnimations = !isFastScroll && (scrollState == ScrollState.IDLE || scrollState == ScrollState.UNKNOWN)
+                )
             } else {
 //                    Log.i("PERF","Bind without draw at position:$position")
                 toUpdateWhenNotBusy.add(item to holder)
@@ -212,6 +215,25 @@ class EmojiRecyclerAdapter @Inject constructor() :
             toUpdateWhenNotBusy.removeIfCompat { it.second == holder }
         }
         super.onViewRecycled(holder)
+    }
+
+    override fun onViewAttachedToWindow(holder: ViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        if (holder is EmojiViewHolder &&
+                holder.data != null &&
+                !isFastScroll &&
+                (scrollState == ScrollState.IDLE || scrollState == ScrollState.UNKNOWN)
+        ) {
+            holder.bindEmoji(holder.data, previewAnimations = true)
+        }
+    }
+
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        if (holder is EmojiViewHolder) {
+            holder.bindEmoji(holder.data, previewAnimations = false)
+            toUpdateWhenNotBusy.removeIfCompat { it.second == holder }
+        }
+        super.onViewDetachedFromWindow(holder)
     }
 
     override fun getItemCount() = rawData.categories
@@ -235,7 +257,9 @@ class EmojiRecyclerAdapter @Inject constructor() :
         }
 
         fun bindEmoji(s: String?, previewAnimations: Boolean) {
-            if (s != null && previewAnimations && previewEmoji == s) return
+            if (s != null && previewAnimations && previewEmoji == s &&
+                    animatedEmojiView.getTag(R.id.tag_telegram_picker_emoji_state) != null
+            ) return
 
             emojiView.emoji = s
             emojiView.visibility = View.VISIBLE
