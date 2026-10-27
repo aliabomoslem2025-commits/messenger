@@ -25,6 +25,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.containsOnlyEmojis
+import im.vector.app.core.utils.isSingleEmoji
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -665,7 +666,7 @@ class MessageItemFactory @Inject constructor(
                             linkifiedBody
                         }.toEpoxyCharSequence()
                 )
-                .useBigFont(linkifiedBody.length <= MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT * 2 && containsOnlyEmojis(linkifiedBody.toString()))
+                .useBigFont(isSingleEmoji(linkifiedBody.toString()) || (linkifiedBody.length <= MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT * 2 && containsOnlyEmojis(linkifiedBody.toString())))
                 .bindingOptions(bindingOptions)
                 .markwonPlugins(htmlRenderer.get().plugins)
                 .searchForPills(isFormatted)
