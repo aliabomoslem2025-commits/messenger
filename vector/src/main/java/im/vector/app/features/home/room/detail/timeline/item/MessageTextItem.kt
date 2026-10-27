@@ -153,8 +153,10 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.translationY = 0f
 
         if (!useBigFont || !messageView.context.isAnimationEnabled()) return
-        val localTimestamp = info.ageLocalTS ?: return
-        val ageMs = System.currentTimeMillis() - localTimestamp
+        // Some synced Matrix events no longer carry a local timestamp. Fall back to
+        // the server event timestamp so a just-sent/received emoji can still animate.
+        val eventTimestamp = info.ageLocalTS ?: info.eventTimestamp ?: return
+        val ageMs = System.currentTimeMillis() - eventTimestamp
         if (ageMs !in -2_000L..8_000L) return
 
         val shouldAnimate = synchronized(animatedBigEmojiEventIds) {

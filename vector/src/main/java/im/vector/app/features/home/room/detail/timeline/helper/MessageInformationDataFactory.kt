@@ -88,6 +88,7 @@ class MessageInformationDataFactory @Inject constructor(
                 sendState = event.root.sendState,
                 time = time,
                 ageLocalTS = event.root.ageLocalTs,
+                eventTimestamp = event.root.originServerTs,
                 avatarUrl = event.senderInfo.avatarUrl,
                 memberName = event.senderInfo.disambiguatedDisplayName,
                 messageLayout = messageLayout,
