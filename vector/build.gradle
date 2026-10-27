@@ -167,6 +167,40 @@ android {
     }
 }
 
+// Download and bundle the Lottie files before compiling, so emoji playback does not
+// depend on downloading an animation at the moment a user sends the message.
+def telegramEmojiManifest = file("src/main/res/raw/telegram_emoji_animation_catalog.json")
+def telegramEmojiAssetsDir = layout.buildDirectory.dir("generated/telegramEmojiAssets")
+def telegramEmojiDownloader = rootProject.file("scripts/download_telegram_emoji_assets.py")
+
+android.sourceSets.main.assets.srcDir(telegramEmojiAssetsDir)
+
+def downloadTelegramEmojiAssets = tasks.register("downloadTelegramEmojiAssets", Exec) {
+    group = "build setup"
+    description = "Downloads the Lottie JSON assets referenced by the animated-emoji catalog."
+    inputs.file(telegramEmojiManifest)
+    inputs.file(telegramEmojiDownloader)
+    outputs.dir(telegramEmojiAssetsDir)
+    outputs.upToDateWhen {
+        if (!telegramEmojiManifest.isFile()) return false
+        def rows = new groovy.json.JsonSlurper().parse(telegramEmojiManifest)
+        def paths = rows.collect { it.file_lottie }
+                .findAll { it instanceof String && it.startsWith("lottie/") && !it.contains("..") }
+                .unique()
+        return paths.every { path ->
+            new File(telegramEmojiAssetsDir.get().asFile, "telegram_emoji/${path}").isFile()
+        }
+    }
+    commandLine "python3",
+            telegramEmojiDownloader.absolutePath,
+            telegramEmojiManifest.absolutePath,
+            telegramEmojiAssetsDir.get().asFile.absolutePath
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(downloadTelegramEmojiAssets)
+}
+
 dependencies {
 
     implementation project(":vector-config")

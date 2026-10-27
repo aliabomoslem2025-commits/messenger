@@ -7,15 +7,17 @@ animation assets). At the time this catalog was added it contained 599 animated-
 entries, 121 reaction entries, 6 generic-animation entries and 78 dice variants.
 Entries include alternate variants where available.
 
-Animation JSON files are fetched on demand from:
+The Gradle build downloads the Lottie JSON files referenced by the catalog and
+packages them inside the APK under `assets/telegram_emoji/lottie/...`. The first send
+uses a local composition, starts without an asset-network round trip, and continues to
+animate offline after installation. The runtime retains a fallback for APKs built
+without the generated asset set:
 
 https://raw.githubusercontent.com/saeedtahmtan/telemoji/main/
 
-Lottie caches successful remote compositions on disk; the Unicode emoji remains
-visible if an asset cannot be loaded. The compact manifest is bundled, but the actual
-animation JSON files are not bundled in the APK. First playback therefore requires
-network access for an asset not already cached, and availability depends on the
-third-party mirror.
+When the machine building the app is fully offline, the bundle step is skipped and the
+runtime fallback remains available; first playback then requires network access. The
+source animations are maintained by a third-party mirror.
 
 ## Scope and important distinction
 

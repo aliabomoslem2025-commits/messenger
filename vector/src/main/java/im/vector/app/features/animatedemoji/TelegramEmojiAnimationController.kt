@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.airbnb.lottie.LottieAnimationView
+import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.LottieCompositionFactory
 import com.airbnb.lottie.LottieDrawable
 import im.vector.app.R
@@ -129,40 +130,40 @@ object TelegramEmojiAnimationController {
                 return@findAsync
             }
 
-            LottieCompositionFactory.fromUrl(
-                    textView.context.applicationContext,
-                    asset.url,
-                    "telemoji:${asset.path}"
-            ).addListener { composition ->
-                if (textView.getTag(R.id.tag_telegram_animated_emoji_state) !== state) return@addListener
-                try {
-                    val drawable = LottieDrawable().apply {
-                        this.composition = composition
-                        repeatCount = 0
-                        val size = dp(textView.context, STANDALONE_SIZE_DP)
-                        setBounds(0, 0, size, size)
-                    }
-                    drawable.addAnimatorListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
-                                state.finished = true
+            loadComposition(
+                    context = textView.context,
+                    asset = asset,
+                    cacheKey = "telemoji:${asset.path}",
+                    onSuccess = { composition ->
+                        if (textView.getTag(R.id.tag_telegram_animated_emoji_state) !== state) return@loadComposition
+                        try {
+                            val drawable = LottieDrawable().apply {
+                                this.composition = composition
+                                repeatCount = 0
+                                val size = dp(textView.context, STANDALONE_SIZE_DP)
+                                setBounds(0, 0, size, size)
                             }
+                            drawable.addAnimatorListener(object : AnimatorListenerAdapter() {
+                                override fun onAnimationEnd(animation: Animator) {
+                                    if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
+                                        state.finished = true
+                                    }
+                                }
+                            })
+                            state.drawable = drawable
+                            textView.text = ""
+                            textView.gravity = Gravity.CENTER
+                            textView.compoundDrawablePadding = 0
+                            textView.contentDescription = snapshot.text?.toString() ?: emoji
+                            textView.setCompoundDrawables(null, drawable, null, null)
+                            textView.requestLayout()
+                            state.startIfNeeded(textView)
+                        } catch (throwable: Throwable) {
+                            restoreIfCurrent(textView, state)
                         }
-                    })
-                    state.drawable = drawable
-                    textView.text = ""
-                    textView.gravity = Gravity.CENTER
-                    textView.compoundDrawablePadding = 0
-                    textView.contentDescription = snapshot.text?.toString() ?: emoji
-                    textView.setCompoundDrawables(null, drawable, null, null)
-                    textView.requestLayout()
-                    state.startIfNeeded(textView)
-                } catch (throwable: Throwable) {
-                    restoreIfCurrent(textView, state)
-                }
-            }.addFailureListener {
-                restoreIfCurrent(textView, state)
-            }
+                    },
+                    onFailure = { restoreIfCurrent(textView, state) }
+            )
         }
         return true
     }
@@ -187,21 +188,23 @@ object TelegramEmojiAnimationController {
                 seed = 0
         ) { asset ->
             if (animationView.getTag(R.id.tag_telegram_picker_emoji_state) !== token || asset == null) return@findAsync
-            LottieCompositionFactory.fromUrl(
-                    animationView.context.applicationContext,
-                    asset.url,
-                    "telemoji:${asset.path}"
-            ).addListener { composition ->
-                if (animationView.getTag(R.id.tag_telegram_picker_emoji_state) !== token) return@addListener
-                animationView.setComposition(composition)
-                animationView.repeatCount = LottieDrawable.INFINITE
-                animationView.contentDescription = emoji
-                animationView.visibility = View.VISIBLE
-                onAnimationReady()
-                animationView.playAnimation()
-            }.addFailureListener {
-                // The picker keeps the static Unicode glyph if an asset is unavailable.
-            }
+            loadComposition(
+                    context = animationView.context,
+                    asset = asset,
+                    cacheKey = "telemoji:${asset.path}",
+                    onSuccess = { composition ->
+                        if (animationView.getTag(R.id.tag_telegram_picker_emoji_state) !== token) return@loadComposition
+                        animationView.setComposition(composition)
+                        animationView.repeatCount = LottieDrawable.INFINITE
+                        animationView.contentDescription = emoji
+                        animationView.visibility = View.VISIBLE
+                        onAnimationReady()
+                        animationView.playAnimation()
+                    },
+                    onFailure = {
+                        // Keep the static glyph if local and network assets are unavailable.
+                    }
+            )
         }
     }
 
@@ -229,53 +232,86 @@ object TelegramEmojiAnimationController {
                 seed = Random.nextInt()
         ) { asset ->
             if (asset == null || !host.isAttachedToWindow) return@findAsync
-            LottieCompositionFactory.fromUrl(
-                    context.applicationContext,
-                    asset.url,
-                    "telemoji:${asset.path}"
-            ).addListener { composition ->
-                if (!host.isAttachedToWindow) return@addListener
-                val overlay = host.overlay
-                val size = dp(context, REACTION_SIZE_DP)
-                val animationView = LottieAnimationView(host.context).apply {
-                    setComposition(composition)
-                    repeatCount = 0
-                    importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                    contentDescription = null
-                    isClickable = false
-                    isFocusable = false
-                }
-                animationView.measure(
-                        View.MeasureSpec.makeMeasureSpec(size, View.MeasureSpec.EXACTLY),
-                        View.MeasureSpec.makeMeasureSpec(size, View.MeasureSpec.EXACTLY)
-                )
-                val left = (centerX - size / 2f).toInt()
-                val top = (centerY - size / 2f).toInt()
-                animationView.layout(left, top, left + size, top + size)
+            loadComposition(
+                    context = context,
+                    asset = asset,
+                    cacheKey = "telemoji:${asset.path}",
+                    onSuccess = { composition ->
+                        if (!host.isAttachedToWindow) return@loadComposition
+                        val overlay = host.overlay
+                        val size = dp(context, REACTION_SIZE_DP)
+                        val animationView = LottieAnimationView(host.context).apply {
+                            setComposition(composition)
+                            repeatCount = 0
+                            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                            contentDescription = null
+                            isClickable = false
+                            isFocusable = false
+                        }
+                        animationView.measure(
+                                View.MeasureSpec.makeMeasureSpec(size, View.MeasureSpec.EXACTLY),
+                                View.MeasureSpec.makeMeasureSpec(size, View.MeasureSpec.EXACTLY)
+                        )
+                        val left = (centerX - size / 2f).toInt()
+                        val top = (centerY - size / 2f).toInt()
+                        animationView.layout(left, top, left + size, top + size)
 
-                var removed = false
-                var detachListener: View.OnAttachStateChangeListener? = null
-                val removeAnimation: () -> Unit = {
-                    if (!removed) {
-                        removed = true
-                        overlay.remove(animationView)
-                        detachListener?.let { host.removeOnAttachStateChangeListener(it) }
+                        var removed = false
+                        var detachListener: View.OnAttachStateChangeListener? = null
+                        val removeAnimation: () -> Unit = {
+                            if (!removed) {
+                                removed = true
+                                overlay.remove(animationView)
+                                detachListener?.let { host.removeOnAttachStateChangeListener(it) }
+                            }
+                        }
+                        detachListener = object : View.OnAttachStateChangeListener {
+                            override fun onViewAttachedToWindow(view: View) = Unit
+                            override fun onViewDetachedFromWindow(view: View) = removeAnimation()
+                        }
+                        animationView.addAnimatorListener(object : AnimatorListenerAdapter() {
+                            override fun onAnimationEnd(animation: Animator) = removeAnimation()
+                            override fun onAnimationCancel(animation: Animator) = removeAnimation()
+                        })
+                        host.addOnAttachStateChangeListener(detachListener)
+                        overlay.add(animationView)
+                        animationView.progress = 0f
+                        animationView.playAnimation()
+                    },
+                    onFailure = {
+                        // Preserve the Matrix reaction state if loading fails.
                     }
-                }
-                detachListener = object : View.OnAttachStateChangeListener {
-                    override fun onViewAttachedToWindow(view: View) = Unit
-                    override fun onViewDetachedFromWindow(view: View) = removeAnimation()
-                }
-                animationView.addAnimatorListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) = removeAnimation()
-                    override fun onAnimationCancel(animation: Animator) = removeAnimation()
-                })
-                host.addOnAttachStateChangeListener(detachListener)
-                overlay.add(animationView)
-                animationView.progress = 0f
-                animationView.playAnimation()
+            )
+        }
+    }
+
+    /**
+     * Prefer APK-bundled animations for immediate playback and offline support.
+     * Remote fetching remains a fallback for older/incomplete APKs.
+     */
+    private fun loadComposition(
+            context: Context,
+            asset: TelegramEmojiAssetCatalog.AnimationAsset,
+            cacheKey: String,
+            onSuccess: (LottieComposition) -> Unit,
+            onFailure: () -> Unit
+    ) {
+        val appContext = context.applicationContext
+        LottieCompositionFactory.fromAsset(
+                appContext,
+                "telegram_emoji/${asset.path}",
+                cacheKey
+        ).addListener { composition ->
+            onSuccess(composition)
+        }.addFailureListener {
+            LottieCompositionFactory.fromUrl(
+                    appContext,
+                    asset.url,
+                    cacheKey
+            ).addListener { composition ->
+                onSuccess(composition)
             }.addFailureListener {
-                // Missing remote assets leave the existing Matrix reaction UI untouched.
+                onFailure()
             }
         }
     }
