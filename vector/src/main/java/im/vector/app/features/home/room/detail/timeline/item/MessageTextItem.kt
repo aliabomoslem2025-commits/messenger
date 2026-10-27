@@ -187,12 +187,15 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
     }
 
     private fun AppCompatTextView.setTextWithEmojiSupport(message: CharSequence?, bindingOptions: BindingOptions?) {
-        if (bindingOptions?.canUseTextFuture.orFalse() && message != null) {
-            val textFuture = PrecomputedTextCompat.getTextFuture(message, TextViewCompat.getTextMetricsParams(this), null)
-            setTextFuture(textFuture)
-        } else {
+        // Large standalone emoji must be available synchronously: the Lottie
+        // binder reads the emoji immediately after this call. A TextFuture can
+        // leave the previous/empty text in the view and silently skip playback.
+        if (useBigFont || !bindingOptions?.canUseTextFuture.orFalse() || message == null) {
             setTextFuture(null)
             text = message
+        } else {
+            val textFuture = PrecomputedTextCompat.getTextFuture(message, TextViewCompat.getTextMetricsParams(this), null)
+            setTextFuture(textFuture)
         }
     }
 
