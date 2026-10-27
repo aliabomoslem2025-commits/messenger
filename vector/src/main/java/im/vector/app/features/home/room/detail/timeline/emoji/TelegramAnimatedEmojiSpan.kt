@@ -14,25 +14,24 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.text.style.ReplacementSpan
-import android.util.Base64
-import android.util.Base64InputStream
 import android.widget.TextView
 import com.airbnb.lottie.LottieCompositionFactory
 import com.airbnb.lottie.LottieDrawable
 import java.util.concurrent.Executors
-import java.util.zip.GZIPInputStream
 import timber.log.Timber
 
 /**
- * Renders a real Telegram TGS/Lottie payload inline in the Matrix timeline TextView.
+ * Draws Telegram's transparent animated-sticker representation of a standalone emoji inside
+ * the Matrix timeline. All animations listed in TelegramEmojiText are supported; assets are
+ * downloaded lazily from a pinned source and cached by TelegramEmojiText.
  *
- * Asset payloads are Base64 text containing the original gzip-compressed TGS JSON. Decode and
- * parse off the UI thread; the resulting animation keeps its transparent canvas and plays once.
+ * An emoji plays once on the first display of a new message, stays on its final frame in old
+ * history, and replays when tapped. A recycled view releases its callback to avoid leaking rows.
  */
 internal class TelegramAnimatedEmojiSpan(
         context: Context,
         private val emoji: String,
-        private val assetFileName: String,
+        private val asset: TelegramEmojiText.AnimationAsset,
         private val onLoadFailure: (TextView) -> Unit,
 ) : ReplacementSpan(), Drawable.Callback {
 
@@ -87,24 +86,41 @@ internal class TelegramAnimatedEmojiSpan(
         playWhenLoaded = false
     }
 
-    private fun loadComposition(viewAtRequest: TextView) {
+    private fun loadComposition(viewAtRequest: TextView, startCandidateIndex: Int = 0) {
         decodeExecutor.execute {
-            val json = runCatching {
-                appContext.assets.open(ASSET_DIRECTORY + assetFileName).use { asset ->
-                    Base64InputStream(asset, Base64.DEFAULT).use { decodedBase64 ->
-                        GZIPInputStream(decodedBase64).bufferedReader(Charsets.UTF_8).use { it.readText() }
-                    }
+            var json: String? = null
+            var selectedPath: String? = null
+            var selectedIndex = startCandidateIndex
+            var lastFailure: Throwable? = null
+
+            for (index in startCandidateIndex until asset.candidatePaths.size) {
+                val path = asset.candidatePaths[index]
+                try {
+                    json = TelegramEmojiText.loadAnimationJson(appContext, path)
+                    selectedPath = path
+                    selectedIndex = index
+                    break
+                } catch (failure: Throwable) {
+                    lastFailure = failure
+                    Timber.w(failure, "Unable to load Telegram emoji asset $path")
                 }
-            }.getOrElse { failure ->
+            }
+
+            val readyJson = json
+            val readyPath = selectedPath
+            val readyIndex = selectedIndex
+            if (readyJson == null || readyPath == null) {
                 mainHandler.post {
-                    if (boundView === viewAtRequest) fail(viewAtRequest, failure)
+                    if (boundView === viewAtRequest) {
+                        fail(viewAtRequest, lastFailure ?: IllegalStateException("No animation asset was available for $emoji"))
+                    }
                 }
                 return@execute
             }
 
             mainHandler.post {
                 if (boundView !== viewAtRequest) return@post
-                LottieCompositionFactory.fromJsonString(json, "telegram-emoji-" + assetFileName)
+                LottieCompositionFactory.fromJsonString(readyJson, "telegram-emoji-" + readyPath)
                         .addListener { composition ->
                             if (boundView !== viewAtRequest) return@addListener
                             drawable.composition = composition
@@ -116,7 +132,12 @@ internal class TelegramAnimatedEmojiSpan(
                             if (playWhenLoaded) replay()
                         }
                         .addFailureListener { failure ->
-                            if (boundView === viewAtRequest) fail(viewAtRequest, failure)
+                            if (boundView !== viewAtRequest) return@addFailureListener
+                            if (readyIndex + 1 < asset.candidatePaths.size) {
+                                loadComposition(viewAtRequest, readyIndex + 1)
+                            } else {
+                                fail(viewAtRequest, failure)
+                            }
                         }
             }
         }
@@ -124,7 +145,7 @@ internal class TelegramAnimatedEmojiSpan(
 
     private fun fail(textView: TextView, failure: Throwable) {
         failed = true
-        Timber.w(failure, "Unable to load Telegram animated emoji asset for " + emoji)
+        Timber.w(failure, "Unable to render Telegram animated emoji $emoji")
         drawable.cancelAnimation()
         drawable.callback = null
         onLoadFailure(textView)
@@ -181,7 +202,6 @@ internal class TelegramAnimatedEmojiSpan(
     }
 
     companion object {
-        private const val ASSET_DIRECTORY = "telegram_emoji/"
         private const val EMOJI_SIZE_DP = 78
         private val decodeExecutor = Executors.newSingleThreadExecutor { runnable ->
             Thread(runnable, "telegram-tgs-decode").apply { isDaemon = true }
