@@ -133,6 +133,9 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
 
         if (standaloneEmoji != null && animationAsset != null) {
+            // Use a large fallback glyph while the real transparent TGS sticker is loading,
+            // including ZWJ and flag sequences that are longer than the old big-font heuristic.
+            messageView.textSize = 44F
             val span = TelegramAnimatedEmojiSpan(
                     context = messageView.context,
                     emoji = standaloneEmoji,
