@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import gzip
 import json
 import sys
 import time
@@ -50,6 +51,10 @@ def download_one(relative_path: str, output_dir: Path) -> tuple[str, int, str | 
             )
             with urllib.request.urlopen(request, timeout=45) as response:
                 payload = response.read()
+            # raw.githubusercontent.com may return Content-Encoding: gzip. urllib
+            # does not automatically decompress the body, so decode it before JSON.
+            if payload.startswith(b"\x1f\x8b"):
+                payload = gzip.decompress(payload)
             composition = json.loads(payload.decode("utf-8"))
             if not isinstance(composition, dict) or not isinstance(composition.get("layers"), list):
                 raise ValueError("response is not a Lottie composition")
