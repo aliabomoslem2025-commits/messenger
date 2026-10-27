@@ -167,6 +167,51 @@ object TelegramEmojiAnimationController {
         return true
     }
 
+    /**
+     * Animate picker cells only while the grid is idle. Static glyphs remain visible
+     * until the real composition is ready; recycling cancels the prior cell request.
+     */
+    fun bindPickerPreview(
+            animationView: LottieAnimationView,
+            emoji: String,
+            onAnimationReady: () -> Unit
+    ) {
+        if (!animationView.context.isAnimationEnabled()) return
+        clearPickerPreview(animationView)
+        val token = Any()
+        animationView.setTag(R.id.tag_telegram_picker_emoji_state, token)
+        TelegramEmojiAssetCatalog.findAsync(
+                context = animationView.context,
+                emoji = emoji,
+                typesInPriorityOrder = listOf("animated"),
+                seed = 0
+        ) { asset ->
+            if (animationView.getTag(R.id.tag_telegram_picker_emoji_state) !== token || asset == null) return@findAsync
+            LottieCompositionFactory.fromUrl(
+                    animationView.context.applicationContext,
+                    asset.url,
+                    "telemoji:${asset.path}"
+            ).addListener { composition ->
+                if (animationView.getTag(R.id.tag_telegram_picker_emoji_state) !== token) return@addListener
+                animationView.setComposition(composition)
+                animationView.repeatCount = LottieDrawable.INFINITE
+                animationView.contentDescription = emoji
+                animationView.visibility = View.VISIBLE
+                onAnimationReady()
+                animationView.playAnimation()
+            }.addFailureListener {
+                // The picker keeps the static Unicode glyph if an asset is unavailable.
+            }
+        }
+    }
+
+    fun clearPickerPreview(animationView: LottieAnimationView) {
+        animationView.setTag(R.id.tag_telegram_picker_emoji_state, null)
+        animationView.cancelAnimation()
+        animationView.visibility = View.GONE
+        animationView.contentDescription = null
+    }
+
     /** Replay the animation when a user taps a previously animated emoji message. */
     fun replay(view: View): Boolean {
         val textView = view as? TextView ?: return false

@@ -22,6 +22,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import im.vector.app.R
+import com.airbnb.lottie.LottieAnimationView
+import im.vector.app.features.animatedemoji.TelegramEmojiAnimationController
 import im.vector.app.features.reactions.data.EmojiData
 import im.vector.lib.core.utils.compat.removeIfCompat
 import kotlinx.coroutines.CoroutineScope
@@ -206,6 +208,7 @@ class EmojiRecyclerAdapter @Inject constructor() :
     override fun onViewRecycled(holder: ViewHolder) {
         if (holder is EmojiViewHolder) {
             holder.data = null
+            holder.bind(null)
             toUpdateWhenNotBusy.removeIfCompat { it.second == holder }
         }
         super.onViewRecycled(holder)
@@ -221,21 +224,39 @@ class EmojiRecyclerAdapter @Inject constructor() :
     private class EmojiViewHolder(itemView: View) : ViewHolder(itemView) {
 
         private var emojiView: EmojiDrawView = itemView.findViewById(R.id.grid_item_emoji_text)
+        private val animatedEmojiView: LottieAnimationView = itemView.findViewById(R.id.grid_item_emoji_animation)
         private val placeHolder: View = itemView.findViewById(R.id.grid_item_place_holder)
 
         var data: String? = null
+        private var previewEmoji: String? = null
 
         override fun bind(s: String?) {
+            bindEmoji(s, previewAnimations = false)
+        }
+
+        fun bindEmoji(s: String?, previewAnimations: Boolean) {
+            if (s != null && previewAnimations && previewEmoji == s) return
+
             emojiView.emoji = s
+            emojiView.visibility = View.VISIBLE
             if (s != null) {
                 emojiView.mLayout = getStaticLayoutForEmoji(s)
                 emojiView.contentDescription = s
                 placeHolder.visibility = View.GONE
-//                emojiView.visibility = View.VISIBLE
+                if (previewAnimations) {
+                    previewEmoji = s
+                    TelegramEmojiAnimationController.bindPickerPreview(animatedEmojiView, s) {
+                        emojiView.visibility = View.GONE
+                    }
+                } else {
+                    previewEmoji = null
+                    TelegramEmojiAnimationController.clearPickerPreview(animatedEmojiView)
+                }
             } else {
+                previewEmoji = null
+                TelegramEmojiAnimationController.clearPickerPreview(animatedEmojiView)
                 emojiView.mLayout = null
                 placeHolder.visibility = View.VISIBLE
-//                emojiView.visibility = View.GONE
             }
         }
     }
@@ -291,6 +312,14 @@ class EmojiRecyclerAdapter @Inject constructor() :
                 @Suppress("UNCHECKED_CAST")
                 val toUpdate = toUpdateWhenNotBusy.clone() as ArrayList<Pair<String, EmojiViewHolder>>
                 toUpdateWhenNotBusy.clear()
+                // Visible cells can have been bound as static emoji during a slow drag.
+                // Start previews only once scrolling settles, rather than animating the whole grid mid-scroll.
+                for (childIndex in 0 until recyclerView.childCount) {
+                    val childHolder = recyclerView.getChildViewHolder(recyclerView.getChildAt(childIndex))
+                    if (childHolder is EmojiViewHolder && childHolder.data != null) {
+                        childHolder.bindEmoji(childHolder.data, previewAnimations = true)
+                    }
+                }
                 toUpdate.chunked(8).forEach {
                     recyclerView.post {
                         val transition = AutoTransition().apply {
@@ -301,7 +330,7 @@ class EmojiRecyclerAdapter @Inject constructor() :
                             if (pair.first == holder.data) {
                                 TransitionManager.beginDelayedTransition(holder.itemView as FrameLayout, transition)
                                 val data = holder.data
-                                holder.bind(data)
+                                holder.bindEmoji(data, previewAnimations = true)
                             }
                         }
                         toUpdateWhenNotBusy.clear()

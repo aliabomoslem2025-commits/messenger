@@ -2,4 +2,5 @@
 <resources>
     <item name="space_item_home" type="id" />
     <item name="tag_telegram_animated_emoji_state" type="id" />
+    <item name="tag_telegram_picker_emoji_state" type="id" />
 </resources>
