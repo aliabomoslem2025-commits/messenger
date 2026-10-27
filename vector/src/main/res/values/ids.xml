@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="space_item_home" type="id" />
+    <item name="tag_telegram_animated_emoji_state" type="id" />
 </resources>

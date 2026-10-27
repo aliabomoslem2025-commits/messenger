@@ -233,6 +233,7 @@ dependencies {
     ksp libs.airbnb.epoxyProcessor
     implementation libs.airbnb.epoxyPaging
     api libs.airbnb.mavericks
+    implementation libs.airbnb.lottie
 
     // Snap Helper https://github.com/rubensousa/GravitySnapHelper
     api 'com.github.rubensousa:gravitysnaphelper:2.2.2'

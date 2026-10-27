@@ -25,6 +25,7 @@ def glide = "4.16.0"
 def bigImageViewer = "1.8.1"
 def jjwt = "0.11.5"
 def vanniktechEmoji = "0.16.0"
+def lottie = "6.6.10"
 def sentry = "8.31.0"
 def fragment = "1.8.6"
 // Testing
@@ -124,7 +125,8 @@ ext.libs = [
                 'epoxyProcessor'         : "com.airbnb.android:epoxy-processor:$epoxy",
                 'epoxyPaging'            : "com.airbnb.android:epoxy-paging:$epoxy",
                 'mavericks'              : "com.airbnb.android:mavericks:$mavericks",
-                'mavericksTesting'       : "com.airbnb.android:mavericks-testing:$mavericks"
+                'mavericksTesting'       : "com.airbnb.android:mavericks-testing:$mavericks",
+                'lottie'                 : "com.airbnb.android:lottie:$lottie"
         ],
         maplibre    : [
                 'androidSdk'             : "org.maplibre.gl:android-sdk:11.6.1",

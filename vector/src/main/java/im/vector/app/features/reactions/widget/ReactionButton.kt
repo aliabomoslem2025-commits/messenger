@@ -10,12 +10,10 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.HapticFeedbackConstants
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.withStyledAttributes
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,6 +21,7 @@ import im.vector.app.EmojiSpanify
 import im.vector.app.R
 import im.vector.app.core.utils.TextUtils
 import im.vector.app.core.utils.isAnimationEnabled
+import im.vector.app.features.animatedemoji.TelegramEmojiAnimationController
 import im.vector.app.databinding.ReactionButtonBinding
 import javax.inject.Inject
 
@@ -120,8 +119,6 @@ class ReactionButton @JvmOverloads constructor(
         animateReactionSelection()
         if (isChecked) {
             playReactionBurst()
-        } else {
-            playReactionRemoval()
         }
     }
 
@@ -129,160 +126,21 @@ class ReactionButton @JvmOverloads constructor(
      * A short Telegram-inspired emoji burst layered above the message timeline.
      * The underlying reaction still goes through the existing Matrix callback.
      */
+    /**
+     * Use a matching real Lottie reaction instead of synthetic text particles.
+     * Matrix remains authoritative for the reaction event and its aggregate count.
+     */
     private fun playReactionBurst() {
         if (!context.isAnimationEnabled()) return
-        val parent = parent as? ViewGroup ?: return
-        val overlay = parent.overlay
-        val density = resources.displayMetrics.density
-        val centerX = x + width / 2f
-        val centerY = y + height / 2f
-        val reactionGlyph = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: "✨"
-        val glyphs = reactionBurstGlyphs(reactionGlyph)
-        val radius = 22f * density
-        val isLaughing = listOf("😂", "🤣", "😹", "😆", "😅").any { reactionGlyph.contains(it) }
-        val isCrying = listOf("😭", "😢", "🥹", "😿").any { reactionGlyph.contains(it) }
-        val isHeart = listOf("❤️", "❤", "💕", "💖", "💗", "💓", "💞", "💘", "😍").any { reactionGlyph.contains(it) }
-        val isFire = listOf("🔥", "💥").any { reactionGlyph.contains(it) }
-        val isCelebration = listOf("🎉", "🎊", "🥳", "✨", "🌟").any { reactionGlyph.contains(it) }
-
-        glyphs.forEachIndexed { index, glyph ->
-            val angle = (Math.PI * 2.0 * index / glyphs.size) - Math.PI / 2.0
-            val radialX = (kotlin.math.cos(angle) * radius).toFloat()
-            val radialY = (kotlin.math.sin(angle) * radius).toFloat()
-            // Different reactions need different motion, not just different particles:
-            // laughter shakes sideways, tears fall, hearts float upward, and fire rises.
-            val targetX = when {
-                isLaughing -> if (index % 2 == 0) -radius * 0.85f else radius * 0.85f
-                isCrying -> radialX * 0.28f
-                isFire -> radialX * 0.32f
-                else -> radialX
-            }
-            val targetY = when {
-                isCrying -> radius * (0.30f + index * 0.14f)
-                isFire -> -radius * (0.72f + index * 0.08f)
-                isHeart -> -radius * (0.72f + (index % 3) * 0.12f)
-                isLaughing -> -radius * (0.36f + (index % 3) * 0.12f)
-                isCelebration -> radialY * 1.1f
-                else -> radialY
-            }
-            val targetRotation = when {
-                isLaughing -> if (index % 2 == 0) -28f else 28f
-                isHeart -> if (index % 2 == 0) -10f else 10f
-                isFire -> if (index % 2 == 0) -14f else 14f
-                else -> 0f
-            }
-            val particleSize = (28f * density).toInt()
-            val particle = TextView(context).apply {
-                text = glyph
-                textSize = if (index == 1 || index == 4) 17f else 16f
-                gravity = Gravity.CENTER
-                includeFontPadding = false
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                alpha = 0f
-                scaleX = 0.35f
-                scaleY = 0.35f
-            }
-            particle.measure(
-                    View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY),
-                    View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY)
-            )
-            particle.layout(
-                    (centerX - particleSize / 2f).toInt(),
-                    (centerY - particleSize / 2f).toInt(),
-                    (centerX + particleSize / 2f).toInt(),
-                    (centerY + particleSize / 2f).toInt()
-            )
-            overlay.add(particle)
-            particle.animate()
-                    .alpha(1f)
-                    .scaleX(1.12f)
-                    .scaleY(1.12f)
-                    .setDuration(90L)
-                    .setStartDelay(index * 12L)
-                    .withEndAction {
-                        particle.animate()
-                                .translationX(targetX)
-                                .translationY(targetY)
-                                .rotation(targetRotation)
-                                .alpha(0f)
-                                .scaleX(0.55f)
-                                .scaleY(0.55f)
-                                .setDuration(235L)
-                                .setInterpolator(OvershootInterpolator(0.8f))
-                                .withEndAction { overlay.remove(particle) }
-                                .start()
-                    }
-                    .start()
-        }
-    }
-
-    /**
-     * A Matrix reaction summary can update after the local echo or when another
-     * member reacts. Pop only the count label, not the entire timeline row, so
-     * receipt and encryption-state rebinding cannot make the message flicker.
-     */
-    /**
-     * Give common reactions their own visual language rather than playing the same
-     * generic sparkles for every emoji. These are independently rendered UI particles;
-     * the actual reaction still uses the Matrix event callbacks above.
-     */
-    private fun reactionBurstGlyphs(emoji: String): List<String> = when {
-        listOf("😂", "🤣", "😹", "😆", "😅").any { emoji.contains(it) } ->
-            listOf(emoji, "😂", "✨", "🤣", "💫", "😹")
-        listOf("😭", "😢", "🥹", "😿").any { emoji.contains(it) } ->
-            listOf(emoji, "💧", "😭", "💧", "😢", "✨")
-        listOf("❤️", "❤", "💕", "💖", "💗", "💓", "💞", "💘", "😍").any { emoji.contains(it) } ->
-            listOf(emoji, "💖", "💕", "💗", "❤️", "✨")
-        listOf("🔥", "💥").any { emoji.contains(it) } ->
-            listOf(emoji, "🔥", "✨", "💥", "🔥", "💫")
-        listOf("👍", "👎", "👏", "🙏", "💪").any { emoji.contains(it) } ->
-            listOf(emoji, "✨", "👍", "💫", emoji, "👏")
-        listOf("🎉", "🎊", "🥳", "✨", "🌟").any { emoji.contains(it) } ->
-            listOf(emoji, "🎉", "✨", "🎊", "🌟", "💫")
-        else -> listOf(emoji, "✨", emoji, "💫", emoji, "✨")
-    }
-
-    /**
-     * Shrink the selected emoji away when a reaction is removed. Matrix remains the
-     * source of truth; this animation is only feedback and never changes event state.
-     */
-    private fun playReactionRemoval() {
-        if (!context.isAnimationEnabled()) return
-        val parent = parent as? ViewGroup ?: return
-        val overlay = parent.overlay
-        val density = resources.displayMetrics.density
-        val particleSize = (34f * density).toInt()
-        val centerX = x + width / 2f
-        val centerY = y + height / 2f
-        val particle = TextView(context).apply {
-            text = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: "✨"
-            textSize = 19f
-            gravity = Gravity.CENTER
-            includeFontPadding = false
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            alpha = 1f
-            scaleX = 1f
-            scaleY = 1f
-        }
-        particle.measure(
-                View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(particleSize, View.MeasureSpec.EXACTLY)
+        val host = parent as? ViewGroup ?: return
+        val emoji = views.reactionText.text?.toString()?.takeIf { it.isNotBlank() } ?: return
+        TelegramEmojiAnimationController.playReaction(
+                context = context,
+                host = host,
+                emoji = emoji,
+                centerX = x + width / 2f,
+                centerY = y + height / 2f
         )
-        particle.layout(
-                (centerX - particleSize / 2f).toInt(),
-                (centerY - particleSize / 2f).toInt(),
-                (centerX + particleSize / 2f).toInt(),
-                (centerY + particleSize / 2f).toInt()
-        )
-        overlay.add(particle)
-        particle.animate()
-                .alpha(0f)
-                .scaleX(0.25f)
-                .scaleY(0.25f)
-                .translationY(-10f * density)
-                .setDuration(190L)
-                .withEndAction { overlay.remove(particle) }
-                .start()
     }
 
     private fun animateReactionCountChange() {
