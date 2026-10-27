@@ -138,7 +138,7 @@ internal class TelegramAnimatedEmojiSpan(
 
     /**
      * Prefer the legacy bundled copy for the three bootstrap emojis, then use the disk cache,
-     * and finally download the official-set TGS asset from a pinned public source path.
+     * and finally download the official-set TGS asset from a version-pinned public source path.
      */
     private fun loadAnimationJson(fileName: String): String {
         require(isSafeTgsName(fileName)) { "Invalid Telegram TGS file name" }
@@ -329,7 +329,7 @@ internal class TelegramAnimatedEmojiSpan(
     companion object {
         private const val LEGACY_ASSET_DIRECTORY = "telegram_emoji/"
         private const val CACHE_DIRECTORY = "telegram_tgs"
-        private const val TGS_BASE_URL = "https://raw.githubusercontent.com/saeedtahmtan/telemoji/main/tgs/animated/"
+        private const val TGS_BASE_URL = "https://raw.githubusercontent.com/saeedtahmtan/telemoji/4f45fca016c71de9d2a9e15c07ae1fe3d8327a28/tgs/animated/"
         private const val EMOJI_SIZE_DP = 78
         private const val CONNECT_TIMEOUT_MS = 8_000
         private const val READ_TIMEOUT_MS = 10_000
