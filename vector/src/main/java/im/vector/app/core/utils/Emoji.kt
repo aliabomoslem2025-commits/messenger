@@ -23,6 +23,56 @@ fun containsOnlyEmojis(str: String?): Boolean {
 }
 
 /**
+ * Returns true when a string is a single emoji grapheme rather than several adjacent
+ * emoji. This avoids android.icu APIs so the helper also works on the app's API 21 floor.
+ * Handles the multi-code-point forms commonly used by Telegram emoji: variation
+ * selectors, keycaps, skin tones, paired regional indicators, tag flags and ZWJ sequences.
+ */
+fun isSingleEmoji(str: String?): Boolean {
+    val text = str?.trim().orEmpty()
+    if (text.isEmpty() || !containsOnlyEmojis(text)) return false
+
+    var clusterCount = 0
+    var hasPendingRegionalIndicator = false
+    var joinNext = false
+    var index = 0
+    while (index < text.length) {
+        val codePoint = Character.codePointAt(text, index)
+        index += Character.charCount(codePoint)
+
+        when {
+            codePoint == 0x200D -> {
+                joinNext = true
+                hasPendingRegionalIndicator = false
+            }
+            codePoint == 0xFE0E ||
+                    codePoint == 0xFE0F ||
+                    codePoint == 0x20E3 ||
+                    codePoint in 0x1F3FB..0x1F3FF ||
+                    codePoint in 0xE0020..0xE007F -> Unit
+            joinNext -> {
+                joinNext = false
+                hasPendingRegionalIndicator = false
+            }
+            codePoint in 0x1F1E6..0x1F1FF -> {
+                if (hasPendingRegionalIndicator) {
+                    hasPendingRegionalIndicator = false
+                } else {
+                    clusterCount++
+                    hasPendingRegionalIndicator = true
+                }
+            }
+            else -> {
+                clusterCount++
+                hasPendingRegionalIndicator = false
+            }
+        }
+        if (clusterCount > 1) return false
+    }
+    return clusterCount == 1
+}
+
+/**
  * Same as split, but considering emojis.
  */
 fun CharSequence.splitEmoji(): List<CharSequence> {

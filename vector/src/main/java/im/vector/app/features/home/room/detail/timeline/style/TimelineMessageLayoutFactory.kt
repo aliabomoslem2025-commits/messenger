@@ -8,8 +8,7 @@
 package im.vector.app.features.home.room.detail.timeline.style
 
 import android.content.res.Resources
-import android.icu.text.BreakIterator
-import im.vector.app.core.utils.containsOnlyEmojis
+import im.vector.app.core.utils.isSingleEmoji
 import im.vector.app.core.extensions.getVectorLastMessageContent
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
@@ -18,7 +17,6 @@ import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
-import java.util.Locale
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -147,12 +145,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
      * so skin-tone, flag, and ZWJ family emoji are treated as one emoji.
      */
     private fun MessageContent?.isStandaloneEmoji(): Boolean {
-        val body = (this as? MessageTextContent)?.body?.trim().orEmpty()
-        if (body.isEmpty() || !containsOnlyEmojis(body)) return false
-        val iterator = BreakIterator.getCharacterInstance(Locale.ROOT)
-        iterator.setText(body)
-        iterator.first()
-        return iterator.next() == body.length
+        val body = (this as? MessageTextContent)?.body.orEmpty()
+        return isSingleEmoji(body)
     }
 
     private fun MessageContent?.isPseudoBubble(): Boolean {
