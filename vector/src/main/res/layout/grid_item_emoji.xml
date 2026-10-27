@@ -22,4 +22,11 @@
         android:layout_height="40dp"
         android:layout_gravity="center" />
 
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/grid_item_emoji_animation"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
 </FrameLayout>
