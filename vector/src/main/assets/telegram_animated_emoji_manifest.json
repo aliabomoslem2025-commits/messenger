@@ -1,0 +1,3604 @@
+{
+  "version": 1,
+  "source": "https://github.com/saeedtahmtan/telemoji",
+  "sourceRevision": "4f45fca016c71de9d2a9e15c07ae1fe3d8327a28",
+  "description": "Telegram AnimatedEmoji sticker-set assets. Remote files are downloaded lazily and cached locally on first use.",
+  "animationCount": 599,
+  "uniqueEmojiCount": 580,
+  "animations": [
+    {
+      "emoji": "❤",
+      "emojiCode": "U+2764",
+      "variant": 1,
+      "path": "lottie/animated/U+2764_1.json"
+    },
+    {
+      "emoji": "😒",
+      "emojiCode": "U+1F612",
+      "variant": 1,
+      "path": "lottie/animated/U+1F612_1.json"
+    },
+    {
+      "emoji": "😳",
+      "emojiCode": "U+1F633",
+      "variant": 1,
+      "path": "lottie/animated/U+1F633_1.json"
+    },
+    {
+      "emoji": "🥳",
+      "emojiCode": "U+1F973",
+      "variant": 1,
+      "path": "lottie/animated/U+1F973_1.json"
+    },
+    {
+      "emoji": "😡",
+      "emojiCode": "U+1F621",
+      "variant": 1,
+      "path": "lottie/animated/U+1F621_1.json"
+    },
+    {
+      "emoji": "😧",
+      "emojiCode": "U+1F627",
+      "variant": 1,
+      "path": "lottie/animated/U+1F627_1.json"
+    },
+    {
+      "emoji": "😢",
+      "emojiCode": "U+1F622",
+      "variant": 1,
+      "path": "lottie/animated/U+1F622_1.json"
+    },
+    {
+      "emoji": "😁",
+      "emojiCode": "U+1F601",
+      "variant": 1,
+      "path": "lottie/animated/U+1F601_1.json"
+    },
+    {
+      "emoji": "😮",
+      "emojiCode": "U+1F62E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F62E_1.json"
+    },
+    {
+      "emoji": "💀",
+      "emojiCode": "U+1F480",
+      "variant": 1,
+      "path": "lottie/animated/U+1F480_1.json"
+    },
+    {
+      "emoji": "🙄",
+      "emojiCode": "U+1F644",
+      "variant": 1,
+      "path": "lottie/animated/U+1F644_1.json"
+    },
+    {
+      "emoji": "😍",
+      "emojiCode": "U+1F60D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F60D_1.json"
+    },
+    {
+      "emoji": "💋",
+      "emojiCode": "U+1F48B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F48B_1.json"
+    },
+    {
+      "emoji": "🧐",
+      "emojiCode": "U+1F9D0",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9D0_1.json"
+    },
+    {
+      "emoji": "😘",
+      "emojiCode": "U+1F618",
+      "variant": 1,
+      "path": "lottie/animated/U+1F618_1.json"
+    },
+    {
+      "emoji": "💎",
+      "emojiCode": "U+1F48E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F48E_1.json"
+    },
+    {
+      "emoji": "🔐",
+      "emojiCode": "U+1F510",
+      "variant": 1,
+      "path": "lottie/animated/U+1F510_1.json"
+    },
+    {
+      "emoji": "⌨",
+      "emojiCode": "U+2328",
+      "variant": 1,
+      "path": "lottie/animated/U+2328_1.json"
+    },
+    {
+      "emoji": "💸",
+      "emojiCode": "U+1F4B8",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4B8_1.json"
+    },
+    {
+      "emoji": "📝",
+      "emojiCode": "U+1F4DD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4DD_1.json"
+    },
+    {
+      "emoji": "🙈",
+      "emojiCode": "U+1F648",
+      "variant": 1,
+      "path": "lottie/animated/U+1F648_1.json"
+    },
+    {
+      "emoji": "👨‍🏫",
+      "emojiCode": "U+1F468_U+200D_U+1F3EB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F468_U+200D_U+1F3EB_1.json"
+    },
+    {
+      "emoji": "⏳",
+      "emojiCode": "U+23F3",
+      "variant": 1,
+      "path": "lottie/animated/U+23F3_1.json"
+    },
+    {
+      "emoji": "📬",
+      "emojiCode": "U+1F4EC",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4EC_1.json"
+    },
+    {
+      "emoji": "😔",
+      "emojiCode": "U+1F614",
+      "variant": 1,
+      "path": "lottie/animated/U+1F614_1.json"
+    },
+    {
+      "emoji": "💡",
+      "emojiCode": "U+1F4A1",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4A1_1.json"
+    },
+    {
+      "emoji": "👛",
+      "emojiCode": "U+1F45B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F45B_1.json"
+    },
+    {
+      "emoji": "💱",
+      "emojiCode": "U+1F4B1",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4B1_1.json"
+    },
+    {
+      "emoji": "🎄",
+      "emojiCode": "U+1F384",
+      "variant": 1,
+      "path": "lottie/animated/U+1F384_1.json"
+    },
+    {
+      "emoji": "☃",
+      "emojiCode": "U+2603",
+      "variant": 1,
+      "path": "lottie/animated/U+2603_1.json"
+    },
+    {
+      "emoji": "🧡",
+      "emojiCode": "U+1F9E1",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9E1_1.json"
+    },
+    {
+      "emoji": "💛",
+      "emojiCode": "U+1F49B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F49B_1.json"
+    },
+    {
+      "emoji": "💚",
+      "emojiCode": "U+1F49A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F49A_1.json"
+    },
+    {
+      "emoji": "💙",
+      "emojiCode": "U+1F499",
+      "variant": 1,
+      "path": "lottie/animated/U+1F499_1.json"
+    },
+    {
+      "emoji": "💜",
+      "emojiCode": "U+1F49C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F49C_1.json"
+    },
+    {
+      "emoji": "🖤",
+      "emojiCode": "U+1F5A4",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5A4_1.json"
+    },
+    {
+      "emoji": "🤍",
+      "emojiCode": "U+1F90D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F90D_1.json"
+    },
+    {
+      "emoji": "🤎",
+      "emojiCode": "U+1F90E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F90E_1.json"
+    },
+    {
+      "emoji": "😻",
+      "emojiCode": "U+1F63B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F63B_1.json"
+    },
+    {
+      "emoji": "🥰",
+      "emojiCode": "U+1F970",
+      "variant": 1,
+      "path": "lottie/animated/U+1F970_1.json"
+    },
+    {
+      "emoji": "💌",
+      "emojiCode": "U+1F48C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F48C_1.json"
+    },
+    {
+      "emoji": "💘",
+      "emojiCode": "U+1F498",
+      "variant": 1,
+      "path": "lottie/animated/U+1F498_1.json"
+    },
+    {
+      "emoji": "💔",
+      "emojiCode": "U+1F494",
+      "variant": 1,
+      "path": "lottie/animated/U+1F494_1.json"
+    },
+    {
+      "emoji": "🧭",
+      "emojiCode": "U+1F9ED",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9ED_1.json"
+    },
+    {
+      "emoji": "💝",
+      "emojiCode": "U+1F49D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F49D_1.json"
+    },
+    {
+      "emoji": "📣",
+      "emojiCode": "U+1F4E3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4E3_1.json"
+    },
+    {
+      "emoji": "🧮",
+      "emojiCode": "U+1F9EE",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9EE_1.json"
+    },
+    {
+      "emoji": "📁",
+      "emojiCode": "U+1F4C1",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4C1_1.json"
+    },
+    {
+      "emoji": "📂",
+      "emojiCode": "U+1F4C2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4C2_1.json"
+    },
+    {
+      "emoji": "🦠",
+      "emojiCode": "U+1F9A0",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9A0_1.json"
+    },
+    {
+      "emoji": "🤒",
+      "emojiCode": "U+1F912",
+      "variant": 1,
+      "path": "lottie/animated/U+1F912_1.json"
+    },
+    {
+      "emoji": "🤢",
+      "emojiCode": "U+1F922",
+      "variant": 1,
+      "path": "lottie/animated/U+1F922_1.json"
+    },
+    {
+      "emoji": "🤕",
+      "emojiCode": "U+1F915",
+      "variant": 1,
+      "path": "lottie/animated/U+1F915_1.json"
+    },
+    {
+      "emoji": "🤧",
+      "emojiCode": "U+1F927",
+      "variant": 1,
+      "path": "lottie/animated/U+1F927_1.json"
+    },
+    {
+      "emoji": "🧼",
+      "emojiCode": "U+1F9FC",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9FC_1.json"
+    },
+    {
+      "emoji": "🚑",
+      "emojiCode": "U+1F691",
+      "variant": 1,
+      "path": "lottie/animated/U+1F691_1.json"
+    },
+    {
+      "emoji": "🤮",
+      "emojiCode": "U+1F92E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F92E_1.json"
+    },
+    {
+      "emoji": "💊",
+      "emojiCode": "U+1F48A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F48A_1.json"
+    },
+    {
+      "emoji": "🧻",
+      "emojiCode": "U+1F9FB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9FB_1.json"
+    },
+    {
+      "emoji": "👩‍⚕",
+      "emojiCode": "U+1F469_U+200D_U+2695",
+      "variant": 1,
+      "path": "lottie/animated/U+1F469_U+200D_U+2695_1.json"
+    },
+    {
+      "emoji": "👨‍⚕",
+      "emojiCode": "U+1F468_U+200D_U+2695",
+      "variant": 1,
+      "path": "lottie/animated/U+1F468_U+200D_U+2695_1.json"
+    },
+    {
+      "emoji": "🤷‍♀",
+      "emojiCode": "U+1F937_U+200D_U+2640",
+      "variant": 1,
+      "path": "lottie/animated/U+1F937_U+200D_U+2640_1.json"
+    },
+    {
+      "emoji": "🤷‍♂",
+      "emojiCode": "U+1F937_U+200D_U+2642",
+      "variant": 1,
+      "path": "lottie/animated/U+1F937_U+200D_U+2642_1.json"
+    },
+    {
+      "emoji": "🧽",
+      "emojiCode": "U+1F9FD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9FD_1.json"
+    },
+    {
+      "emoji": "🤔",
+      "emojiCode": "U+1F914",
+      "variant": 1,
+      "path": "lottie/animated/U+1F914_1.json"
+    },
+    {
+      "emoji": "😌",
+      "emojiCode": "U+1F60C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F60C_1.json"
+    },
+    {
+      "emoji": "😭",
+      "emojiCode": "U+1F62D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F62D_1.json"
+    },
+    {
+      "emoji": "🙊",
+      "emojiCode": "U+1F64A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F64A_1.json"
+    },
+    {
+      "emoji": "😜",
+      "emojiCode": "U+1F61C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F61C_1.json"
+    },
+    {
+      "emoji": "😋",
+      "emojiCode": "U+1F60B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F60B_1.json"
+    },
+    {
+      "emoji": "😝",
+      "emojiCode": "U+1F61D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F61D_1.json"
+    },
+    {
+      "emoji": "😉",
+      "emojiCode": "U+1F609",
+      "variant": 1,
+      "path": "lottie/animated/U+1F609_1.json"
+    },
+    {
+      "emoji": "😏",
+      "emojiCode": "U+1F60F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F60F_1.json"
+    },
+    {
+      "emoji": "😚",
+      "emojiCode": "U+1F61A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F61A_1.json"
+    },
+    {
+      "emoji": "😞",
+      "emojiCode": "U+1F61E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F61E_1.json"
+    },
+    {
+      "emoji": "😕",
+      "emojiCode": "U+1F615",
+      "variant": 1,
+      "path": "lottie/animated/U+1F615_1.json"
+    },
+    {
+      "emoji": "😟",
+      "emojiCode": "U+1F61F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F61F_1.json"
+    },
+    {
+      "emoji": "😱",
+      "emojiCode": "U+1F631",
+      "variant": 1,
+      "path": "lottie/animated/U+1F631_1.json"
+    },
+    {
+      "emoji": "☺",
+      "emojiCode": "U+263A",
+      "variant": 1,
+      "path": "lottie/animated/U+263A_1.json"
+    },
+    {
+      "emoji": "😴",
+      "emojiCode": "U+1F634",
+      "variant": 1,
+      "path": "lottie/animated/U+1F634_1.json"
+    },
+    {
+      "emoji": "😎",
+      "emojiCode": "U+1F60E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F60E_1.json"
+    },
+    {
+      "emoji": "😿",
+      "emojiCode": "U+1F63F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F63F_1.json"
+    },
+    {
+      "emoji": "😺",
+      "emojiCode": "U+1F63A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F63A_1.json"
+    },
+    {
+      "emoji": "😸",
+      "emojiCode": "U+1F638",
+      "variant": 1,
+      "path": "lottie/animated/U+1F638_1.json"
+    },
+    {
+      "emoji": "🙀",
+      "emojiCode": "U+1F640",
+      "variant": 1,
+      "path": "lottie/animated/U+1F640_1.json"
+    },
+    {
+      "emoji": "😹",
+      "emojiCode": "U+1F639",
+      "variant": 1,
+      "path": "lottie/animated/U+1F639_1.json"
+    },
+    {
+      "emoji": "😽",
+      "emojiCode": "U+1F63D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F63D_1.json"
+    },
+    {
+      "emoji": "😼",
+      "emojiCode": "U+1F63C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F63C_1.json"
+    },
+    {
+      "emoji": "😾",
+      "emojiCode": "U+1F63E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F63E_1.json"
+    },
+    {
+      "emoji": "🎊",
+      "emojiCode": "U+1F38A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F38A_1.json"
+    },
+    {
+      "emoji": "👿",
+      "emojiCode": "U+1F47F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F47F_1.json"
+    },
+    {
+      "emoji": "😈",
+      "emojiCode": "U+1F608",
+      "variant": 1,
+      "path": "lottie/animated/U+1F608_1.json"
+    },
+    {
+      "emoji": "🔥",
+      "emojiCode": "U+1F525",
+      "variant": 1,
+      "path": "lottie/animated/U+1F525_1.json"
+    },
+    {
+      "emoji": "😀",
+      "emojiCode": "U+1F600",
+      "variant": 1,
+      "path": "lottie/animated/U+1F600_1.json"
+    },
+    {
+      "emoji": "😃",
+      "emojiCode": "U+1F603",
+      "variant": 1,
+      "path": "lottie/animated/U+1F603_1.json"
+    },
+    {
+      "emoji": "😆",
+      "emojiCode": "U+1F606",
+      "variant": 1,
+      "path": "lottie/animated/U+1F606_1.json"
+    },
+    {
+      "emoji": "😅",
+      "emojiCode": "U+1F605",
+      "variant": 1,
+      "path": "lottie/animated/U+1F605_1.json"
+    },
+    {
+      "emoji": "🤣",
+      "emojiCode": "U+1F923",
+      "variant": 1,
+      "path": "lottie/animated/U+1F923_1.json"
+    },
+    {
+      "emoji": "🎂",
+      "emojiCode": "U+1F382",
+      "variant": 1,
+      "path": "lottie/animated/U+1F382_1.json"
+    },
+    {
+      "emoji": "😄",
+      "emojiCode": "U+1F604",
+      "variant": 1,
+      "path": "lottie/animated/U+1F604_1.json"
+    },
+    {
+      "emoji": "🤬",
+      "emojiCode": "U+1F92C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F92C_1.json"
+    },
+    {
+      "emoji": "😤",
+      "emojiCode": "U+1F624",
+      "variant": 1,
+      "path": "lottie/animated/U+1F624_1.json"
+    },
+    {
+      "emoji": "🤪",
+      "emojiCode": "U+1F92A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F92A_1.json"
+    },
+    {
+      "emoji": "😛",
+      "emojiCode": "U+1F61B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F61B_1.json"
+    },
+    {
+      "emoji": "🥵",
+      "emojiCode": "U+1F975",
+      "variant": 1,
+      "path": "lottie/animated/U+1F975_1.json"
+    },
+    {
+      "emoji": "🥶",
+      "emojiCode": "U+1F976",
+      "variant": 1,
+      "path": "lottie/animated/U+1F976_1.json"
+    },
+    {
+      "emoji": "🤯",
+      "emojiCode": "U+1F92F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F92F_1.json"
+    },
+    {
+      "emoji": "🌕",
+      "emojiCode": "U+1F315",
+      "variant": 1,
+      "path": "lottie/animated/U+1F315_1.json"
+    },
+    {
+      "emoji": "🌖",
+      "emojiCode": "U+1F316",
+      "variant": 1,
+      "path": "lottie/animated/U+1F316_1.json"
+    },
+    {
+      "emoji": "🌗",
+      "emojiCode": "U+1F317",
+      "variant": 1,
+      "path": "lottie/animated/U+1F317_1.json"
+    },
+    {
+      "emoji": "🌘",
+      "emojiCode": "U+1F318",
+      "variant": 1,
+      "path": "lottie/animated/U+1F318_1.json"
+    },
+    {
+      "emoji": "🌑",
+      "emojiCode": "U+1F311",
+      "variant": 1,
+      "path": "lottie/animated/U+1F311_1.json"
+    },
+    {
+      "emoji": "🌒",
+      "emojiCode": "U+1F312",
+      "variant": 1,
+      "path": "lottie/animated/U+1F312_1.json"
+    },
+    {
+      "emoji": "🌓",
+      "emojiCode": "U+1F313",
+      "variant": 1,
+      "path": "lottie/animated/U+1F313_1.json"
+    },
+    {
+      "emoji": "🌔",
+      "emojiCode": "U+1F314",
+      "variant": 1,
+      "path": "lottie/animated/U+1F314_1.json"
+    },
+    {
+      "emoji": "🌞",
+      "emojiCode": "U+1F31E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F31E_1.json"
+    },
+    {
+      "emoji": "🌝",
+      "emojiCode": "U+1F31D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F31D_1.json"
+    },
+    {
+      "emoji": "😇",
+      "emojiCode": "U+1F607",
+      "variant": 1,
+      "path": "lottie/animated/U+1F607_1.json"
+    },
+    {
+      "emoji": "😯",
+      "emojiCode": "U+1F62F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F62F_1.json"
+    },
+    {
+      "emoji": "😦",
+      "emojiCode": "U+1F626",
+      "variant": 1,
+      "path": "lottie/animated/U+1F626_1.json"
+    },
+    {
+      "emoji": "🥱",
+      "emojiCode": "U+1F971",
+      "variant": 1,
+      "path": "lottie/animated/U+1F971_1.json"
+    },
+    {
+      "emoji": "🚕",
+      "emojiCode": "U+1F695",
+      "variant": 1,
+      "path": "lottie/animated/U+1F695_1.json"
+    },
+    {
+      "emoji": "😲",
+      "emojiCode": "U+1F632",
+      "variant": 1,
+      "path": "lottie/animated/U+1F632_1.json"
+    },
+    {
+      "emoji": "😊",
+      "emojiCode": "U+1F60A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F60A_1.json"
+    },
+    {
+      "emoji": "🙂",
+      "emojiCode": "U+1F642",
+      "variant": 1,
+      "path": "lottie/animated/U+1F642_1.json"
+    },
+    {
+      "emoji": "🙃",
+      "emojiCode": "U+1F643",
+      "variant": 1,
+      "path": "lottie/animated/U+1F643_1.json"
+    },
+    {
+      "emoji": "😷",
+      "emojiCode": "U+1F637",
+      "variant": 1,
+      "path": "lottie/animated/U+1F637_1.json"
+    },
+    {
+      "emoji": "🌚",
+      "emojiCode": "U+1F31A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F31A_1.json"
+    },
+    {
+      "emoji": "🌛",
+      "emojiCode": "U+1F31B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F31B_1.json"
+    },
+    {
+      "emoji": "🌜",
+      "emojiCode": "U+1F31C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F31C_1.json"
+    },
+    {
+      "emoji": "🧟‍♀",
+      "emojiCode": "U+1F9DF_U+200D_U+2640",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9DF_U+200D_U+2640_1.json"
+    },
+    {
+      "emoji": "🧟",
+      "emojiCode": "U+1F9DF",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9DF_1.json"
+    },
+    {
+      "emoji": "🧛‍♀",
+      "emojiCode": "U+1F9DB_U+200D_U+2640",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9DB_U+200D_U+2640_1.json"
+    },
+    {
+      "emoji": "🧛",
+      "emojiCode": "U+1F9DB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9DB_1.json"
+    },
+    {
+      "emoji": "🧛‍♂",
+      "emojiCode": "U+1F9DB_U+200D_U+2642",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9DB_U+200D_U+2642_1.json"
+    },
+    {
+      "emoji": "🕷",
+      "emojiCode": "U+1F577",
+      "variant": 1,
+      "path": "lottie/animated/U+1F577_1.json"
+    },
+    {
+      "emoji": "🦇",
+      "emojiCode": "U+1F987",
+      "variant": 1,
+      "path": "lottie/animated/U+1F987_1.json"
+    },
+    {
+      "emoji": "⚰",
+      "emojiCode": "U+26B0",
+      "variant": 1,
+      "path": "lottie/animated/U+26B0_1.json"
+    },
+    {
+      "emoji": "🕸",
+      "emojiCode": "U+1F578",
+      "variant": 1,
+      "path": "lottie/animated/U+1F578_1.json"
+    },
+    {
+      "emoji": "😐",
+      "emojiCode": "U+1F610",
+      "variant": 1,
+      "path": "lottie/animated/U+1F610_1.json"
+    },
+    {
+      "emoji": "👻",
+      "emojiCode": "U+1F47B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F47B_1.json"
+    },
+    {
+      "emoji": "🧟‍♂",
+      "emojiCode": "U+1F9DF_U+200D_U+2642",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9DF_U+200D_U+2642_1.json"
+    },
+    {
+      "emoji": "🗿",
+      "emojiCode": "U+1F5FF",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5FF_1.json"
+    },
+    {
+      "emoji": "🎃",
+      "emojiCode": "U+1F383",
+      "variant": 1,
+      "path": "lottie/animated/U+1F383_1.json"
+    },
+    {
+      "emoji": "🤗",
+      "emojiCode": "U+1F917",
+      "variant": 1,
+      "path": "lottie/animated/U+1F917_1.json"
+    },
+    {
+      "emoji": "🥺",
+      "emojiCode": "U+1F97A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F97A_1.json"
+    },
+    {
+      "emoji": "🤠",
+      "emojiCode": "U+1F920",
+      "variant": 1,
+      "path": "lottie/animated/U+1F920_1.json"
+    },
+    {
+      "emoji": "🥴",
+      "emojiCode": "U+1F974",
+      "variant": 1,
+      "path": "lottie/animated/U+1F974_1.json"
+    },
+    {
+      "emoji": "☠",
+      "emojiCode": "U+2620",
+      "variant": 1,
+      "path": "lottie/animated/U+2620_1.json"
+    },
+    {
+      "emoji": "🔍",
+      "emojiCode": "U+1F50D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F50D_1.json"
+    },
+    {
+      "emoji": "🔎",
+      "emojiCode": "U+1F50E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F50E_1.json"
+    },
+    {
+      "emoji": "✨",
+      "emojiCode": "U+2728",
+      "variant": 1,
+      "path": "lottie/animated/U+2728_1.json"
+    },
+    {
+      "emoji": "🤫",
+      "emojiCode": "U+1F92B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F92B_1.json"
+    },
+    {
+      "emoji": "💤",
+      "emojiCode": "U+1F4A4",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4A4_1.json"
+    },
+    {
+      "emoji": "🤑",
+      "emojiCode": "U+1F911",
+      "variant": 1,
+      "path": "lottie/animated/U+1F911_1.json"
+    },
+    {
+      "emoji": "🤭",
+      "emojiCode": "U+1F92D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F92D_1.json"
+    },
+    {
+      "emoji": "⚡",
+      "emojiCode": "U+26A1",
+      "variant": 1,
+      "path": "lottie/animated/U+26A1_1.json"
+    },
+    {
+      "emoji": "⭐",
+      "emojiCode": "U+2B50",
+      "variant": 1,
+      "path": "lottie/animated/U+2B50_1.json"
+    },
+    {
+      "emoji": "🦾",
+      "emojiCode": "U+1F9BE",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9BE_1.json"
+    },
+    {
+      "emoji": "🎆",
+      "emojiCode": "U+1F386",
+      "variant": 1,
+      "path": "lottie/animated/U+1F386_1.json"
+    },
+    {
+      "emoji": "🤥",
+      "emojiCode": "U+1F925",
+      "variant": 1,
+      "path": "lottie/animated/U+1F925_1.json"
+    },
+    {
+      "emoji": "🎇",
+      "emojiCode": "U+1F387",
+      "variant": 1,
+      "path": "lottie/animated/U+1F387_1.json"
+    },
+    {
+      "emoji": "❄",
+      "emojiCode": "U+2744",
+      "variant": 1,
+      "path": "lottie/animated/U+2744_1.json"
+    },
+    {
+      "emoji": "🎅",
+      "emojiCode": "U+1F385",
+      "variant": 1,
+      "path": "lottie/animated/U+1F385_1.json"
+    },
+    {
+      "emoji": "🤶",
+      "emojiCode": "U+1F936",
+      "variant": 1,
+      "path": "lottie/animated/U+1F936_1.json"
+    },
+    {
+      "emoji": "🤡",
+      "emojiCode": "U+1F921",
+      "variant": 1,
+      "path": "lottie/animated/U+1F921_1.json"
+    },
+    {
+      "emoji": "🚗",
+      "emojiCode": "U+1F697",
+      "variant": 1,
+      "path": "lottie/animated/U+1F697_1.json"
+    },
+    {
+      "emoji": "🍾",
+      "emojiCode": "U+1F37E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F37E_1.json"
+    },
+    {
+      "emoji": "😗",
+      "emojiCode": "U+1F617",
+      "variant": 1,
+      "path": "lottie/animated/U+1F617_1.json"
+    },
+    {
+      "emoji": "😙",
+      "emojiCode": "U+1F619",
+      "variant": 1,
+      "path": "lottie/animated/U+1F619_1.json"
+    },
+    {
+      "emoji": "🌟",
+      "emojiCode": "U+1F31F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F31F_1.json"
+    },
+    {
+      "emoji": "💫",
+      "emojiCode": "U+1F4AB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4AB_1.json"
+    },
+    {
+      "emoji": "💞",
+      "emojiCode": "U+1F49E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F49E_1.json"
+    },
+    {
+      "emoji": "💗",
+      "emojiCode": "U+1F497",
+      "variant": 1,
+      "path": "lottie/animated/U+1F497_1.json"
+    },
+    {
+      "emoji": "💓",
+      "emojiCode": "U+1F493",
+      "variant": 1,
+      "path": "lottie/animated/U+1F493_1.json"
+    },
+    {
+      "emoji": "❣",
+      "emojiCode": "U+2763",
+      "variant": 1,
+      "path": "lottie/animated/U+2763_1.json"
+    },
+    {
+      "emoji": "👮‍♀",
+      "emojiCode": "U+1F46E_U+200D_U+2640",
+      "variant": 1,
+      "path": "lottie/animated/U+1F46E_U+200D_U+2640_1.json"
+    },
+    {
+      "emoji": "🚓",
+      "emojiCode": "U+1F693",
+      "variant": 1,
+      "path": "lottie/animated/U+1F693_1.json"
+    },
+    {
+      "emoji": "🎮",
+      "emojiCode": "U+1F3AE",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3AE_1.json"
+    },
+    {
+      "emoji": "💖",
+      "emojiCode": "U+1F496",
+      "variant": 1,
+      "path": "lottie/animated/U+1F496_1.json"
+    },
+    {
+      "emoji": "💕",
+      "emojiCode": "U+1F495",
+      "variant": 1,
+      "path": "lottie/animated/U+1F495_1.json"
+    },
+    {
+      "emoji": "🤩",
+      "emojiCode": "U+1F929",
+      "variant": 1,
+      "path": "lottie/animated/U+1F929_1.json"
+    },
+    {
+      "emoji": "🥂",
+      "emojiCode": "U+1F942",
+      "variant": 1,
+      "path": "lottie/animated/U+1F942_1.json"
+    },
+    {
+      "emoji": "💉",
+      "emojiCode": "U+1F489",
+      "variant": 1,
+      "path": "lottie/animated/U+1F489_1.json"
+    },
+    {
+      "emoji": "🥲",
+      "emojiCode": "U+1F972",
+      "variant": 1,
+      "path": "lottie/animated/U+1F972_1.json"
+    },
+    {
+      "emoji": "🤤",
+      "emojiCode": "U+1F924",
+      "variant": 1,
+      "path": "lottie/animated/U+1F924_1.json"
+    },
+    {
+      "emoji": "🥸",
+      "emojiCode": "U+1F978",
+      "variant": 1,
+      "path": "lottie/animated/U+1F978_1.json"
+    },
+    {
+      "emoji": "😬",
+      "emojiCode": "U+1F62C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F62C_1.json"
+    },
+    {
+      "emoji": "🤓",
+      "emojiCode": "U+1F913",
+      "variant": 1,
+      "path": "lottie/animated/U+1F913_1.json"
+    },
+    {
+      "emoji": "😑",
+      "emojiCode": "U+1F611",
+      "variant": 1,
+      "path": "lottie/animated/U+1F611_1.json"
+    },
+    {
+      "emoji": "❌",
+      "emojiCode": "U+274C",
+      "variant": 1,
+      "path": "lottie/animated/U+274C_1.json"
+    },
+    {
+      "emoji": "💯",
+      "emojiCode": "U+1F4AF",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4AF_1.json"
+    },
+    {
+      "emoji": "❗",
+      "emojiCode": "U+2757",
+      "variant": 1,
+      "path": "lottie/animated/U+2757_1.json"
+    },
+    {
+      "emoji": "💢",
+      "emojiCode": "U+1F4A2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4A2_1.json"
+    },
+    {
+      "emoji": "♨",
+      "emojiCode": "U+2668",
+      "variant": 1,
+      "path": "lottie/animated/U+2668_1.json"
+    },
+    {
+      "emoji": "💬",
+      "emojiCode": "U+1F4AC",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4AC_1.json"
+    },
+    {
+      "emoji": "💭",
+      "emojiCode": "U+1F4AD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4AD_1.json"
+    },
+    {
+      "emoji": "🗯",
+      "emojiCode": "U+1F5EF",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5EF_1.json"
+    },
+    {
+      "emoji": "🤟",
+      "emojiCode": "U+1F91F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F91F_1.json"
+    },
+    {
+      "emoji": "❕",
+      "emojiCode": "U+2755",
+      "variant": 1,
+      "path": "lottie/animated/U+2755_1.json"
+    },
+    {
+      "emoji": "❔",
+      "emojiCode": "U+2754",
+      "variant": 1,
+      "path": "lottie/animated/U+2754_1.json"
+    },
+    {
+      "emoji": "❓",
+      "emojiCode": "U+2753",
+      "variant": 1,
+      "path": "lottie/animated/U+2753_1.json"
+    },
+    {
+      "emoji": "🗂",
+      "emojiCode": "U+1F5C2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5C2_1.json"
+    },
+    {
+      "emoji": "😶",
+      "emojiCode": "U+1F636",
+      "variant": 1,
+      "path": "lottie/animated/U+1F636_1.json"
+    },
+    {
+      "emoji": "🦉",
+      "emojiCode": "U+1F989",
+      "variant": 1,
+      "path": "lottie/animated/U+1F989_1.json"
+    },
+    {
+      "emoji": "🌱",
+      "emojiCode": "U+1F331",
+      "variant": 1,
+      "path": "lottie/animated/U+1F331_1.json"
+    },
+    {
+      "emoji": "🕺",
+      "emojiCode": "U+1F57A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F57A_1.json"
+    },
+    {
+      "emoji": "🐣",
+      "emojiCode": "U+1F423",
+      "variant": 1,
+      "path": "lottie/animated/U+1F423_1.json"
+    },
+    {
+      "emoji": "🌲",
+      "emojiCode": "U+1F332",
+      "variant": 1,
+      "path": "lottie/animated/U+1F332_1.json"
+    },
+    {
+      "emoji": "🙁",
+      "emojiCode": "U+1F641",
+      "variant": 1,
+      "path": "lottie/animated/U+1F641_1.json"
+    },
+    {
+      "emoji": "💃",
+      "emojiCode": "U+1F483",
+      "variant": 1,
+      "path": "lottie/animated/U+1F483_1.json"
+    },
+    {
+      "emoji": "☹",
+      "emojiCode": "U+2639",
+      "variant": 1,
+      "path": "lottie/animated/U+2639_1.json"
+    },
+    {
+      "emoji": "🌺",
+      "emojiCode": "U+1F33A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F33A_1.json"
+    },
+    {
+      "emoji": "🌿",
+      "emojiCode": "U+1F33F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F33F_1.json"
+    },
+    {
+      "emoji": "🌵",
+      "emojiCode": "U+1F335",
+      "variant": 1,
+      "path": "lottie/animated/U+1F335_1.json"
+    },
+    {
+      "emoji": "🌴",
+      "emojiCode": "U+1F334",
+      "variant": 1,
+      "path": "lottie/animated/U+1F334_1.json"
+    },
+    {
+      "emoji": "🌳",
+      "emojiCode": "U+1F333",
+      "variant": 1,
+      "path": "lottie/animated/U+1F333_1.json"
+    },
+    {
+      "emoji": "💥",
+      "emojiCode": "U+1F4A5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4A5_1.json"
+    },
+    {
+      "emoji": "👑",
+      "emojiCode": "U+1F451",
+      "variant": 1,
+      "path": "lottie/animated/U+1F451_1.json"
+    },
+    {
+      "emoji": "🏠",
+      "emojiCode": "U+1F3E0",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3E0_1.json"
+    },
+    {
+      "emoji": "😰",
+      "emojiCode": "U+1F630",
+      "variant": 1,
+      "path": "lottie/animated/U+1F630_1.json"
+    },
+    {
+      "emoji": "😓",
+      "emojiCode": "U+1F613",
+      "variant": 1,
+      "path": "lottie/animated/U+1F613_1.json"
+    },
+    {
+      "emoji": "👩‍💻",
+      "emojiCode": "U+1F469_U+200D_U+1F4BB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F469_U+200D_U+1F4BB_1.json"
+    },
+    {
+      "emoji": "🧑‍💻",
+      "emojiCode": "U+1F9D1_U+200D_U+1F4BB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9D1_U+200D_U+1F4BB_1.json"
+    },
+    {
+      "emoji": "👨‍💻",
+      "emojiCode": "U+1F468_U+200D_U+1F4BB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F468_U+200D_U+1F4BB_1.json"
+    },
+    {
+      "emoji": "👵",
+      "emojiCode": "U+1F475",
+      "variant": 1,
+      "path": "lottie/animated/U+1F475_1.json"
+    },
+    {
+      "emoji": "😪",
+      "emojiCode": "U+1F62A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F62A_1.json"
+    },
+    {
+      "emoji": "✍",
+      "emojiCode": "U+270D",
+      "variant": 1,
+      "path": "lottie/animated/U+270D_1.json"
+    },
+    {
+      "emoji": "😫",
+      "emojiCode": "U+1F62B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F62B_1.json"
+    },
+    {
+      "emoji": "🏖",
+      "emojiCode": "U+1F3D6",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3D6_1.json"
+    },
+    {
+      "emoji": "😨",
+      "emojiCode": "U+1F628",
+      "variant": 1,
+      "path": "lottie/animated/U+1F628_1.json"
+    },
+    {
+      "emoji": "🌷",
+      "emojiCode": "U+1F337",
+      "variant": 1,
+      "path": "lottie/animated/U+1F337_1.json"
+    },
+    {
+      "emoji": "💩",
+      "emojiCode": "U+1F4A9",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4A9_1.json"
+    },
+    {
+      "emoji": "🎉",
+      "emojiCode": "U+1F389",
+      "variant": 1,
+      "path": "lottie/animated/U+1F389_1.json"
+    },
+    {
+      "emoji": "💟",
+      "emojiCode": "U+1F49F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F49F_1.json"
+    },
+    {
+      "emoji": "🎈",
+      "emojiCode": "U+1F388",
+      "variant": 1,
+      "path": "lottie/animated/U+1F388_1.json"
+    },
+    {
+      "emoji": "😖",
+      "emojiCode": "U+1F616",
+      "variant": 1,
+      "path": "lottie/animated/U+1F616_1.json"
+    },
+    {
+      "emoji": "😩",
+      "emojiCode": "U+1F629",
+      "variant": 1,
+      "path": "lottie/animated/U+1F629_1.json"
+    },
+    {
+      "emoji": "🐥",
+      "emojiCode": "U+1F425",
+      "variant": 1,
+      "path": "lottie/animated/U+1F425_1.json"
+    },
+    {
+      "emoji": "🤐",
+      "emojiCode": "U+1F910",
+      "variant": 1,
+      "path": "lottie/animated/U+1F910_1.json"
+    },
+    {
+      "emoji": "😂",
+      "emojiCode": "U+1F602",
+      "variant": 1,
+      "path": "lottie/animated/U+1F602_1.json"
+    },
+    {
+      "emoji": "🎨",
+      "emojiCode": "U+1F3A8",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3A8_1.json"
+    },
+    {
+      "emoji": "🌹",
+      "emojiCode": "U+1F339",
+      "variant": 1,
+      "path": "lottie/animated/U+1F339_1.json"
+    },
+    {
+      "emoji": "🌸",
+      "emojiCode": "U+1F338",
+      "variant": 1,
+      "path": "lottie/animated/U+1F338_1.json"
+    },
+    {
+      "emoji": "🤖",
+      "emojiCode": "U+1F916",
+      "variant": 1,
+      "path": "lottie/animated/U+1F916_1.json"
+    },
+    {
+      "emoji": "💻",
+      "emojiCode": "U+1F4BB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4BB_1.json"
+    },
+    {
+      "emoji": "☝",
+      "emojiCode": "U+261D",
+      "variant": 1,
+      "path": "lottie/animated/U+261D_1.json"
+    },
+    {
+      "emoji": "✊",
+      "emojiCode": "U+270A",
+      "variant": 1,
+      "path": "lottie/animated/U+270A_1.json"
+    },
+    {
+      "emoji": "✋",
+      "emojiCode": "U+270B",
+      "variant": 1,
+      "path": "lottie/animated/U+270B_1.json"
+    },
+    {
+      "emoji": "✌",
+      "emojiCode": "U+270C",
+      "variant": 1,
+      "path": "lottie/animated/U+270C_1.json"
+    },
+    {
+      "emoji": "👂",
+      "emojiCode": "U+1F442",
+      "variant": 1,
+      "path": "lottie/animated/U+1F442_1.json"
+    },
+    {
+      "emoji": "👃",
+      "emojiCode": "U+1F443",
+      "variant": 1,
+      "path": "lottie/animated/U+1F443_1.json"
+    },
+    {
+      "emoji": "👆",
+      "emojiCode": "U+1F446",
+      "variant": 1,
+      "path": "lottie/animated/U+1F446_1.json"
+    },
+    {
+      "emoji": "👇",
+      "emojiCode": "U+1F447",
+      "variant": 1,
+      "path": "lottie/animated/U+1F447_1.json"
+    },
+    {
+      "emoji": "👈",
+      "emojiCode": "U+1F448",
+      "variant": 1,
+      "path": "lottie/animated/U+1F448_1.json"
+    },
+    {
+      "emoji": "👉",
+      "emojiCode": "U+1F449",
+      "variant": 1,
+      "path": "lottie/animated/U+1F449_1.json"
+    },
+    {
+      "emoji": "👊",
+      "emojiCode": "U+1F44A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F44A_1.json"
+    },
+    {
+      "emoji": "👋",
+      "emojiCode": "U+1F44B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F44B_1.json"
+    },
+    {
+      "emoji": "👌",
+      "emojiCode": "U+1F44C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F44C_1.json"
+    },
+    {
+      "emoji": "👍",
+      "emojiCode": "U+1F44D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F44D_1.json"
+    },
+    {
+      "emoji": "👎",
+      "emojiCode": "U+1F44E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F44E_1.json"
+    },
+    {
+      "emoji": "👏",
+      "emojiCode": "U+1F44F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F44F_1.json"
+    },
+    {
+      "emoji": "👐",
+      "emojiCode": "U+1F450",
+      "variant": 1,
+      "path": "lottie/animated/U+1F450_1.json"
+    },
+    {
+      "emoji": "💪",
+      "emojiCode": "U+1F4AA",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4AA_1.json"
+    },
+    {
+      "emoji": "🖕",
+      "emojiCode": "U+1F595",
+      "variant": 1,
+      "path": "lottie/animated/U+1F595_1.json"
+    },
+    {
+      "emoji": "🖖",
+      "emojiCode": "U+1F596",
+      "variant": 1,
+      "path": "lottie/animated/U+1F596_1.json"
+    },
+    {
+      "emoji": "🤌",
+      "emojiCode": "U+1F90C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F90C_1.json"
+    },
+    {
+      "emoji": "🤏",
+      "emojiCode": "U+1F90F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F90F_1.json"
+    },
+    {
+      "emoji": "🤘",
+      "emojiCode": "U+1F918",
+      "variant": 1,
+      "path": "lottie/animated/U+1F918_1.json"
+    },
+    {
+      "emoji": "🤙",
+      "emojiCode": "U+1F919",
+      "variant": 1,
+      "path": "lottie/animated/U+1F919_1.json"
+    },
+    {
+      "emoji": "🤚",
+      "emojiCode": "U+1F91A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F91A_1.json"
+    },
+    {
+      "emoji": "🤛",
+      "emojiCode": "U+1F91B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F91B_1.json"
+    },
+    {
+      "emoji": "🤜",
+      "emojiCode": "U+1F91C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F91C_1.json"
+    },
+    {
+      "emoji": "🤝",
+      "emojiCode": "U+1F91D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F91D_1.json"
+    },
+    {
+      "emoji": "🤞",
+      "emojiCode": "U+1F91E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F91E_1.json"
+    },
+    {
+      "emoji": "🤲",
+      "emojiCode": "U+1F932",
+      "variant": 1,
+      "path": "lottie/animated/U+1F932_1.json"
+    },
+    {
+      "emoji": "🦻",
+      "emojiCode": "U+1F9BB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9BB_1.json"
+    },
+    {
+      "emoji": "🙌",
+      "emojiCode": "U+1F64C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F64C_1.json"
+    },
+    {
+      "emoji": "🙏",
+      "emojiCode": "U+1F64F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F64F_1.json"
+    },
+    {
+      "emoji": "🦶",
+      "emojiCode": "U+1F9B6",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9B6_1.json"
+    },
+    {
+      "emoji": "🏝",
+      "emojiCode": "U+1F3DD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3DD_1.json"
+    },
+    {
+      "emoji": "📊",
+      "emojiCode": "U+1F4CA",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4CA_1.json"
+    },
+    {
+      "emoji": "🕊",
+      "emojiCode": "U+1F54A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F54A_1.json"
+    },
+    {
+      "emoji": "🦵",
+      "emojiCode": "U+1F9B5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9B5_1.json"
+    },
+    {
+      "emoji": "🦿",
+      "emojiCode": "U+1F9BF",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9BF_1.json"
+    },
+    {
+      "emoji": "🍿",
+      "emojiCode": "U+1F37F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F37F_1.json"
+    },
+    {
+      "emoji": "🌭",
+      "emojiCode": "U+1F32D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F32D_1.json"
+    },
+    {
+      "emoji": "🌮",
+      "emojiCode": "U+1F32E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F32E_1.json"
+    },
+    {
+      "emoji": "🍮",
+      "emojiCode": "U+1F36E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F36E_1.json"
+    },
+    {
+      "emoji": "🍰",
+      "emojiCode": "U+1F370",
+      "variant": 1,
+      "path": "lottie/animated/U+1F370_1.json"
+    },
+    {
+      "emoji": "🍕",
+      "emojiCode": "U+1F355",
+      "variant": 1,
+      "path": "lottie/animated/U+1F355_1.json"
+    },
+    {
+      "emoji": "🍟",
+      "emojiCode": "U+1F35F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F35F_1.json"
+    },
+    {
+      "emoji": "🍔",
+      "emojiCode": "U+1F354",
+      "variant": 1,
+      "path": "lottie/animated/U+1F354_1.json"
+    },
+    {
+      "emoji": "🍪",
+      "emojiCode": "U+1F36A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F36A_1.json"
+    },
+    {
+      "emoji": "🥤",
+      "emojiCode": "U+1F964",
+      "variant": 1,
+      "path": "lottie/animated/U+1F964_1.json"
+    },
+    {
+      "emoji": "☎",
+      "emojiCode": "U+260E",
+      "variant": 1,
+      "path": "lottie/animated/U+260E_1.json"
+    },
+    {
+      "emoji": "📞",
+      "emojiCode": "U+1F4DE",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4DE_1.json"
+    },
+    {
+      "emoji": "🍦",
+      "emojiCode": "U+1F366",
+      "variant": 1,
+      "path": "lottie/animated/U+1F366_1.json"
+    },
+    {
+      "emoji": "🍩",
+      "emojiCode": "U+1F369",
+      "variant": 1,
+      "path": "lottie/animated/U+1F369_1.json"
+    },
+    {
+      "emoji": "🥞",
+      "emojiCode": "U+1F95E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F95E_1.json"
+    },
+    {
+      "emoji": "🍢",
+      "emojiCode": "U+1F362",
+      "variant": 1,
+      "path": "lottie/animated/U+1F362_1.json"
+    },
+    {
+      "emoji": "🥧",
+      "emojiCode": "U+1F967",
+      "variant": 1,
+      "path": "lottie/animated/U+1F967_1.json"
+    },
+    {
+      "emoji": "🎢",
+      "emojiCode": "U+1F3A2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3A2_1.json"
+    },
+    {
+      "emoji": "❤‍🔥",
+      "emojiCode": "U+2764_U+200D_U+1F525",
+      "variant": 1,
+      "path": "lottie/animated/U+2764_U+200D_U+1F525_1.json"
+    },
+    {
+      "emoji": "❤‍🩹",
+      "emojiCode": "U+2764_U+200D_U+1FA79",
+      "variant": 1,
+      "path": "lottie/animated/U+2764_U+200D_U+1FA79_1.json"
+    },
+    {
+      "emoji": "🐳",
+      "emojiCode": "U+1F433",
+      "variant": 1,
+      "path": "lottie/animated/U+1F433_1.json"
+    },
+    {
+      "emoji": "🍡",
+      "emojiCode": "U+1F361",
+      "variant": 1,
+      "path": "lottie/animated/U+1F361_1.json"
+    },
+    {
+      "emoji": "🤨",
+      "emojiCode": "U+1F928",
+      "variant": 1,
+      "path": "lottie/animated/U+1F928_1.json"
+    },
+    {
+      "emoji": "🏆",
+      "emojiCode": "U+1F3C6",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3C6_1.json"
+    },
+    {
+      "emoji": "🍌",
+      "emojiCode": "U+1F34C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F34C_1.json"
+    },
+    {
+      "emoji": "👾",
+      "emojiCode": "U+1F47E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F47E_1.json"
+    },
+    {
+      "emoji": "👹",
+      "emojiCode": "U+1F479",
+      "variant": 1,
+      "path": "lottie/animated/U+1F479_1.json"
+    },
+    {
+      "emoji": "👺",
+      "emojiCode": "U+1F47A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F47A_1.json"
+    },
+    {
+      "emoji": "👽",
+      "emojiCode": "U+1F47D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F47D_1.json"
+    },
+    {
+      "emoji": "🫠",
+      "emojiCode": "U+1FAE0",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE0_1.json"
+    },
+    {
+      "emoji": "🫡",
+      "emojiCode": "U+1FAE1",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE1_1.json"
+    },
+    {
+      "emoji": "🫣",
+      "emojiCode": "U+1FAE3",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE3_1.json"
+    },
+    {
+      "emoji": "🥹",
+      "emojiCode": "U+1F979",
+      "variant": 1,
+      "path": "lottie/animated/U+1F979_1.json"
+    },
+    {
+      "emoji": "🫤",
+      "emojiCode": "U+1FAE4",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE4_1.json"
+    },
+    {
+      "emoji": "🫢",
+      "emojiCode": "U+1FAE2",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE2_1.json"
+    },
+    {
+      "emoji": "🫥",
+      "emojiCode": "U+1FAE5",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE5_1.json"
+    },
+    {
+      "emoji": "😠",
+      "emojiCode": "U+1F620",
+      "variant": 1,
+      "path": "lottie/animated/U+1F620_1.json"
+    },
+    {
+      "emoji": "😥",
+      "emojiCode": "U+1F625",
+      "variant": 1,
+      "path": "lottie/animated/U+1F625_1.json"
+    },
+    {
+      "emoji": "😣",
+      "emojiCode": "U+1F623",
+      "variant": 1,
+      "path": "lottie/animated/U+1F623_1.json"
+    },
+    {
+      "emoji": "😮‍💨",
+      "emojiCode": "U+1F62E_U+200D_U+1F4A8",
+      "variant": 1,
+      "path": "lottie/animated/U+1F62E_U+200D_U+1F4A8_1.json"
+    },
+    {
+      "emoji": "😶‍🌫",
+      "emojiCode": "U+1F636_U+200D_U+1F32B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F636_U+200D_U+1F32B_1.json"
+    },
+    {
+      "emoji": "😵",
+      "emojiCode": "U+1F635",
+      "variant": 1,
+      "path": "lottie/animated/U+1F635_1.json"
+    },
+    {
+      "emoji": "😵‍💫",
+      "emojiCode": "U+1F635_U+200D_U+1F4AB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F635_U+200D_U+1F4AB_1.json"
+    },
+    {
+      "emoji": "🫱",
+      "emojiCode": "U+1FAF1",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF1_1.json"
+    },
+    {
+      "emoji": "🫲",
+      "emojiCode": "U+1FAF2",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF2_1.json"
+    },
+    {
+      "emoji": "🧑‍🎄",
+      "emojiCode": "U+1F9D1_U+200D_U+1F384",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9D1_U+200D_U+1F384_1.json"
+    },
+    {
+      "emoji": "🍙",
+      "emojiCode": "U+1F359",
+      "variant": 1,
+      "path": "lottie/animated/U+1F359_1.json"
+    },
+    {
+      "emoji": "🥫",
+      "emojiCode": "U+1F96B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F96B_1.json"
+    },
+    {
+      "emoji": "🍣",
+      "emojiCode": "U+1F363",
+      "variant": 1,
+      "path": "lottie/animated/U+1F363_1.json"
+    },
+    {
+      "emoji": "👣",
+      "emojiCode": "U+1F463",
+      "variant": 1,
+      "path": "lottie/animated/U+1F463_1.json"
+    },
+    {
+      "emoji": "🎵",
+      "emojiCode": "U+1F3B5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3B5_1.json"
+    },
+    {
+      "emoji": "🎶",
+      "emojiCode": "U+1F3B6",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3B6_1.json"
+    },
+    {
+      "emoji": "🧋",
+      "emojiCode": "U+1F9CB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9CB_1.json"
+    },
+    {
+      "emoji": "☑",
+      "emojiCode": "U+2611",
+      "variant": 1,
+      "path": "lottie/animated/U+2611_1.json"
+    },
+    {
+      "emoji": "🐾",
+      "emojiCode": "U+1F43E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F43E_1.json"
+    },
+    {
+      "emoji": "✅",
+      "emojiCode": "U+2705",
+      "variant": 1,
+      "path": "lottie/animated/U+2705_1.json"
+    },
+    {
+      "emoji": "🍓",
+      "emojiCode": "U+1F353",
+      "variant": 1,
+      "path": "lottie/animated/U+1F353_1.json"
+    },
+    {
+      "emoji": "✔",
+      "emojiCode": "U+2714",
+      "variant": 1,
+      "path": "lottie/animated/U+2714_1.json"
+    },
+    {
+      "emoji": "🦷",
+      "emojiCode": "U+1F9B7",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9B7_1.json"
+    },
+    {
+      "emoji": "🪄",
+      "emojiCode": "U+1FA84",
+      "variant": 1,
+      "path": "lottie/animated/U+1FA84_1.json"
+    },
+    {
+      "emoji": "🌡",
+      "emojiCode": "U+1F321",
+      "variant": 1,
+      "path": "lottie/animated/U+1F321_1.json"
+    },
+    {
+      "emoji": "💣",
+      "emojiCode": "U+1F4A3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4A3_1.json"
+    },
+    {
+      "emoji": "📭",
+      "emojiCode": "U+1F4ED",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4ED_1.json"
+    },
+    {
+      "emoji": "🧨",
+      "emojiCode": "U+1F9E8",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9E8_1.json"
+    },
+    {
+      "emoji": "☀",
+      "emojiCode": "U+2600",
+      "variant": 1,
+      "path": "lottie/animated/U+2600_1.json"
+    },
+    {
+      "emoji": "⛈",
+      "emojiCode": "U+26C8",
+      "variant": 1,
+      "path": "lottie/animated/U+26C8_1.json"
+    },
+    {
+      "emoji": "🍫",
+      "emojiCode": "U+1F36B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F36B_1.json"
+    },
+    {
+      "emoji": "🗯",
+      "emojiCode": "U+1F5EF",
+      "variant": 2,
+      "path": "lottie/animated/U+1F5EF_2.json"
+    },
+    {
+      "emoji": "🎩",
+      "emojiCode": "U+1F3A9",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3A9_1.json"
+    },
+    {
+      "emoji": "⁉",
+      "emojiCode": "U+2049",
+      "variant": 1,
+      "path": "lottie/animated/U+2049_1.json"
+    },
+    {
+      "emoji": "‼",
+      "emojiCode": "U+203C",
+      "variant": 1,
+      "path": "lottie/animated/U+203C_1.json"
+    },
+    {
+      "emoji": "👅",
+      "emojiCode": "U+1F445",
+      "variant": 1,
+      "path": "lottie/animated/U+1F445_1.json"
+    },
+    {
+      "emoji": "❗",
+      "emojiCode": "U+2757",
+      "variant": 2,
+      "path": "lottie/animated/U+2757_2.json"
+    },
+    {
+      "emoji": "🧃",
+      "emojiCode": "U+1F9C3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9C3_1.json"
+    },
+    {
+      "emoji": "🐵",
+      "emojiCode": "U+1F435",
+      "variant": 1,
+      "path": "lottie/animated/U+1F435_1.json"
+    },
+    {
+      "emoji": "🙉",
+      "emojiCode": "U+1F649",
+      "variant": 1,
+      "path": "lottie/animated/U+1F649_1.json"
+    },
+    {
+      "emoji": "⌛",
+      "emojiCode": "U+231B",
+      "variant": 1,
+      "path": "lottie/animated/U+231B_1.json"
+    },
+    {
+      "emoji": "🍥",
+      "emojiCode": "U+1F365",
+      "variant": 1,
+      "path": "lottie/animated/U+1F365_1.json"
+    },
+    {
+      "emoji": "🍘",
+      "emojiCode": "U+1F358",
+      "variant": 1,
+      "path": "lottie/animated/U+1F358_1.json"
+    },
+    {
+      "emoji": "🦋",
+      "emojiCode": "U+1F98B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F98B_1.json"
+    },
+    {
+      "emoji": "❤",
+      "emojiCode": "U+2764",
+      "variant": 2,
+      "path": "lottie/animated/U+2764_2.json"
+    },
+    {
+      "emoji": "🕊",
+      "emojiCode": "U+1F54A",
+      "variant": 2,
+      "path": "lottie/animated/U+1F54A_2.json"
+    },
+    {
+      "emoji": "🕸",
+      "emojiCode": "U+1F578",
+      "variant": 2,
+      "path": "lottie/animated/U+1F578_2.json"
+    },
+    {
+      "emoji": "🚀",
+      "emojiCode": "U+1F680",
+      "variant": 1,
+      "path": "lottie/animated/U+1F680_1.json"
+    },
+    {
+      "emoji": "⭐",
+      "emojiCode": "U+2B50",
+      "variant": 2,
+      "path": "lottie/animated/U+2B50_2.json"
+    },
+    {
+      "emoji": "💄",
+      "emojiCode": "U+1F484",
+      "variant": 1,
+      "path": "lottie/animated/U+1F484_1.json"
+    },
+    {
+      "emoji": "👁",
+      "emojiCode": "U+1F441",
+      "variant": 1,
+      "path": "lottie/animated/U+1F441_1.json"
+    },
+    {
+      "emoji": "🛷",
+      "emojiCode": "U+1F6F7",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6F7_1.json"
+    },
+    {
+      "emoji": "⚡",
+      "emojiCode": "U+26A1",
+      "variant": 2,
+      "path": "lottie/animated/U+26A1_2.json"
+    },
+    {
+      "emoji": "🦴",
+      "emojiCode": "U+1F9B4",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9B4_1.json"
+    },
+    {
+      "emoji": "🍱",
+      "emojiCode": "U+1F371",
+      "variant": 1,
+      "path": "lottie/animated/U+1F371_1.json"
+    },
+    {
+      "emoji": "👄",
+      "emojiCode": "U+1F444",
+      "variant": 1,
+      "path": "lottie/animated/U+1F444_1.json"
+    },
+    {
+      "emoji": "🍗",
+      "emojiCode": "U+1F357",
+      "variant": 1,
+      "path": "lottie/animated/U+1F357_1.json"
+    },
+    {
+      "emoji": "🍖",
+      "emojiCode": "U+1F356",
+      "variant": 1,
+      "path": "lottie/animated/U+1F356_1.json"
+    },
+    {
+      "emoji": "🗂",
+      "emojiCode": "U+1F5C2",
+      "variant": 2,
+      "path": "lottie/animated/U+1F5C2_2.json"
+    },
+    {
+      "emoji": "🥪",
+      "emojiCode": "U+1F96A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F96A_1.json"
+    },
+    {
+      "emoji": "🫦",
+      "emojiCode": "U+1FAE6",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE6_1.json"
+    },
+    {
+      "emoji": "👀",
+      "emojiCode": "U+1F440",
+      "variant": 1,
+      "path": "lottie/animated/U+1F440_1.json"
+    },
+    {
+      "emoji": "🍳",
+      "emojiCode": "U+1F373",
+      "variant": 1,
+      "path": "lottie/animated/U+1F373_1.json"
+    },
+    {
+      "emoji": "🍭",
+      "emojiCode": "U+1F36D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F36D_1.json"
+    },
+    {
+      "emoji": "🥨",
+      "emojiCode": "U+1F968",
+      "variant": 1,
+      "path": "lottie/animated/U+1F968_1.json"
+    },
+    {
+      "emoji": "🥙",
+      "emojiCode": "U+1F959",
+      "variant": 1,
+      "path": "lottie/animated/U+1F959_1.json"
+    },
+    {
+      "emoji": "🧁",
+      "emojiCode": "U+1F9C1",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9C1_1.json"
+    },
+    {
+      "emoji": "🫰",
+      "emojiCode": "U+1FAF0",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF0_1.json"
+    },
+    {
+      "emoji": "🫳",
+      "emojiCode": "U+1FAF3",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF3_1.json"
+    },
+    {
+      "emoji": "🫴",
+      "emojiCode": "U+1FAF4",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF4_1.json"
+    },
+    {
+      "emoji": "🫵",
+      "emojiCode": "U+1FAF5",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF5_1.json"
+    },
+    {
+      "emoji": "🫶",
+      "emojiCode": "U+1FAF6",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF6_1.json"
+    },
+    {
+      "emoji": "☕",
+      "emojiCode": "U+2615",
+      "variant": 1,
+      "path": "lottie/animated/U+2615_1.json"
+    },
+    {
+      "emoji": "🍹",
+      "emojiCode": "U+1F379",
+      "variant": 1,
+      "path": "lottie/animated/U+1F379_1.json"
+    },
+    {
+      "emoji": "⚽",
+      "emojiCode": "U+26BD",
+      "variant": 1,
+      "path": "lottie/animated/U+26BD_1.json"
+    },
+    {
+      "emoji": "🍽",
+      "emojiCode": "U+1F37D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F37D_1.json"
+    },
+    {
+      "emoji": "🎓",
+      "emojiCode": "U+1F393",
+      "variant": 1,
+      "path": "lottie/animated/U+1F393_1.json"
+    },
+    {
+      "emoji": "⛅",
+      "emojiCode": "U+26C5",
+      "variant": 1,
+      "path": "lottie/animated/U+26C5_1.json"
+    },
+    {
+      "emoji": "🎤",
+      "emojiCode": "U+1F3A4",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3A4_1.json"
+    },
+    {
+      "emoji": "🎬",
+      "emojiCode": "U+1F3AC",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3AC_1.json"
+    },
+    {
+      "emoji": "🏛",
+      "emojiCode": "U+1F3DB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3DB_1.json"
+    },
+    {
+      "emoji": "🏴‍☠",
+      "emojiCode": "U+1F3F4_U+200D_U+2620",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3F4_U+200D_U+2620_1.json"
+    },
+    {
+      "emoji": "✈",
+      "emojiCode": "U+2708",
+      "variant": 1,
+      "path": "lottie/animated/U+2708_1.json"
+    },
+    {
+      "emoji": "🐟",
+      "emojiCode": "U+1F41F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F41F_1.json"
+    },
+    {
+      "emoji": "🎭",
+      "emojiCode": "U+1F3AD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3AD_1.json"
+    },
+    {
+      "emoji": "👨‍👩‍👧‍👦",
+      "emojiCode": "U+1F468_U+200D_U+1F469_U+200D_U+1F467_U+200D_U+1F466",
+      "variant": 1,
+      "path": "lottie/animated/U+1F468_U+200D_U+1F469_U+200D_U+1F467_U+200D_U+1F466_1.json"
+    },
+    {
+      "emoji": "💰",
+      "emojiCode": "U+1F4B0",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4B0_1.json"
+    },
+    {
+      "emoji": "👜",
+      "emojiCode": "U+1F45C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F45C_1.json"
+    },
+    {
+      "emoji": "📚",
+      "emojiCode": "U+1F4DA",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4DA_1.json"
+    },
+    {
+      "emoji": "📺",
+      "emojiCode": "U+1F4FA",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4FA_1.json"
+    },
+    {
+      "emoji": "👶",
+      "emojiCode": "U+1F476",
+      "variant": 1,
+      "path": "lottie/animated/U+1F476_1.json"
+    },
+    {
+      "emoji": "🏕",
+      "emojiCode": "U+1F3D5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3D5_1.json"
+    },
+    {
+      "emoji": "🖨",
+      "emojiCode": "U+1F5A8",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5A8_1.json"
+    },
+    {
+      "emoji": "📈",
+      "emojiCode": "U+1F4C8",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4C8_1.json"
+    },
+    {
+      "emoji": "🗣",
+      "emojiCode": "U+1F5E3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5E3_1.json"
+    },
+    {
+      "emoji": "🎟",
+      "emojiCode": "U+1F39F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F39F_1.json"
+    },
+    {
+      "emoji": "🩺",
+      "emojiCode": "U+1FA7A",
+      "variant": 1,
+      "path": "lottie/animated/U+1FA7A_1.json"
+    },
+    {
+      "emoji": "🗳",
+      "emojiCode": "U+1F5F3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5F3_1.json"
+    },
+    {
+      "emoji": "📉",
+      "emojiCode": "U+1F4C9",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4C9_1.json"
+    },
+    {
+      "emoji": "🏀",
+      "emojiCode": "U+1F3C0",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3C0_1.json"
+    },
+    {
+      "emoji": "🪖",
+      "emojiCode": "U+1FA96",
+      "variant": 1,
+      "path": "lottie/animated/U+1FA96_1.json"
+    },
+    {
+      "emoji": "👠",
+      "emojiCode": "U+1F460",
+      "variant": 1,
+      "path": "lottie/animated/U+1F460_1.json"
+    },
+    {
+      "emoji": "🔬",
+      "emojiCode": "U+1F52C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F52C_1.json"
+    },
+    {
+      "emoji": "👮‍♂",
+      "emojiCode": "U+1F46E_U+200D_U+2642",
+      "variant": 1,
+      "path": "lottie/animated/U+1F46E_U+200D_U+2642_1.json"
+    },
+    {
+      "emoji": "🤰",
+      "emojiCode": "U+1F930",
+      "variant": 1,
+      "path": "lottie/animated/U+1F930_1.json"
+    },
+    {
+      "emoji": "🛍",
+      "emojiCode": "U+1F6CD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6CD_1.json"
+    },
+    {
+      "emoji": "🪙",
+      "emojiCode": "U+1FA99",
+      "variant": 1,
+      "path": "lottie/animated/U+1FA99_1.json"
+    },
+    {
+      "emoji": "🧳",
+      "emojiCode": "U+1F9F3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9F3_1.json"
+    },
+    {
+      "emoji": "💅",
+      "emojiCode": "U+1F485",
+      "variant": 1,
+      "path": "lottie/animated/U+1F485_1.json"
+    },
+    {
+      "emoji": "💼",
+      "emojiCode": "U+1F4BC",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4BC_1.json"
+    },
+    {
+      "emoji": "🛥",
+      "emojiCode": "U+1F6E5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6E5_1.json"
+    },
+    {
+      "emoji": "🔭",
+      "emojiCode": "U+1F52D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F52D_1.json"
+    },
+    {
+      "emoji": "🪩",
+      "emojiCode": "U+1FAA9",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAA9_1.json"
+    },
+    {
+      "emoji": "🚂",
+      "emojiCode": "U+1F682",
+      "variant": 1,
+      "path": "lottie/animated/U+1F682_1.json"
+    },
+    {
+      "emoji": "🛃",
+      "emojiCode": "U+1F6C3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6C3_1.json"
+    },
+    {
+      "emoji": "🔮",
+      "emojiCode": "U+1F52E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F52E_1.json"
+    },
+    {
+      "emoji": "🎙",
+      "emojiCode": "U+1F399",
+      "variant": 1,
+      "path": "lottie/animated/U+1F399_1.json"
+    },
+    {
+      "emoji": "🏁",
+      "emojiCode": "U+1F3C1",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3C1_1.json"
+    },
+    {
+      "emoji": "📤",
+      "emojiCode": "U+1F4E4",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4E4_1.json"
+    },
+    {
+      "emoji": "🏳",
+      "emojiCode": "U+1F3F3",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3F3_1.json"
+    },
+    {
+      "emoji": "📥",
+      "emojiCode": "U+1F4E5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4E5_1.json"
+    },
+    {
+      "emoji": "🏴",
+      "emojiCode": "U+1F3F4",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3F4_1.json"
+    },
+    {
+      "emoji": "🔞",
+      "emojiCode": "U+1F51E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F51E_1.json"
+    },
+    {
+      "emoji": "📨",
+      "emojiCode": "U+1F4E8",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4E8_1.json"
+    },
+    {
+      "emoji": "📆",
+      "emojiCode": "U+1F4C6",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4C6_1.json"
+    },
+    {
+      "emoji": "🚩",
+      "emojiCode": "U+1F6A9",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6A9_1.json"
+    },
+    {
+      "emoji": "🦄",
+      "emojiCode": "U+1F984",
+      "variant": 1,
+      "path": "lottie/animated/U+1F984_1.json"
+    },
+    {
+      "emoji": "📰",
+      "emojiCode": "U+1F4F0",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4F0_1.json"
+    },
+    {
+      "emoji": "🧪",
+      "emojiCode": "U+1F9EA",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9EA_1.json"
+    },
+    {
+      "emoji": "🛒",
+      "emojiCode": "U+1F6D2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6D2_1.json"
+    },
+    {
+      "emoji": "📱",
+      "emojiCode": "U+1F4F1",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4F1_1.json"
+    },
+    {
+      "emoji": "🔝",
+      "emojiCode": "U+1F51D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F51D_1.json"
+    },
+    {
+      "emoji": "🧰",
+      "emojiCode": "U+1F9F0",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9F0_1.json"
+    },
+    {
+      "emoji": "🪪",
+      "emojiCode": "U+1FAAA",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAAA_1.json"
+    },
+    {
+      "emoji": "🖐",
+      "emojiCode": "U+1F590",
+      "variant": 1,
+      "path": "lottie/animated/U+1F590_1.json"
+    },
+    {
+      "emoji": "⛄",
+      "emojiCode": "U+26C4",
+      "variant": 1,
+      "path": "lottie/animated/U+26C4_1.json"
+    },
+    {
+      "emoji": "🧑‍🎄",
+      "emojiCode": "U+1F9D1_U+200D_U+1F384",
+      "variant": 2,
+      "path": "lottie/animated/U+1F9D1_U+200D_U+1F384_2.json"
+    },
+    {
+      "emoji": "☁",
+      "emojiCode": "U+2601",
+      "variant": 1,
+      "path": "lottie/animated/U+2601_1.json"
+    },
+    {
+      "emoji": "🌥",
+      "emojiCode": "U+1F325",
+      "variant": 1,
+      "path": "lottie/animated/U+1F325_1.json"
+    },
+    {
+      "emoji": "🌦",
+      "emojiCode": "U+1F326",
+      "variant": 1,
+      "path": "lottie/animated/U+1F326_1.json"
+    },
+    {
+      "emoji": "🌧",
+      "emojiCode": "U+1F327",
+      "variant": 1,
+      "path": "lottie/animated/U+1F327_1.json"
+    },
+    {
+      "emoji": "🌤",
+      "emojiCode": "U+1F324",
+      "variant": 1,
+      "path": "lottie/animated/U+1F324_1.json"
+    },
+    {
+      "emoji": "🌩",
+      "emojiCode": "U+1F329",
+      "variant": 1,
+      "path": "lottie/animated/U+1F329_1.json"
+    },
+    {
+      "emoji": "🐤",
+      "emojiCode": "U+1F424",
+      "variant": 1,
+      "path": "lottie/animated/U+1F424_1.json"
+    },
+    {
+      "emoji": "🐔",
+      "emojiCode": "U+1F414",
+      "variant": 1,
+      "path": "lottie/animated/U+1F414_1.json"
+    },
+    {
+      "emoji": "🐭",
+      "emojiCode": "U+1F42D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F42D_1.json"
+    },
+    {
+      "emoji": "🌨",
+      "emojiCode": "U+1F328",
+      "variant": 1,
+      "path": "lottie/animated/U+1F328_1.json"
+    },
+    {
+      "emoji": "🐨",
+      "emojiCode": "U+1F428",
+      "variant": 1,
+      "path": "lottie/animated/U+1F428_1.json"
+    },
+    {
+      "emoji": "🐹",
+      "emojiCode": "U+1F439",
+      "variant": 1,
+      "path": "lottie/animated/U+1F439_1.json"
+    },
+    {
+      "emoji": "🐻",
+      "emojiCode": "U+1F43B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F43B_1.json"
+    },
+    {
+      "emoji": "🐶",
+      "emojiCode": "U+1F436",
+      "variant": 1,
+      "path": "lottie/animated/U+1F436_1.json"
+    },
+    {
+      "emoji": "🐱",
+      "emojiCode": "U+1F431",
+      "variant": 1,
+      "path": "lottie/animated/U+1F431_1.json"
+    },
+    {
+      "emoji": "📖",
+      "emojiCode": "U+1F4D6",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4D6_1.json"
+    },
+    {
+      "emoji": "🤦",
+      "emojiCode": "U+1F926",
+      "variant": 1,
+      "path": "lottie/animated/U+1F926_1.json"
+    },
+    {
+      "emoji": "🐼",
+      "emojiCode": "U+1F43C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F43C_1.json"
+    },
+    {
+      "emoji": "🥈",
+      "emojiCode": "U+1F948",
+      "variant": 1,
+      "path": "lottie/animated/U+1F948_1.json"
+    },
+    {
+      "emoji": "🤦‍♀",
+      "emojiCode": "U+1F926_U+200D_U+2640",
+      "variant": 1,
+      "path": "lottie/animated/U+1F926_U+200D_U+2640_1.json"
+    },
+    {
+      "emoji": "🥇",
+      "emojiCode": "U+1F947",
+      "variant": 1,
+      "path": "lottie/animated/U+1F947_1.json"
+    },
+    {
+      "emoji": "🤦‍♂",
+      "emojiCode": "U+1F926_U+200D_U+2642",
+      "variant": 1,
+      "path": "lottie/animated/U+1F926_U+200D_U+2642_1.json"
+    },
+    {
+      "emoji": "🐻‍❄",
+      "emojiCode": "U+1F43B_U+200D_U+2744",
+      "variant": 1,
+      "path": "lottie/animated/U+1F43B_U+200D_U+2744_1.json"
+    },
+    {
+      "emoji": "🦊",
+      "emojiCode": "U+1F98A",
+      "variant": 1,
+      "path": "lottie/animated/U+1F98A_1.json"
+    },
+    {
+      "emoji": "🥉",
+      "emojiCode": "U+1F949",
+      "variant": 1,
+      "path": "lottie/animated/U+1F949_1.json"
+    },
+    {
+      "emoji": "🆕",
+      "emojiCode": "U+1F195",
+      "variant": 1,
+      "path": "lottie/animated/U+1F195_1.json"
+    },
+    {
+      "emoji": "🆒",
+      "emojiCode": "U+1F192",
+      "variant": 1,
+      "path": "lottie/animated/U+1F192_1.json"
+    },
+    {
+      "emoji": "☘",
+      "emojiCode": "U+2618",
+      "variant": 1,
+      "path": "lottie/animated/U+2618_1.json"
+    },
+    {
+      "emoji": "✏",
+      "emojiCode": "U+270F",
+      "variant": 1,
+      "path": "lottie/animated/U+270F_1.json"
+    },
+    {
+      "emoji": "🎖",
+      "emojiCode": "U+1F396",
+      "variant": 1,
+      "path": "lottie/animated/U+1F396_1.json"
+    },
+    {
+      "emoji": "🐙",
+      "emojiCode": "U+1F419",
+      "variant": 1,
+      "path": "lottie/animated/U+1F419_1.json"
+    },
+    {
+      "emoji": "🏅",
+      "emojiCode": "U+1F3C5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3C5_1.json"
+    },
+    {
+      "emoji": "🌼",
+      "emojiCode": "U+1F33C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F33C_1.json"
+    },
+    {
+      "emoji": "🐧",
+      "emojiCode": "U+1F427",
+      "variant": 1,
+      "path": "lottie/animated/U+1F427_1.json"
+    },
+    {
+      "emoji": "🍷",
+      "emojiCode": "U+1F377",
+      "variant": 1,
+      "path": "lottie/animated/U+1F377_1.json"
+    },
+    {
+      "emoji": "🐌",
+      "emojiCode": "U+1F40C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F40C_1.json"
+    },
+    {
+      "emoji": "🐯",
+      "emojiCode": "U+1F42F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F42F_1.json"
+    },
+    {
+      "emoji": "🍸",
+      "emojiCode": "U+1F378",
+      "variant": 1,
+      "path": "lottie/animated/U+1F378_1.json"
+    },
+    {
+      "emoji": "🐽",
+      "emojiCode": "U+1F43D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F43D_1.json"
+    },
+    {
+      "emoji": "🐢",
+      "emojiCode": "U+1F422",
+      "variant": 1,
+      "path": "lottie/animated/U+1F422_1.json"
+    },
+    {
+      "emoji": "👤",
+      "emojiCode": "U+1F464",
+      "variant": 1,
+      "path": "lottie/animated/U+1F464_1.json"
+    },
+    {
+      "emoji": "🐎",
+      "emojiCode": "U+1F40E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F40E_1.json"
+    },
+    {
+      "emoji": "🐴",
+      "emojiCode": "U+1F434",
+      "variant": 1,
+      "path": "lottie/animated/U+1F434_1.json"
+    },
+    {
+      "emoji": "🔑",
+      "emojiCode": "U+1F511",
+      "variant": 1,
+      "path": "lottie/animated/U+1F511_1.json"
+    },
+    {
+      "emoji": "🐞",
+      "emojiCode": "U+1F41E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F41E_1.json"
+    },
+    {
+      "emoji": "🗝",
+      "emojiCode": "U+1F5DD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F5DD_1.json"
+    },
+    {
+      "emoji": "👥",
+      "emojiCode": "U+1F465",
+      "variant": 1,
+      "path": "lottie/animated/U+1F465_1.json"
+    },
+    {
+      "emoji": "🐦",
+      "emojiCode": "U+1F426",
+      "variant": 1,
+      "path": "lottie/animated/U+1F426_1.json"
+    },
+    {
+      "emoji": "🦐",
+      "emojiCode": "U+1F990",
+      "variant": 1,
+      "path": "lottie/animated/U+1F990_1.json"
+    },
+    {
+      "emoji": "🐷",
+      "emojiCode": "U+1F437",
+      "variant": 1,
+      "path": "lottie/animated/U+1F437_1.json"
+    },
+    {
+      "emoji": "🥃",
+      "emojiCode": "U+1F943",
+      "variant": 1,
+      "path": "lottie/animated/U+1F943_1.json"
+    },
+    {
+      "emoji": "🦬",
+      "emojiCode": "U+1F9AC",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9AC_1.json"
+    },
+    {
+      "emoji": "🫂",
+      "emojiCode": "U+1FAC2",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAC2_1.json"
+    },
+    {
+      "emoji": "🦆",
+      "emojiCode": "U+1F986",
+      "variant": 1,
+      "path": "lottie/animated/U+1F986_1.json"
+    },
+    {
+      "emoji": "🦙",
+      "emojiCode": "U+1F999",
+      "variant": 1,
+      "path": "lottie/animated/U+1F999_1.json"
+    },
+    {
+      "emoji": "🚹",
+      "emojiCode": "U+1F6B9",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6B9_1.json"
+    },
+    {
+      "emoji": "🆙",
+      "emojiCode": "U+1F199",
+      "variant": 1,
+      "path": "lottie/animated/U+1F199_1.json"
+    },
+    {
+      "emoji": "🦓",
+      "emojiCode": "U+1F993",
+      "variant": 1,
+      "path": "lottie/animated/U+1F993_1.json"
+    },
+    {
+      "emoji": "🚺",
+      "emojiCode": "U+1F6BA",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6BA_1.json"
+    },
+    {
+      "emoji": "🦢",
+      "emojiCode": "U+1F9A2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9A2_1.json"
+    },
+    {
+      "emoji": "🆓",
+      "emojiCode": "U+1F193",
+      "variant": 1,
+      "path": "lottie/animated/U+1F193_1.json"
+    },
+    {
+      "emoji": "🆗",
+      "emojiCode": "U+1F197",
+      "variant": 1,
+      "path": "lottie/animated/U+1F197_1.json"
+    },
+    {
+      "emoji": "🪳",
+      "emojiCode": "U+1FAB3",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAB3_1.json"
+    },
+    {
+      "emoji": "🎫",
+      "emojiCode": "U+1F3AB",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3AB_1.json"
+    },
+    {
+      "emoji": "🪲",
+      "emojiCode": "U+1FAB2",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAB2_1.json"
+    },
+    {
+      "emoji": "🤷",
+      "emojiCode": "U+1F937",
+      "variant": 1,
+      "path": "lottie/animated/U+1F937_1.json"
+    },
+    {
+      "emoji": "🐰",
+      "emojiCode": "U+1F430",
+      "variant": 1,
+      "path": "lottie/animated/U+1F430_1.json"
+    },
+    {
+      "emoji": "🦘",
+      "emojiCode": "U+1F998",
+      "variant": 1,
+      "path": "lottie/animated/U+1F998_1.json"
+    },
+    {
+      "emoji": "🦟",
+      "emojiCode": "U+1F99F",
+      "variant": 1,
+      "path": "lottie/animated/U+1F99F_1.json"
+    },
+    {
+      "emoji": "🦌",
+      "emojiCode": "U+1F98C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F98C_1.json"
+    },
+    {
+      "emoji": "🍀",
+      "emojiCode": "U+1F340",
+      "variant": 1,
+      "path": "lottie/animated/U+1F340_1.json"
+    },
+    {
+      "emoji": "🧉",
+      "emojiCode": "U+1F9C9",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9C9_1.json"
+    },
+    {
+      "emoji": "🦍",
+      "emojiCode": "U+1F98D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F98D_1.json"
+    },
+    {
+      "emoji": "🦜",
+      "emojiCode": "U+1F99C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F99C_1.json"
+    },
+    {
+      "emoji": "🐇",
+      "emojiCode": "U+1F407",
+      "variant": 1,
+      "path": "lottie/animated/U+1F407_1.json"
+    },
+    {
+      "emoji": "🚼",
+      "emojiCode": "U+1F6BC",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6BC_1.json"
+    },
+    {
+      "emoji": "⛎",
+      "emojiCode": "U+26CE",
+      "variant": 1,
+      "path": "lottie/animated/U+26CE_1.json"
+    },
+    {
+      "emoji": "🐆",
+      "emojiCode": "U+1F406",
+      "variant": 1,
+      "path": "lottie/animated/U+1F406_1.json"
+    },
+    {
+      "emoji": "♒",
+      "emojiCode": "U+2652",
+      "variant": 1,
+      "path": "lottie/animated/U+2652_1.json"
+    },
+    {
+      "emoji": "🐅",
+      "emojiCode": "U+1F405",
+      "variant": 1,
+      "path": "lottie/animated/U+1F405_1.json"
+    },
+    {
+      "emoji": "🦞",
+      "emojiCode": "U+1F99E",
+      "variant": 1,
+      "path": "lottie/animated/U+1F99E_1.json"
+    },
+    {
+      "emoji": "🦭",
+      "emojiCode": "U+1F9AD",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9AD_1.json"
+    },
+    {
+      "emoji": "🦝",
+      "emojiCode": "U+1F99D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F99D_1.json"
+    },
+    {
+      "emoji": "♓",
+      "emojiCode": "U+2653",
+      "variant": 1,
+      "path": "lottie/animated/U+2653_1.json"
+    },
+    {
+      "emoji": "🐠",
+      "emojiCode": "U+1F420",
+      "variant": 1,
+      "path": "lottie/animated/U+1F420_1.json"
+    },
+    {
+      "emoji": "🐂",
+      "emojiCode": "U+1F402",
+      "variant": 1,
+      "path": "lottie/animated/U+1F402_1.json"
+    },
+    {
+      "emoji": "🐄",
+      "emojiCode": "U+1F404",
+      "variant": 1,
+      "path": "lottie/animated/U+1F404_1.json"
+    },
+    {
+      "emoji": "♑",
+      "emojiCode": "U+2651",
+      "variant": 1,
+      "path": "lottie/animated/U+2651_1.json"
+    },
+    {
+      "emoji": "🫗",
+      "emojiCode": "U+1FAD7",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAD7_1.json"
+    },
+    {
+      "emoji": "♐",
+      "emojiCode": "U+2650",
+      "variant": 1,
+      "path": "lottie/animated/U+2650_1.json"
+    },
+    {
+      "emoji": "🐍",
+      "emojiCode": "U+1F40D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F40D_1.json"
+    },
+    {
+      "emoji": "🎗",
+      "emojiCode": "U+1F397",
+      "variant": 1,
+      "path": "lottie/animated/U+1F397_1.json"
+    },
+    {
+      "emoji": "♌",
+      "emojiCode": "U+264C",
+      "variant": 1,
+      "path": "lottie/animated/U+264C_1.json"
+    },
+    {
+      "emoji": "🦩",
+      "emojiCode": "U+1F9A9",
+      "variant": 1,
+      "path": "lottie/animated/U+1F9A9_1.json"
+    },
+    {
+      "emoji": "🐛",
+      "emojiCode": "U+1F41B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F41B_1.json"
+    },
+    {
+      "emoji": "♊",
+      "emojiCode": "U+264A",
+      "variant": 1,
+      "path": "lottie/animated/U+264A_1.json"
+    },
+    {
+      "emoji": "♏",
+      "emojiCode": "U+264F",
+      "variant": 1,
+      "path": "lottie/animated/U+264F_1.json"
+    },
+    {
+      "emoji": "🐈‍⬛",
+      "emojiCode": "U+1F408_U+200D_U+2B1B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F408_U+200D_U+2B1B_1.json"
+    },
+    {
+      "emoji": "🛅",
+      "emojiCode": "U+1F6C5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6C5_1.json"
+    },
+    {
+      "emoji": "♍",
+      "emojiCode": "U+264D",
+      "variant": 1,
+      "path": "lottie/animated/U+264D_1.json"
+    },
+    {
+      "emoji": "🛄",
+      "emojiCode": "U+1F6C4",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6C4_1.json"
+    },
+    {
+      "emoji": "♉",
+      "emojiCode": "U+2649",
+      "variant": 1,
+      "path": "lottie/animated/U+2649_1.json"
+    },
+    {
+      "emoji": "📲",
+      "emojiCode": "U+1F4F2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F4F2_1.json"
+    },
+    {
+      "emoji": "🥛",
+      "emojiCode": "U+1F95B",
+      "variant": 1,
+      "path": "lottie/animated/U+1F95B_1.json"
+    },
+    {
+      "emoji": "♎",
+      "emojiCode": "U+264E",
+      "variant": 1,
+      "path": "lottie/animated/U+264E_1.json"
+    },
+    {
+      "emoji": "🦑",
+      "emojiCode": "U+1F991",
+      "variant": 1,
+      "path": "lottie/animated/U+1F991_1.json"
+    },
+    {
+      "emoji": "🦒",
+      "emojiCode": "U+1F992",
+      "variant": 1,
+      "path": "lottie/animated/U+1F992_1.json"
+    },
+    {
+      "emoji": "🛂",
+      "emojiCode": "U+1F6C2",
+      "variant": 1,
+      "path": "lottie/animated/U+1F6C2_1.json"
+    },
+    {
+      "emoji": "🐈",
+      "emojiCode": "U+1F408",
+      "variant": 1,
+      "path": "lottie/animated/U+1F408_1.json"
+    },
+    {
+      "emoji": "🦗",
+      "emojiCode": "U+1F997",
+      "variant": 1,
+      "path": "lottie/animated/U+1F997_1.json"
+    },
+    {
+      "emoji": "🐜",
+      "emojiCode": "U+1F41C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F41C_1.json"
+    },
+    {
+      "emoji": "♋",
+      "emojiCode": "U+264B",
+      "variant": 1,
+      "path": "lottie/animated/U+264B_1.json"
+    },
+    {
+      "emoji": "🍼",
+      "emojiCode": "U+1F37C",
+      "variant": 1,
+      "path": "lottie/animated/U+1F37C_1.json"
+    },
+    {
+      "emoji": "♈",
+      "emojiCode": "U+2648",
+      "variant": 1,
+      "path": "lottie/animated/U+2648_1.json"
+    },
+    {
+      "emoji": "🏵",
+      "emojiCode": "U+1F3F5",
+      "variant": 1,
+      "path": "lottie/animated/U+1F3F5_1.json"
+    },
+    {
+      "emoji": "🦕",
+      "emojiCode": "U+1F995",
+      "variant": 1,
+      "path": "lottie/animated/U+1F995_1.json"
+    },
+    {
+      "emoji": "🦁",
+      "emojiCode": "U+1F981",
+      "variant": 1,
+      "path": "lottie/animated/U+1F981_1.json"
+    },
+    {
+      "emoji": "🐝",
+      "emojiCode": "U+1F41D",
+      "variant": 1,
+      "path": "lottie/animated/U+1F41D_1.json"
+    },
+    {
+      "emoji": "🦖",
+      "emojiCode": "U+1F996",
+      "variant": 1,
+      "path": "lottie/animated/U+1F996_1.json"
+    },
+    {
+      "emoji": "💐",
+      "emojiCode": "U+1F490",
+      "variant": 1,
+      "path": "lottie/animated/U+1F490_1.json"
+    },
+    {
+      "emoji": "🐸",
+      "emojiCode": "U+1F438",
+      "variant": 1,
+      "path": "lottie/animated/U+1F438_1.json"
+    },
+    {
+      "emoji": "🌈",
+      "emojiCode": "U+1F308",
+      "variant": 1,
+      "path": "lottie/animated/U+1F308_1.json"
+    },
+    {
+      "emoji": "🦔",
+      "emojiCode": "U+1F994",
+      "variant": 1,
+      "path": "lottie/animated/U+1F994_1.json"
+    },
+    {
+      "emoji": "🦃",
+      "emojiCode": "U+1F983",
+      "variant": 1,
+      "path": "lottie/animated/U+1F983_1.json"
+    },
+    {
+      "emoji": "🫨",
+      "emojiCode": "U+1FAE8",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAE8_1.json"
+    },
+    {
+      "emoji": "🩵",
+      "emojiCode": "U+1FA75",
+      "variant": 1,
+      "path": "lottie/animated/U+1FA75_1.json"
+    },
+    {
+      "emoji": "🩶",
+      "emojiCode": "U+1FA76",
+      "variant": 1,
+      "path": "lottie/animated/U+1FA76_1.json"
+    },
+    {
+      "emoji": "🩷",
+      "emojiCode": "U+1FA77",
+      "variant": 1,
+      "path": "lottie/animated/U+1FA77_1.json"
+    },
+    {
+      "emoji": "🫷",
+      "emojiCode": "U+1FAF7",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF7_1.json"
+    },
+    {
+      "emoji": "🫸",
+      "emojiCode": "U+1FAF8",
+      "variant": 1,
+      "path": "lottie/animated/U+1FAF8_1.json"
+    },
+    {
+      "emoji": "✅",
+      "emojiCode": "U+2705",
+      "variant": 2,
+      "path": "lottie/animated/U+2705_2.json"
+    },
+    {
+      "emoji": "✨",
+      "emojiCode": "U+2728",
+      "variant": 2,
+      "path": "lottie/animated/U+2728_2.json"
+    },
+    {
+      "emoji": "🏴‍☠",
+      "emojiCode": "U+1F3F4_U+200D_U+2620",
+      "variant": 2,
+      "path": "lottie/animated/U+1F3F4_U+200D_U+2620_2.json"
+    },
+    {
+      "emoji": "👑",
+      "emojiCode": "U+1F451",
+      "variant": 2,
+      "path": "lottie/animated/U+1F451_2.json"
+    },
+    {
+      "emoji": "🔝",
+      "emojiCode": "U+1F51D",
+      "variant": 2,
+      "path": "lottie/animated/U+1F51D_2.json"
+    },
+    {
+      "emoji": "🔞",
+      "emojiCode": "U+1F51E",
+      "variant": 2,
+      "path": "lottie/animated/U+1F51E_2.json"
+    },
+    {
+      "emoji": "🤕",
+      "emojiCode": "U+1F915",
+      "variant": 2,
+      "path": "lottie/animated/U+1F915_2.json"
+    },
+    {
+      "emoji": "🤥",
+      "emojiCode": "U+1F925",
+      "variant": 2,
+      "path": "lottie/animated/U+1F925_2.json"
+    },
+    {
+      "emoji": "🥳",
+      "emojiCode": "U+1F973",
+      "variant": 2,
+      "path": "lottie/animated/U+1F973_2.json"
+    },
+    {
+      "emoji": "🫨",
+      "emojiCode": "U+1FAE8",
+      "variant": 2,
+      "path": "lottie/animated/U+1FAE8_2.json"
+    },
+    {
+      "emoji": "🍆",
+      "emojiCode": "U+1F346",
+      "variant": 1,
+      "path": "lottie/animated/U+1F346_1.json"
+    }
+  ]
+}
