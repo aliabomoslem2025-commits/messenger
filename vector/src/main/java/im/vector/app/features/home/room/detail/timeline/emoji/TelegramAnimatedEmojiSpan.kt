@@ -300,7 +300,13 @@ internal class TelegramAnimatedEmojiSpan(
             bottom: Int,
             paint: Paint,
     ) {
-        if (!compositionLoaded || failed) return
+        if (!compositionLoaded || failed) {
+            // Keep the Unicode fallback visible while the TGS asset downloads/parses or if loading
+            // fails; never leave an empty gap in the conversation timeline.
+            val fallbackBaseline = y - ((sizePx - paint.textSize).coerceAtLeast(0f) / 2f)
+            canvas.drawText(text.subSequence(start, end).toString(), x, fallbackBaseline, paint)
+            return
+        }
         canvas.save()
         canvas.translate(x, y - sizePx.toFloat())
         drawable.bounds = Rect(0, 0, sizePx, sizePx)
