@@ -101,8 +101,18 @@ object TelegramEmojiAnimationController {
      * Keeping the TextView underneath preserves message measurement, hit targets and
      * a Unicode fallback while the Lottie composition loads.
      */
-    fun animationViewFor(textView: TextView): LottieAnimationView? =
-            (textView.parent as? ViewGroup)?.findViewById(R.id.messageAnimatedEmojiView)
+    fun animationViewFor(textView: TextView): LottieAnimationView? {
+        // The TextView is inflated from a ViewStub nested inside its own LinearLayout;
+        // the animation view is its sibling in the enclosing FrameLayout. Walk every
+        // ancestor instead of searching only the direct parent (which always returned null).
+        var ancestor = textView.parent
+        while (ancestor is ViewGroup) {
+            val animationView = ancestor.findViewById<LottieAnimationView>(R.id.messageAnimatedEmojiView)
+            if (animationView != null) return animationView
+            ancestor = ancestor.parent
+        }
+        return null
+    }
 
     /**
      * Keep the animation alive when Matrix updates a local echo from SENDING to SENT/SYNCED.
