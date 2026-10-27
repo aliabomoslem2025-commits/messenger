@@ -301,6 +301,8 @@ dependencies {
     implementation 'com.github.UnifiedPush:android-connector:2.1.1'
 
     implementation "androidx.emoji2:emoji2:1.3.0"
+    // Renders the original Telegram Lottie/TGS emoji animation assets.
+    implementation 'com.airbnb.android:lottie:6.7.1'
 
     // Jitsi
     api('org.jitsi.react:jitsi-meet-sdk:11.5.1') {
