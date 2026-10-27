@@ -22,7 +22,7 @@ import im.vector.app.core.utils.isAnimationEnabled
 import kotlin.random.Random
 
 object TelegramEmojiAnimationController {
-    private const val STANDALONE_SIZE_DP = 80
+    private const val STANDALONE_SIZE_DP = 48
     private const val REACTION_SIZE_DP = 104
 
     private class TextSnapshot(
