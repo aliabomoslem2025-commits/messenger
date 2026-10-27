@@ -76,6 +76,16 @@ object TelegramEmojiAnimationController {
             return true
         }
 
+        /** Return to the large static Unicode glyph after the one-shot animation. */
+        fun finish(view: TextView) {
+            finished = true
+            animationView.pauseAnimation()
+            animationView.visibility = View.GONE
+            view.alpha = snapshot.alpha
+            view.requestLayout()
+            animationView.requestLayout()
+        }
+
         fun restore(view: TextView) {
             view.removeOnAttachStateChangeListener(this)
             animatorListener?.let(animationView::removeAnimatorListener)
@@ -216,13 +226,13 @@ object TelegramEmojiAnimationController {
                             state.animatorListener = object : AnimatorListenerAdapter() {
                                 override fun onAnimationEnd(animation: Animator) {
                                     if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
-                                        state.finished = true
+                                        state.finish(textView)
                                     }
                                 }
 
                                 override fun onAnimationCancel(animation: Animator) {
                                     if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
-                                        state.finished = true
+                                        state.finish(textView)
                                     }
                                 }
                             }.also(animationView::addAnimatorListener)
