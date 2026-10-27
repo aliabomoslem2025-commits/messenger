@@ -262,7 +262,13 @@ internal class TelegramAnimatedEmojiSpan(
             bottom: Int,
             paint: Paint,
     ) {
-        if (!compositionLoaded || failed) return
+        if (failed) return
+        if (!compositionLoaded) {
+            // Keep the system Unicode emoji visible while the remote animation is being
+            // fetched or when a first-time asset cannot be reached offline.
+            canvas.drawText(text.subSequence(start, end).toString(), x, y.toFloat(), paint)
+            return
+        }
         canvas.save()
         canvas.translate(x, y - sizePx.toFloat())
         activeDrawable.bounds = Rect(0, 0, sizePx, sizePx)
