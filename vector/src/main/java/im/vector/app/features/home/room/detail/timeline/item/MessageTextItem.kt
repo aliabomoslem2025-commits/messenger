@@ -123,7 +123,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         val standaloneEmoji = messageText?.toString()?.trim()
         val animationAsset = if (useBigFont && standaloneEmoji != null &&
                 TelegramEmojiText.isSingleEmoji(standaloneEmoji)) {
-            TelegramEmojiText.animationAssetName(standaloneEmoji)
+            TelegramEmojiText.animationAsset(messageView.context, standaloneEmoji)
         } else {
             null
         }
@@ -132,7 +132,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
             val span = TelegramAnimatedEmojiSpan(
                     context = messageView.context,
                     emoji = standaloneEmoji,
-                    assetFileName = animationAsset,
+                    asset = animationAsset,
                     onLoadFailure = { target ->
                         // Keep the Unicode glyph visible if an asset is malformed or unsupported.
                         target.text = standaloneEmoji
