@@ -36,6 +36,7 @@ import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import io.element.android.wysiwyg.EditorStyledTextView
 import io.noties.markwon.MarkwonPlugin
 import org.matrix.android.sdk.api.extensions.orFalse
+import timber.log.Timber
 
 @EpoxyModelClass
 abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
@@ -156,10 +157,16 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
      */
     private fun animateRecentStandaloneEmoji(messageView: AppCompatTextView) {
         val info = attributes.informationData
-        if (!messageView.context.isAnimationEnabled()) return
+        if (!messageView.context.isAnimationEnabled()) {
+            Timber.w("Standalone emoji auto-play skipped: Android system animation scale is disabled (event=${info.eventId})")
+            return
+        }
 
         val emoji = messageView.text?.toString()?.trim().orEmpty()
-        if (!isSingleEmoji(emoji)) return
+        if (!isSingleEmoji(emoji)) {
+            Timber.w("Standalone emoji auto-play skipped: rendered message is not one emoji (event=${info.eventId}, text=${emoji})")
+            return
+        }
 
         // A send-state rebind of the same event must not replace an already-running
         // animation with the static glyph.
@@ -182,7 +189,10 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         // Matrix's local echo is available before a server timestamp exists. Start
         // the animation immediately for our own pending send instead of waiting for sync.
         val isLocalEcho = info.sentByMe && info.sendState.isSending()
-        if (!isLocalEcho && !hasRecentTimestamp) return
+        if (!isLocalEcho && !hasRecentTimestamp) {
+            Timber.d("Standalone emoji auto-play skipped as old timeline history (event=${info.eventId}, localTs=${info.ageLocalTS}, serverTs=${info.eventTimestamp}, now=${now})")
+            return
+        }
 
         val shouldAnimate = synchronized(animatedBigEmojiEventIds) {
             if (animatedBigEmojiEventIds.contains(info.eventId)) {
@@ -201,11 +211,18 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         }
         if (!shouldAnimate) return
 
+        Timber.d("Auto-playing standalone emoji (event=${info.eventId}, emoji=${emoji}, localEcho=${isLocalEcho}, localTs=${info.ageLocalTS}, serverTs=${info.eventTimestamp})")
         val started = TelegramEmojiAnimationController.playStandalone(
                 messageView,
                 emoji,
                 info.eventId,
-                info.eventId.hashCode()
+                info.eventId.hashCode(),
+                onLoadFailure = {
+                    synchronized(animatedBigEmojiEventIds) {
+                        animatedBigEmojiEventIds.remove(info.eventId)
+                    }
+                    Timber.w("Released standalone emoji auto-play guard after load failure (event=${info.eventId}, emoji=${emoji})")
+                }
         )
         if (!started) {
             synchronized(animatedBigEmojiEventIds) {
