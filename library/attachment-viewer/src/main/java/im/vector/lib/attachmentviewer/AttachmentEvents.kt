@@ -9,6 +9,12 @@ package im.vector.lib.attachmentviewer
 
 sealed class AttachmentEvents {
     data class VideoEvent(val isPlaying: Boolean, val progress: Int, val duration: Int) : AttachmentEvents()
+
+    /** Request background audio playback when the media viewer leaves the foreground. */
+    data class ContinueVideoPlaybackInBackground(val filePath: String, val positionMs: Int) : AttachmentEvents()
+
+    /** Stop the background copy when the same video viewer returns to the foreground. */
+    object StopBackgroundVideoPlayback : AttachmentEvents()
 }
 
 interface AttachmentEventListener {
