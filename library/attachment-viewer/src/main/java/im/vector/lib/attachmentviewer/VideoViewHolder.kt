@@ -59,13 +59,21 @@ class VideoViewHolder constructor(itemView: View) :
     override fun entersBackground() {
         if (views.videoView.isPlaying) {
             progress = views.videoView.currentPosition
+            // VideoView releases its decoder when stopped. Ask the app layer to keep
+            // the media audio alive in a foreground service while the viewer is hidden.
+            mVideoPath?.let { path ->
+                eventListener?.get()?.onEvent(
+                        AttachmentEvents.ContinueVideoPlaybackInBackground(path, progress)
+                )
+            }
             stopTimer()
             views.videoView.stopPlayback()
-            views.videoView.pause()
         }
     }
 
     override fun entersForeground() {
+        // The app stops only the background video session associated with this viewer.
+        eventListener?.get()?.onEvent(AttachmentEvents.StopBackgroundVideoPlayback)
         onSelected(isSelected)
     }
 
