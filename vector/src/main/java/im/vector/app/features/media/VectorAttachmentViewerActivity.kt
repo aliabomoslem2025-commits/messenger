@@ -27,6 +27,7 @@ import androidx.transition.Transition
 import com.airbnb.mvrx.viewModel
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.di.ActiveSessionHolder
+import im.vector.app.features.home.room.detail.composer.AudioPlaybackService
 import im.vector.app.core.extensions.singletonEntryPoint
 import im.vector.app.core.intent.getMimeTypeFromUri
 import im.vector.app.core.platform.showOptimizedSnackbar
@@ -38,6 +39,7 @@ import im.vector.app.core.utils.shareMedia
 import im.vector.app.features.themes.ActivityOtherThemes
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.attachmentviewer.AttachmentCommands
+import im.vector.lib.attachmentviewer.AttachmentEvents
 import im.vector.lib.attachmentviewer.AttachmentViewerActivity
 import im.vector.lib.core.utils.compat.getParcelableArrayListExtraCompat
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
@@ -48,6 +50,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.session.getRoom
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -154,6 +157,24 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
     override fun onPause() {
         super.onPause()
         Timber.i("onPause Activity ${javaClass.simpleName}")
+    }
+
+    override fun onEvent(event: AttachmentEvents) {
+        when (event) {
+            is AttachmentEvents.ContinueVideoPlaybackInBackground -> {
+                // The viewer's VideoView is destroyed as the Activity backgrounds.
+                // Continue the media audio through the foreground playback service.
+                AudioPlaybackService.playVideoAudioInBackground(
+                        this,
+                        File(event.filePath),
+                        event.positionMs
+                )
+            }
+            AttachmentEvents.StopBackgroundVideoPlayback -> {
+                AudioPlaybackService.stopBackgroundVideoIfActive(this)
+            }
+            else -> super.onEvent(event)
+        }
     }
 
     @Suppress("OVERRIDE_DEPRECATION")

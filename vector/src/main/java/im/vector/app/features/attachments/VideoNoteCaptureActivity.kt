@@ -63,6 +63,7 @@ class VideoNoteCaptureActivity : AppCompatActivity(), TextureView.SurfaceTexture
     private var recordingStartedAt = 0L
     private var isRecording = false
     private var hasRecording = false
+    private var recordingDurationMs = 0L
     private var handedOffFile = false
 
     private val updateTimer = object : Runnable {
@@ -72,6 +73,7 @@ class VideoNoteCaptureActivity : AppCompatActivity(), TextureView.SurfaceTexture
             timer.text = formatTime(elapsed)
             if (elapsed >= MAX_RECORDING_MS) {
                 stopRecording()
+                finishWithRecording()
             } else {
                 handler.postDelayed(this, 200L)
             }
@@ -103,16 +105,27 @@ class VideoNoteCaptureActivity : AppCompatActivity(), TextureView.SurfaceTexture
         }
         preview.surfaceTextureListener = this
 
-        recordButton.setOnClickListener {
-            if (isRecording) stopRecording() else if (!hasRecording) startRecording()
-        }
-        sendButton.setOnClickListener {
-            if (hasRecording && outputFileExists()) {
-                handedOffFile = true
-                setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_OUTPUT_PATH, outputPath))
-                finish()
+        // Telegram-style press-and-hold: recording starts on ACTION_DOWN and is
+        // handed to the Matrix attachment pipeline on release. Cancel discards the file.
+        recordButton.setOnTouchListener { _, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    if (!isRecording && !hasRecording) startRecording()
+                    true
+                }
+                android.view.MotionEvent.ACTION_UP -> {
+                    if (isRecording) stopRecording()
+                    finishWithRecording()
+                    true
+                }
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    cancelAndFinish()
+                    true
+                }
+                else -> true
             }
         }
+        sendButton.setOnClickListener { finishWithRecording() }
         cancelButton.setOnClickListener { cancelAndFinish() }
 
         renderReadyState()
@@ -247,6 +260,7 @@ class VideoNoteCaptureActivity : AppCompatActivity(), TextureView.SurfaceTexture
 
     private fun stopRecording() {
         if (!isRecording) return
+        recordingDurationMs = (SystemClock.elapsedRealtime() - recordingStartedAt).coerceAtLeast(0L)
         handler.removeCallbacks(updateTimer)
         val stoppedSuccessfully = try {
             recorder?.stop()
@@ -284,6 +298,22 @@ class VideoNoteCaptureActivity : AppCompatActivity(), TextureView.SurfaceTexture
         recordButton.isEnabled = !hasRecording
         sendButton.visibility = if (hasRecording) View.VISIBLE else View.GONE
         timer.text = if (hasRecording) timer.text else formatTime(0L)
+    }
+
+    private fun finishWithRecording() {
+        if (isRecording) stopRecording()
+        if (!hasRecording || !outputFileExists()) {
+            cancelAndFinish()
+            return
+        }
+        if (recordingDurationMs < 700L) {
+            Toast.makeText(this, R.string.telegram_video_note_recording_too_short, Toast.LENGTH_SHORT).show()
+            cancelAndFinish()
+            return
+        }
+        handedOffFile = true
+        setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_OUTPUT_PATH, outputPath))
+        finish()
     }
 
     private fun formatTime(milliseconds: Long): String {

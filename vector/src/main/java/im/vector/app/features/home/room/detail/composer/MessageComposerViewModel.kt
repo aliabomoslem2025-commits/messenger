@@ -115,6 +115,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             is MessageComposerAction.EnterRegularMode -> handleEnterRegularMode(action)
             is MessageComposerAction.EnterReplyMode -> handleEnterReplyMode(room, action)
             is MessageComposerAction.SendMessage -> handleSendMessage(room, action)
+            is MessageComposerAction.SendMediaAttachment -> handleSendMediaAttachment(room, action)
             is MessageComposerAction.UserIsTyping -> handleUserIsTyping(room, action)
             is MessageComposerAction.OnTextChanged -> handleOnTextChanged(action)
             is MessageComposerAction.OnVoiceRecordingUiStateChanged -> handleOnVoiceRecordingUiStateChanged(action)
@@ -225,6 +226,18 @@ class MessageComposerViewModel @AssistedInject constructor(
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
             setState { copy(sendMode = SendMode.Reply(timelineEvent, currentComposerText)) }
         }
+    }
+
+    private fun handleSendMediaAttachment(room: Room, action: MessageComposerAction.SendMediaAttachment) {
+        // Use the SDK's normal media pipeline so encryption, upload progress, retries and
+        // Matrix event send state remain authoritative for video notes.
+        room.sendService().sendMedia(
+                attachment = action.attachment,
+                compressBeforeSending = false,
+                roomIds = emptySet(),
+                rootThreadEventId = action.rootThreadEventId
+        )
+        _viewEvents.post(MessageComposerViewEvents.MessageSent)
     }
 
     private fun handleSendMessage(room: Room, action: MessageComposerAction.SendMessage) {
@@ -1002,12 +1015,16 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleEntersBackground(room: Room, composerText: String) {
-        // Always stop all voice actions. It may be playing in timeline or active recording
-        val playingAudioContent = audioMessageHelper.stopAllVoiceActions(deleteRecord = false)
+        // Recordings are finalized into a draft when the app backgrounds, but playback is
+        // owned by AudioPlaybackService and must continue independently of this ViewModel.
+        val isVoiceRecording = com.airbnb.mvrx.withState(this) { it.isVoiceRecording }
+        val playingAudioContent = if (isVoiceRecording) {
+            audioMessageHelper.stopRecordingForBackground()
+        } else {
+            null
+        }
         // TODO remove this when there will be a listening indicator outside of the timeline
         voiceBroadcastHelper.pausePlayback()
-
-        val isVoiceRecording = com.airbnb.mvrx.withState(this) { it.isVoiceRecording }
         if (isVoiceRecording) {
             viewModelScope.launch {
                 playingAudioContent?.toContentAttachmentData()?.let { voiceDraft ->

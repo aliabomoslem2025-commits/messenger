@@ -20,9 +20,10 @@
 
     <ProgressBar
         android:id="@+id/messageMediaDownloadProgress"
-        style="@style/Widget.Vector.ProgressBar.Horizontal.File"
+        style="?android:attr/progressBarStyle"
         android:layout_width="48dp"
         android:layout_height="48dp"
+        android:indeterminateDrawable="@drawable/bg_telegram_voice_download_indeterminate"
         android:max="100"
         android:progress="0"
         android:visibility="gone"

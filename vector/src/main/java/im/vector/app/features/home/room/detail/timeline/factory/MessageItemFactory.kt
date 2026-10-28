@@ -25,7 +25,6 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.containsOnlyEmojis
-import im.vector.app.core.utils.isSingleEmoji
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -345,7 +344,7 @@ class MessageItemFactory @Inject constructor(
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(isLocalFile)
-                .downloaded(isDownloaded)
+                .isDownloaded(isDownloaded)
                 .fileSize(messageContent.audioInfo?.size ?: 0L)
                 .onSeek { params.callback?.onAudioSeekBarMovedTo(informationData.eventId, duration, it) }
                 .mxcUrl(fileUrl)
@@ -390,6 +389,11 @@ class MessageItemFactory @Inject constructor(
 
         val fileUrl = getAudioFileUrl(messageContent, informationData)
         val isLocalFile = localFilesHelper.isLocalFile(fileUrl)
+        val isDownloaded = isLocalFile || runCatching {
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
+        }.getOrDefault(false)
         val playbackControlButtonClickListener = createOnPlaybackButtonClickListener(messageContent, informationData, params)
 
         val waveformTouchListener: MessageVoiceItem.WaveformTouchListener = object : MessageVoiceItem.WaveformTouchListener {
@@ -412,6 +416,7 @@ class MessageItemFactory @Inject constructor(
                 .waveformTouchListener(waveformTouchListener)
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(isLocalFile)
+                .isDownloaded(isDownloaded)
                 .mxcUrl(fileUrl)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadStateTrackerBinder(contentDownloadStateTrackerBinder)
@@ -533,6 +538,10 @@ class MessageItemFactory @Inject constructor(
                 allowNonMxcUrls = informationData.sendState.isSending()
         )
 
+        val imageUrl = messageContent.getFileUrl()
+        val imageIsDownloaded = localFilesHelper.isLocalFile(imageUrl) || runCatching {
+            session.fileService().isFileInCache(messageContent)
+        }.getOrDefault(false)
         val playable = messageContent.mimeType == MimeTypes.Gif
         // don't show play button because detecting animated webp isn't possible via mimetype
         val playableIfAutoplay = playable || messageContent.mimeType == MimeTypes.Webp
@@ -544,6 +553,8 @@ class MessageItemFactory @Inject constructor(
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
                 .playable(playable)
+                .mxcDownloadUrl(imageUrl?.takeIf { it.startsWith("mxc://") && !imageIsDownloaded })
+                .isMediaDownloaded(imageIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(data)
                 .apply {
@@ -585,11 +596,15 @@ class MessageItemFactory @Inject constructor(
                 allowNonMxcUrls = informationData.sendState.isSending()
         )
 
+        val videoUrl = messageContent.getFileUrl()
+        val videoIsDownloaded = localFilesHelper.isLocalFile(videoUrl) || runCatching {
+            session.fileService().isFileInCache(messageContent)
+        }.getOrDefault(false)
         val videoData = VideoContentRenderer.Data(
                 eventId = informationData.eventId,
                 filename = messageContent.body,
                 mimeType = messageContent.mimeType,
-                url = messageContent.getFileUrl(),
+                url = videoUrl,
                 elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt(),
                 thumbnailMediaData = thumbnailData
         )
@@ -600,8 +615,9 @@ class MessageItemFactory @Inject constructor(
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
-                .mxcDownloadUrl(videoData.url)
                 .playable(true)
+                .mxcDownloadUrl(videoUrl?.takeIf { it.startsWith("mxc://") && !videoIsDownloaded })
+                .isMediaDownloaded(videoIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)
                 .clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
@@ -666,7 +682,7 @@ class MessageItemFactory @Inject constructor(
                             linkifiedBody
                         }.toEpoxyCharSequence()
                 )
-                .useBigFont(isSingleEmoji(linkifiedBody.toString()) || (linkifiedBody.length <= MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT * 2 && containsOnlyEmojis(linkifiedBody.toString()) && linkifiedBody.any { it.code > 0x7F }))
+                .useBigFont(linkifiedBody.length <= MAX_NUMBER_OF_EMOJI_FOR_BIG_FONT * 2 && containsOnlyEmojis(linkifiedBody.toString()))
                 .bindingOptions(bindingOptions)
                 .markwonPlugins(htmlRenderer.get().plugins)
                 .searchForPills(isFormatted)

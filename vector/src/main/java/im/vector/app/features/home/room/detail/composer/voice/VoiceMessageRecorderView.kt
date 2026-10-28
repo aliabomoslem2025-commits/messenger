@@ -35,6 +35,9 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
 
     interface Callback {
         fun onVoiceRecordingStarted()
+        fun onVideoNoteRequested()
+        fun onVideoNoteReleased()
+        fun onVideoNoteCancelled()
         fun onVoiceRecordingEnded()
         fun onVoicePlaybackButtonClicked()
         fun onVoiceRecordingCancelled()
@@ -74,6 +77,9 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
     private fun initListeners() {
         voiceMessageViews.start(object : VoiceMessageViews.Actions {
             override fun onRequestRecording() = callback.onVoiceRecordingStarted()
+            override fun onVideoNoteRequested() = callback.onVideoNoteRequested()
+            override fun onVideoNoteReleased() = callback.onVideoNoteReleased()
+            override fun onVideoNoteCancelled() = callback.onVideoNoteCancelled()
             override fun onMicButtonReleased() {
                 when (dragState) {
                     DraggingState.Lock -> {
@@ -121,6 +127,10 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         val parentChanged = changedView == this
         voiceMessageViews.renderVisibilityChanged(parentChanged, visibility)
     }
+
+    fun showVideoNoteRecordingViews() = voiceMessageViews.showVideoNoteRecordingViews()
+
+    fun hideVideoNoteRecordingViews() = voiceMessageViews.hideVideoNoteRecordingViews()
 
     fun render(recordingState: RecordingUiState) {
         if (lastKnownState == recordingState) return

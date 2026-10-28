@@ -40,6 +40,11 @@ class VoiceMessageViews(
     private val distanceToLock = dimensionConverter.dpToPx(48).toFloat()
     private val distanceToCancel = dimensionConverter.dpToPx(120).toFloat()
     private val rtlXMultiplier = resources.getInteger(im.vector.lib.ui.styles.R.integer.rtl_x_multiplier)
+    private var videoNoteMode = false
+
+    companion object {
+        private const val MIC_HOLD_DELAY_MS = 180L
+    }
 
     fun start(actions: Actions) {
         views.voiceMessageSendButton.setOnClickListener {
@@ -80,24 +85,133 @@ class VoiceMessageViews(
     @SuppressLint("ClickableViewAccessibility")
     private fun observeMicButton(actions: Actions) {
         val draggableStateProcessor = DraggableStateProcessor(resources, dimensionConverter)
-        views.voiceMessageMicButton.setOnTouchListener { _, event ->
-            when (event.action) {
+        var holdStarted = false
+        var videoNoteRequested = false
+        var videoNoteCancelled = false
+        var videoDragState: DraggingState = DraggingState.Ready
+        var holdRunnable: Runnable? = null
+        views.voiceMessageMicButton.setOnTouchListener { button, event ->
+            when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     draggableStateProcessor.initialize(event)
-                    actions.onRequestRecording()
+                    holdStarted = false
+                    videoNoteRequested = false
+                    videoNoteCancelled = false
+                    videoDragState = DraggingState.Ready
+                    val pendingHold = Runnable {
+                        holdStarted = true
+                        if (videoNoteMode) {
+                            videoNoteRequested = true
+                            showVideoNoteRecordingViews()
+                            actions.onVideoNoteRequested()
+                        } else {
+                            actions.onRequestRecording()
+                        }
+                    }
+                    holdRunnable = pendingHold
+                    button.postDelayed(pendingHold, MIC_HOLD_DELAY_MS)
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    actions.onMicButtonReleased()
+                    holdRunnable?.let(button::removeCallbacks)
+                    holdRunnable = null
+                    if (!holdStarted) {
+                        // A tap switches capture mode; it must never create a zero-length recording.
+                        videoNoteMode = !videoNoteMode
+                        button.setImageResource(if (videoNoteMode) R.drawable.ic_camera else R.drawable.ic_microphone)
+                        button.contentDescription = if (videoNoteMode) {
+                            resources.getString(R.string.telegram_video_note_title)
+                        } else {
+                            resources.getString(CommonStrings.a11y_start_voice_message)
+                        }
+                        button.animate().cancel()
+                        button.scaleX = 1f
+                        button.scaleY = 1f
+                        button.animate().rotationBy(180f).scaleX(1.08f).scaleY(1.08f).setDuration(120L)
+                                .withEndAction { button.animate().scaleX(1f).scaleY(1f).setDuration(90L).start() }.start()
+                    } else if (videoNoteCancelled) {
+                        hideVideoNoteRecordingViews()
+                    } else if (videoNoteRequested) {
+                        actions.onVideoNoteReleased()
+                        hideVideoNoteRecordingViews()
+                    } else {
+                        actions.onMicButtonReleased()
+                    }
+                    holdStarted = false
                     true
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    actions.onMicButtonDrag { currentState -> draggableStateProcessor.process(event, currentState) }
+                    if (holdStarted && videoNoteRequested && !videoNoteCancelled) {
+                        val nextState = draggableStateProcessor.process(event, videoDragState)
+                        videoDragState = nextState
+                        when (nextState) {
+                            is DraggingState.Cancelling -> renderCancelling(nextState.distanceX)
+                            DraggingState.Ready -> showVideoNoteRecordingViews()
+                            DraggingState.Cancel -> {
+                                videoNoteCancelled = true
+                                videoNoteRequested = false
+                                actions.onVideoNoteCancelled()
+                                hideVideoNoteRecordingViews()
+                            }
+                            else -> Unit
+                        }
+                    } else if (holdStarted && !videoNoteRequested && !videoNoteCancelled) {
+                        actions.onMicButtonDrag { currentState -> draggableStateProcessor.process(event, currentState) }
+                    }
+                    true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    holdRunnable?.let(button::removeCallbacks)
+                    holdRunnable = null
+                    if (holdStarted && videoNoteRequested) {
+                        actions.onVideoNoteCancelled()
+                        hideVideoNoteRecordingViews()
+                    } else if (holdStarted && !videoNoteCancelled) {
+                        actions.onMicButtonReleased()
+                    }
+                    holdStarted = false
+                    videoNoteRequested = false
                     true
                 }
                 else -> false
             }
         }
+    }
+
+    fun showVideoNoteRecordingViews() {
+        views.voiceMessageBackgroundView.isVisible = true
+        views.videoNotePreviewView.isVisible = true
+        views.voiceMessageMicButton.setImageResource(R.drawable.ic_camera)
+        views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
+        views.voiceMessageMicButton.animate().scaleX(1.35f).scaleY(1.35f).setDuration(180L).start()
+        views.voiceMessageSlideToCancel.isVisible = true
+        views.voiceMessageSlideToCancel.alpha = 1f
+        views.voiceMessageTimerIndicator.isVisible = true
+        views.voiceMessageTimer.isVisible = true
+        views.voiceMessageSendButton.isVisible = false
+        views.voiceMessageLockBackground.isVisible = false
+        views.voiceMessageLockImage.isVisible = false
+        views.voiceMessageLockArrow.isVisible = false
+    }
+
+    fun hideVideoNoteRecordingViews() {
+        views.videoNotePreviewView.isVisible = false
+        views.voiceMessageTimer.isVisible = false
+        views.voiceMessageTimerIndicator.isVisible = false
+        views.voiceMessageSlideToCancel.isVisible = false
+        views.voiceMessageSlideToCancelDivider.isVisible = false
+        views.voiceMessageBackgroundView.isVisible = false
+        views.voiceMessageSlideToCancel.translationX = 0f
+        views.voiceMessageSlideToCancel.translationY = 0f
+        views.voiceMessageMicButton.translationX = 0f
+        views.voiceMessageMicButton.translationY = 0f
+        views.voiceMessageLockArrow.translationY = 0f
+        views.voiceMessageMicButton.animate().cancel()
+        views.voiceMessageMicButton.animate().scaleX(1f).scaleY(1f).translationX(0f).translationY(0f).setDuration(120L)
+                .withEndAction { resetMicButtonUi() }.start()
+        views.voiceMessageTimerIndicator.alpha = 1f
+        views.voiceMessageTimer.alpha = 1f
+        views.voiceMessageSlideToCancel.alpha = 1f
     }
 
     fun renderStarted(distanceX: Float) {
@@ -254,7 +368,7 @@ class VoiceMessageViews(
 
     fun resetMicButtonUi() {
         views.voiceMessageMicButton.isVisible = true
-        views.voiceMessageMicButton.setImageResource(R.drawable.ic_microphone)
+        views.voiceMessageMicButton.setImageResource(if (videoNoteMode) R.drawable.ic_camera else R.drawable.ic_microphone)
         views.voiceMessageMicButton.setAttributeBackground(android.R.attr.selectableItemBackgroundBorderless)
         views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             if (rtlXMultiplier == -1) {
@@ -360,6 +474,9 @@ class VoiceMessageViews(
 
     interface Actions {
         fun onRequestRecording()
+        fun onVideoNoteRequested()
+        fun onVideoNoteReleased()
+        fun onVideoNoteCancelled()
         fun onMicButtonReleased()
         fun onMicButtonDrag(nextDragStateCreator: (DraggingState) -> DraggingState)
         fun onSendVoiceMessage()

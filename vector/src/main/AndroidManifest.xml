@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -419,6 +420,11 @@
             android:exported="false"
             android:foregroundServiceType="microphone"
             android:permission="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
+        <service
+            android:name=".features.home.room.detail.composer.AudioPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <service
             android:name=".features.importer.ImporterService"

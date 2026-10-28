@@ -7,7 +7,9 @@
 
 package im.vector.app.features.home.room.detail.composer.voice
 
+import android.Manifest
 import android.os.Bundle
+import android.widget.Toast
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,11 +19,16 @@ import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.core.hardware.vibrate
 import im.vector.app.core.platform.VectorBaseFragment
-import im.vector.app.core.utils.PERMISSIONS_FOR_VOICE_MESSAGE
+import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedSnackbar
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.databinding.FragmentVoiceRecorderBinding
+import im.vector.app.features.attachments.AttachmentsHelper
+import im.vector.app.features.attachments.ContactAttachment
+import im.vector.app.features.home.room.detail.composer.voice.InlineRoundVideoRecorder
+import im.vector.app.core.utils.PERMISSIONS_FOR_VOICE_MESSAGE
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import im.vector.app.features.home.room.detail.TimelineViewModel
 import im.vector.app.features.home.room.detail.composer.MessageComposerAction
 import im.vector.app.features.home.room.detail.composer.MessageComposerViewEvents
@@ -32,6 +39,7 @@ import im.vector.app.features.home.room.detail.composer.boolean
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.lib.core.utils.timer.Clock
 import im.vector.lib.strings.CommonStrings
+import java.io.File
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -39,6 +47,11 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
 
     @Inject lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
     @Inject lateinit var clock: Clock
+    @Inject lateinit var buildMeta: BuildMeta
+
+    private lateinit var videoNoteAttachmentsHelper: AttachmentsHelper
+    private var inlineVideoNoteRecorder: InlineRoundVideoRecorder? = null
+    private var inlineVideoNoteOutputFile: File? = null
 
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
     private val messageComposerViewModel: MessageComposerViewModel by parentFragmentViewModel()
@@ -51,12 +64,66 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         }
     }
 
+    private val permissionVideoNoteLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
+        if (!allGranted && deniedPermanently && isAdded) {
+            Toast.makeText(
+                    requireContext(),
+                    R.string.telegram_video_note_permission_error,
+                    Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentVoiceRecorderBinding {
         return FragmentVoiceRecorderBinding.inflate(inflater, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        videoNoteAttachmentsHelper = AttachmentsHelper(requireContext(), object : AttachmentsHelper.Callback {
+            override fun onContactAttachmentReady(contactAttachment: ContactAttachment) = Unit
+
+            override fun onContentAttachmentsReady(attachments: List<ContentAttachmentData>) {
+                attachments.forEach { attachment ->
+                    messageComposerViewModel.handle(
+                            MessageComposerAction.SendMediaAttachment(attachment, getRootThreadEventId())
+                    )
+                }
+            }
+
+            override fun onAttachmentError(throwable: Throwable) {
+                Toast.makeText(
+                        requireContext(),
+                        throwable.localizedMessage ?: getString(im.vector.app.R.string.telegram_video_note_recording_failed),
+                        Toast.LENGTH_LONG
+                ).show()
+            }
+        }, buildMeta).register()
+
+        val videoPreview = views.voiceMessageRecorderView.findViewById<android.view.TextureView>(im.vector.app.R.id.videoNotePreviewView)
+        val videoTimer = views.voiceMessageRecorderView.findViewById<android.widget.TextView>(im.vector.app.R.id.voiceMessageTimer)
+        val videoTimerIndicator = views.voiceMessageRecorderView.findViewById<android.widget.ImageView>(im.vector.app.R.id.voiceMessageTimerIndicator)
+        inlineVideoNoteRecorder = InlineRoundVideoRecorder(
+                preview = videoPreview,
+                timer = videoTimer,
+                timerIndicator = videoTimerIndicator,
+                onFailure = { failure ->
+                    if (isAdded) {
+                        requireActivity().runOnUiThread {
+                            Toast.makeText(
+                                    requireContext(),
+                                    failure.localizedMessage ?: getString(im.vector.app.R.string.telegram_video_note_recording_failed),
+                                    Toast.LENGTH_LONG
+                            ).show()
+                            inlineVideoNoteOutputFile?.let(videoNoteAttachmentsHelper::discardInlineVideoNoteOutput)
+                            inlineVideoNoteOutputFile = null
+                            views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+                        }
+                    }
+                },
+                onMaximumDurationReached = { finishInlineVideoNote(cancelled = false) }
+        )
 
         messageComposerViewModel.observeViewEvents {
             when (it) {
@@ -84,8 +151,20 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
 
     override fun onPause() {
         super.onPause()
+        // The camera/microphone must be released when the app backgrounds. Audio message
+        // playback remains owned by AudioPlaybackService and continues independently.
+        if (inlineVideoNoteRecorder != null) {
+            inlineVideoNoteRecorder?.cancel()
+            inlineVideoNoteOutputFile?.let(videoNoteAttachmentsHelper::discardInlineVideoNoteOutput)
+            inlineVideoNoteOutputFile = null
+            views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+        }
+    }
 
-        audioMessagePlaybackTracker.pauseAllPlaybacks()
+    override fun onDestroyView() {
+        inlineVideoNoteRecorder?.release()
+        inlineVideoNoteRecorder = null
+        super.onDestroyView()
     }
 
     override fun invalidate() = withState(timelineViewModel, messageComposerViewModel) { mainState, messageComposerState ->
@@ -108,6 +187,26 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         }
     }
 
+    private fun finishInlineVideoNote(cancelled: Boolean) {
+        val recorder = inlineVideoNoteRecorder ?: return
+        val pendingFile = inlineVideoNoteOutputFile
+        if (cancelled) {
+            recorder.cancel()
+            videoNoteAttachmentsHelper.discardInlineVideoNoteOutput(pendingFile)
+        } else {
+            val completedFile = recorder.stop()
+            if (completedFile != null && completedFile.isFile && completedFile.length() > 1_024L) {
+                // Reuse the normal Matrix attachment conversion/send path. The resulting m.video
+                // event carries a video_note_* filename marker for the round thumbnail treatment.
+                videoNoteAttachmentsHelper.onCameraVideoResult()
+            } else {
+                videoNoteAttachmentsHelper.discardInlineVideoNoteOutput(pendingFile)
+            }
+        }
+        inlineVideoNoteOutputFile = null
+        views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+    }
+
     private fun setupVoiceMessageView() {
         audioMessagePlaybackTracker.track(AudioMessagePlaybackTracker.RECORDING_ID, views.voiceMessageRecorderView)
         views.voiceMessageRecorderView.callback = object : VoiceMessageRecorderView.Callback {
@@ -117,6 +216,35 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
                     messageComposerViewModel.handle(MessageComposerAction.StartRecordingVoiceMessage)
                     vibrate(requireContext())
                 }
+            }
+
+            override fun onVideoNoteRequested() {
+                val videoPermissions = listOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+                if (checkPermissions(videoPermissions, requireActivity(), permissionVideoNoteLauncher)) {
+                    try {
+                        val output = videoNoteAttachmentsHelper.prepareInlineVideoNoteOutput()
+                        inlineVideoNoteOutputFile = output
+                        inlineVideoNoteRecorder?.start(output)
+                        vibrate(requireContext())
+                    } catch (failure: Throwable) {
+                        Toast.makeText(
+                                requireContext(),
+                                failure.localizedMessage ?: getString(im.vector.app.R.string.telegram_video_note_recording_failed),
+                                Toast.LENGTH_LONG
+                        ).show()
+                        inlineVideoNoteOutputFile?.let(videoNoteAttachmentsHelper::discardInlineVideoNoteOutput)
+                        inlineVideoNoteOutputFile = null
+                        views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+                    }
+                }
+            }
+
+            override fun onVideoNoteReleased() {
+                finishInlineVideoNote(cancelled = false)
+            }
+
+            override fun onVideoNoteCancelled() {
+                finishInlineVideoNote(cancelled = true)
             }
 
             override fun onVoicePlaybackButtonClicked() {
