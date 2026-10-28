@@ -536,6 +536,10 @@ class MessageItemFactory @Inject constructor(
                 allowNonMxcUrls = informationData.sendState.isSending()
         )
 
+        val imageUrl = messageContent.getFileUrl()
+        val imageIsDownloaded = localFilesHelper.isLocalFile(imageUrl) || runCatching {
+            session.fileService().isFileInCache(messageContent)
+        }.getOrDefault(false)
         val playable = messageContent.mimeType == MimeTypes.Gif
         // don't show play button because detecting animated webp isn't possible via mimetype
         val playableIfAutoplay = playable || messageContent.mimeType == MimeTypes.Webp
@@ -546,6 +550,8 @@ class MessageItemFactory @Inject constructor(
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .playable(playable)
+                .mxcDownloadUrl(imageUrl?.takeIf { it.startsWith("mxc://") && !imageIsDownloaded })
+                .isMediaDownloaded(imageIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(data)
                 .apply {
@@ -587,11 +593,15 @@ class MessageItemFactory @Inject constructor(
                 allowNonMxcUrls = informationData.sendState.isSending()
         )
 
+        val videoUrl = messageContent.getFileUrl()
+        val videoIsDownloaded = localFilesHelper.isLocalFile(videoUrl) || runCatching {
+            session.fileService().isFileInCache(messageContent)
+        }.getOrDefault(false)
         val videoData = VideoContentRenderer.Data(
                 eventId = informationData.eventId,
                 filename = messageContent.body,
                 mimeType = messageContent.mimeType,
-                url = messageContent.getFileUrl(),
+                url = videoUrl,
                 elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt(),
                 thumbnailMediaData = thumbnailData
         )
@@ -602,6 +612,8 @@ class MessageItemFactory @Inject constructor(
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                 .playable(true)
+                .mxcDownloadUrl(videoUrl?.takeIf { it.startsWith("mxc://") && !videoIsDownloaded })
+                .isMediaDownloaded(videoIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)
                 .clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
