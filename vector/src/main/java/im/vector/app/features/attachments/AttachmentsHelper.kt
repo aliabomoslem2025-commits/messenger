@@ -199,15 +199,21 @@ class AttachmentsHelper(
     }
 
     fun onCameraVideoResult() {
-        captureUri?.let { captureUri ->
-            MultiPicker.get(MultiPicker.CAMERA_VIDEO)
-                    .getTakenVideo(context, captureUri)
-                    ?.let {
-                        callback.onContentAttachmentsReady(
-                                listOf(it).map { it.toContentAttachmentData() }
-                        )
-                    }
-        }
+        val outputUri = captureUri ?: return
+        captureUri = null
+        MultiPicker.get(MultiPicker.CAMERA_VIDEO)
+                .getTakenVideo(context, outputUri)
+                ?.let {
+                    callback.onContentAttachmentsReady(
+                            listOf(it).map { it.toContentAttachmentData() }
+                    )
+                }
+    }
+
+    /** Discard a cancelled inline video note and clear its pending URI. */
+    fun discardInlineVideoNoteOutput(file: File?) {
+        captureUri = null
+        file?.let { runCatching { it.delete() } }
     }
 
     fun onVideoResult(data: Intent?) {
