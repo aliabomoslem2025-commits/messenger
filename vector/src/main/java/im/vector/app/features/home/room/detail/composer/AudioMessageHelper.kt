@@ -8,8 +8,6 @@
 package im.vector.app.features.home.room.detail.composer
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import androidx.core.content.FileProvider
 import im.vector.app.core.resources.BuildMeta
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -24,7 +22,6 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import timber.log.Timber
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileNotFoundException
 import javax.inject.Inject
 
@@ -37,14 +34,12 @@ class AudioMessageHelper @Inject constructor(
         private val buildMeta: BuildMeta,
         voiceRecorderProvider: VoiceRecorderProvider
 ) {
-    private var mediaPlayer: MediaPlayer? = null
     private var currentPlayingId: String? = null
     private val voiceRecorder: VoiceRecorder by lazy { voiceRecorderProvider.provideVoiceRecorder() }
 
     private val amplitudeList = mutableListOf<Int>()
 
     private var amplitudeTicker: CountUpTimer? = null
-    private var playbackTicker: CountUpTimer? = null
 
     fun initializeRecorder(roomId: String, attachmentData: ContentAttachmentData) {
         voiceRecorder.initializeRecord(roomId, attachmentData)
@@ -110,6 +105,15 @@ class AudioMessageHelper @Inject constructor(
         stopRecordingAmplitudes()
     }
 
+    /**
+     * Stop an in-progress recording when the app backgrounds without stopping the
+     * independent playback service. Called only while the UI state is recording.
+     */
+    fun stopRecordingForBackground(): MultiPickerAudioType? {
+        val audio = stopRecording()
+        return audio
+    }
+
     fun deleteRecording() {
         tryOrNull("Cannot stop media recording amplitude") {
             stopRecordingAmplitudes()
@@ -127,63 +131,37 @@ class AudioMessageHelper @Inject constructor(
 
     fun startOrPausePlayback(id: String, file: File) {
         val playbackState = playbackTracker.getPlaybackState(id)
-        mediaPlayer?.stop()
-        stopPlaybackTicker()
         stopRecordingAmplitudes()
-        currentPlayingId = null
         if (playbackState is AudioMessagePlaybackTracker.Listener.State.Playing) {
+            AudioPlaybackService.pause(context)
             playbackTracker.pausePlayback(id)
+            currentPlayingId = id
         } else {
-            startPlayback(id, file)
+            // The service owns the MediaPlayer and persists it across Activity/Fragment
+            // lifecycle changes. The event id remains the key used by timeline controls.
+            val resumeAt = playbackTracker.getPlaybackTime(id) ?: 0
+            playbackTracker.pauseAllPlaybacks()
+            currentPlayingId = id
+            AudioPlaybackService.play(context, id, file, resumeAt)
             playbackTracker.startPlayback(id)
         }
     }
 
-    private fun startPlayback(id: String, file: File) {
-        val currentPlaybackTime = playbackTracker.getPlaybackTime(id) ?: 0
-
-        try {
-            FileInputStream(file).use { fis ->
-                mediaPlayer = MediaPlayer().apply {
-                    setAudioAttributes(
-                            AudioAttributes.Builder()
-                                    // Do not use CONTENT_TYPE_SPEECH / USAGE_VOICE_COMMUNICATION because we want to play loud here
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                                    .build()
-                    )
-                    setDataSource(fis.fd)
-                    prepare()
-                    start()
-                    seekTo(currentPlaybackTime)
-                }
-            }
-            currentPlayingId = id
-        } catch (failure: Throwable) {
-            Timber.e(failure, "Unable to start playback")
-            throw VoiceFailure.UnableToPlay(failure)
-        }
-        startPlaybackTicker(id)
-    }
-
     fun stopPlayback() {
-        playbackTracker.pausePlayback(AudioMessagePlaybackTracker.RECORDING_ID)
-        mediaPlayer?.stop()
-        stopPlaybackTicker()
+        currentPlayingId?.let(playbackTracker::pausePlayback)
+        AudioPlaybackService.stop(context)
         currentPlayingId = null
     }
 
     fun movePlaybackTo(id: String, percentage: Float, totalDuration: Int) {
-        val toMillisecond = (totalDuration * percentage).toInt()
+        val toMillisecond = (totalDuration * percentage).toInt().coerceAtLeast(0)
         playbackTracker.pauseAllPlaybacks()
 
         if (currentPlayingId == id) {
-            mediaPlayer?.seekTo(toMillisecond)
+            AudioPlaybackService.seek(context, toMillisecond)
             playbackTracker.updatePlayingAtPlaybackTime(id, toMillisecond, percentage)
         } else {
-            mediaPlayer?.pause()
             playbackTracker.updatePausedAtPlaybackTime(id, toMillisecond, percentage)
-            stopPlaybackTicker()
         }
     }
 
@@ -212,32 +190,6 @@ class AudioMessageHelper @Inject constructor(
     private fun stopRecordingAmplitudes() {
         amplitudeTicker?.stop()
         amplitudeTicker = null
-    }
-
-    private fun startPlaybackTicker(id: String) {
-        playbackTicker?.stop()
-        playbackTicker = CountUpTimer().apply {
-            tickListener = CountUpTimer.TickListener { onPlaybackTick(id) }
-            start()
-        }
-        onPlaybackTick(id)
-    }
-
-    private fun onPlaybackTick(id: String) {
-        if (mediaPlayer?.isPlaying.orFalse()) {
-            val currentPosition = mediaPlayer?.currentPosition ?: 0
-            val totalDuration = mediaPlayer?.duration ?: 0
-            val percentage = currentPosition.toFloat() / totalDuration
-            playbackTracker.updatePlayingAtPlaybackTime(id, currentPosition, percentage)
-        } else {
-            playbackTracker.stopPlaybackOrRecorder(id)
-            stopPlaybackTicker()
-        }
-    }
-
-    private fun stopPlaybackTicker() {
-        playbackTicker?.stop()
-        playbackTicker = null
     }
 
     fun stopTracking() {
