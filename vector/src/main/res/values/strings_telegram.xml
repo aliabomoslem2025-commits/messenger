@@ -87,6 +87,7 @@
     <string name="telegram_settings_legal_title">Legal</string>
     <string name="telegram_settings_legal_summary">Privacy information and licenses</string>
     <string name="telegram_audio_playing_notification_title">Playing audio</string>
+    <string name="telegram_video_playing_notification_title">Playing video</string>
     <string name="telegram_video_note_title">Video note</string>
     <string name="telegram_video_note_hint">Record a short video. The preview is circular.</string>
     <string name="telegram_video_note_record">Hold to record</string>
