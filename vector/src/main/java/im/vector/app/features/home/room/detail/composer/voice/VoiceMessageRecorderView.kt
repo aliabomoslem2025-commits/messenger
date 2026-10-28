@@ -35,6 +35,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
 
     interface Callback {
         fun onVoiceRecordingStarted()
+        fun onVideoNoteRequested()
         fun onVoiceRecordingEnded()
         fun onVoicePlaybackButtonClicked()
         fun onVoiceRecordingCancelled()
@@ -74,6 +75,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
     private fun initListeners() {
         voiceMessageViews.start(object : VoiceMessageViews.Actions {
             override fun onRequestRecording() = callback.onVoiceRecordingStarted()
+            override fun onVideoNoteRequested() = callback.onVideoNoteRequested()
             override fun onMicButtonReleased() {
                 when (dragState) {
                     DraggingState.Lock -> {
