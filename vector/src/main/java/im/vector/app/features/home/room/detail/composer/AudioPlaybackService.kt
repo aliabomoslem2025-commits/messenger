@@ -67,6 +67,7 @@ class AudioPlaybackService : Service() {
                         player.setVolume(1f, 1f)
                         player.start()
                         val id = playbackId
+                        if (id != null) persistPlayback(id, getPersistedPath(), player.currentPosition)
                         if (id != null) {
                             val duration = max(player.duration, 1)
                             playbackTracker.startPlayback(id)
@@ -187,6 +188,7 @@ class AudioPlaybackService : Service() {
                 val seekPosition = pendingSeekMs.coerceAtMost(duration - 1)
                 if (seekPosition > 0) preparedPlayer.seekTo(seekPosition)
                 preparedPlayer.start()
+                persistPlayback(id, path, seekPosition)
                 playbackTracker.startPlayback(id)
                 updateSessionMetadata(id, duration)
                 updateSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING, seekPosition, duration)
@@ -415,6 +417,7 @@ class AudioPlaybackService : Service() {
                 .putString(KEY_ID, id)
                 .putString(KEY_PATH, path)
                 .putInt(KEY_POSITION, positionMs.coerceAtLeast(0))
+                .putBoolean(KEY_IS_PLAYING, mediaPlayer?.isPlaying == true)
                 .apply()
     }
 
@@ -449,6 +452,7 @@ class AudioPlaybackService : Service() {
         private const val KEY_ID = "playback_id"
         private const val KEY_PATH = "playback_path"
         private const val KEY_POSITION = "playback_position"
+        private const val KEY_IS_PLAYING = "playback_is_playing"
         private const val PROGRESS_INTERVAL_MS = 250L
 
         private const val ACTION_PLAY = "im.vector.app.action.AUDIO_PLAY"
@@ -461,6 +465,21 @@ class AudioPlaybackService : Service() {
         private const val EXTRA_FILE_PATH = "file_path"
         private const val EXTRA_START_POSITION = "start_position"
         private const val EXTRA_SEEK_POSITION = "seek_position"
+
+        fun isActiveFor(context: Context, id: String): Boolean {
+            val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            return preferences.getString(KEY_ID, null) == id
+        }
+
+        fun isPlayingFor(context: Context, id: String): Boolean {
+            val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            return preferences.getString(KEY_ID, null) == id && preferences.getBoolean(KEY_IS_PLAYING, false)
+        }
+
+        fun persistedPosition(context: Context, id: String): Int? {
+            val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            return if (preferences.getString(KEY_ID, null) == id) preferences.getInt(KEY_POSITION, 0) else null
+        }
 
         fun play(context: Context, id: String, file: File, startPositionMs: Int) {
             val intent = Intent(context, AudioPlaybackService::class.java)
