@@ -102,6 +102,7 @@ class AudioPlaybackService : Service() {
             ACTION_PAUSE -> pausePlayback()
             ACTION_SEEK -> seekTo(intent.getIntExtra(EXTRA_SEEK_POSITION, 0))
             ACTION_STOP -> stopPlaybackAndService()
+            ACTION_STOP_VIDEO -> if (playbackId?.startsWith(VIDEO_PLAYBACK_PREFIX) == true) stopPlaybackAndService()
             null -> resumePersistedPlayback()
             else -> Unit
         }
@@ -250,9 +251,14 @@ class AudioPlaybackService : Service() {
                 Intent(this, AudioPlaybackService::class.java).setAction(toggleAction),
                 pendingIntentFlags()
         )
+        val notificationTitle = if (playbackId?.startsWith(VIDEO_PLAYBACK_PREFIX) == true) {
+            getString(R.string.telegram_video_playing_notification_title)
+        } else {
+            getString(R.string.telegram_audio_playing_notification_title)
+        }
         return NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_play_pause_play)
-                .setContentTitle(getString(R.string.telegram_audio_playing_notification_title))
+                .setContentTitle(notificationTitle)
                 .setContentText("Audio message")
                 .setContentIntent(contentIntent)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -353,6 +359,8 @@ class AudioPlaybackService : Service() {
         private const val ACTION_PAUSE = "im.vector.app.action.AUDIO_PAUSE"
         private const val ACTION_SEEK = "im.vector.app.action.AUDIO_SEEK"
         private const val ACTION_STOP = "im.vector.app.action.AUDIO_STOP"
+        private const val ACTION_STOP_VIDEO = "im.vector.app.action.STOP_BACKGROUND_VIDEO"
+        private const val VIDEO_PLAYBACK_PREFIX = "video:"
         private const val EXTRA_PLAYBACK_ID = "playback_id"
         private const val EXTRA_FILE_PATH = "file_path"
         private const val EXTRA_START_POSITION = "start_position"
@@ -381,6 +389,15 @@ class AudioPlaybackService : Service() {
 
         fun stop(context: Context) {
             context.startService(Intent(context, AudioPlaybackService::class.java).setAction(ACTION_STOP))
+        }
+
+        fun stopBackgroundVideoIfActive(context: Context) {
+            context.startService(Intent(context, AudioPlaybackService::class.java).setAction(ACTION_STOP_VIDEO))
+        }
+
+        fun playVideoAudioInBackground(context: Context, file: File, positionMs: Int) {
+            if (!file.isFile) return
+            play(context, VIDEO_PLAYBACK_PREFIX + file.absolutePath, file, positionMs)
         }
     }
 }
