@@ -59,13 +59,6 @@ object TelegramEmojiAnimationController {
 
         fun startIfNeeded(view: TextView) {
             if (!view.isAttachedToWindow || finished || !compositionReady) return
-            // Wait for a real measured overlay. Starting a Lottie animator while the
-            // ViewStub/FrameLayout is still being laid out can leave the glyph visible
-            // and the animation layer effectively zero-sized for its first frames.
-            if (animationView.width <= 0 || animationView.height <= 0) {
-                animationView.doOnLayout { startIfNeeded(view) }
-                return
-            }
             if (!hasStarted) {
                 animationView.progress = 0f
                 animationView.playAnimation()
