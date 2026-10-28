@@ -157,6 +157,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             inlineVideoNoteRecorder?.cancel()
             inlineVideoNoteOutputFile?.let(videoNoteAttachmentsHelper::discardInlineVideoNoteOutput)
             inlineVideoNoteOutputFile = null
+            views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
         }
     }
 
