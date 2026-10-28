@@ -53,7 +53,7 @@ class TelegramEmojiAnimationCatalogTest {
             .use { it.readText() }
         val composition = JSONObject(jsonText)
 
-        assertTrue("The packaged Lottie asset has no layers", composition.optJSONArray("layers")?.length() ?: 0 > 0)
+        assertTrue("The packaged Lottie asset has no layers", (composition.optJSONArray("layers")?.length() ?: 0) > 0)
         assertTrue(
             "The packaged Lottie asset has no animation duration",
             composition.optDouble("op", 0.0) > composition.optDouble("ip", 0.0)
