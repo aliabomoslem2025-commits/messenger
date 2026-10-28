@@ -7,11 +7,13 @@
 
 package im.vector.app.features.home.room.detail.timeline.item
 
+import android.content.res.ColorStateList
 import android.graphics.Outline
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.airbnb.epoxy.EpoxyAttribute
@@ -29,6 +31,7 @@ import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStat
 import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCorners
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import kotlin.math.abs
 import kotlin.math.max
@@ -59,6 +62,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute
     var mxcDownloadUrl: String? = null
+
+    @EpoxyAttribute
+    var isMediaDownloaded: Boolean = false
 
     override fun bind(holder: Holder) {
         super.bind(holder)
@@ -99,26 +105,46 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         holder.imageView.onClick(clickListener)
         holder.imageView.setOnLongClickListener(attributes.itemLongClickListener)
         ViewCompat.setTransitionName(holder.imageView, "imagePreview_${id()}")
+
+        val isOutgoingBubble = (messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
+        holder.downloadProgress.progressDrawable = ContextCompat.getDrawable(
+                holder.view.context,
+                if (isOutgoingBubble) R.drawable.bg_telegram_voice_download_progress_outgoing
+                else R.drawable.bg_telegram_voice_download_progress
+        )
+        holder.downloadProgress.indeterminateDrawable = ContextCompat.getDrawable(
+                holder.view.context,
+                R.drawable.bg_telegram_voice_download_indeterminate
+        )
+        val progressTint = ThemeUtils.getColor(
+                holder.view.context,
+                if (isOutgoingBubble) im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text
+                else im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent
+        )
+        holder.downloadProgress.indeterminateTintList = ColorStateList.valueOf(progressTint)
         holder.mediaContentView.onClick(attributes.itemClickListener)
         holder.mediaContentView.setOnLongClickListener(attributes.itemLongClickListener)
 
         val isImageMessage = attributes.informationData.messageType in listOf(MessageType.MSGTYPE_IMAGE, MessageType.MSGTYPE_STICKER_LOCAL)
         val autoplayAnimatedImages = attributes.autoplayAnimatedImages
 
-        holder.playContentView.visibility = if (playable && isImageMessage && autoplayAnimatedImages) {
-            View.GONE
-        } else if (playable) {
-            View.VISIBLE
+        val downloadUrl = mxcDownloadUrl
+        val isDownloadingCandidate = !isMediaDownloaded && !downloadUrl.isNullOrBlank()
+        val showAnimatedPlayControl = playable && !(isImageMessage && autoplayAnimatedImages)
+        holder.playContentView.visibility = if (isDownloadingCandidate || showAnimatedPlayControl) View.VISIBLE else View.GONE
+        if (isDownloadingCandidate) {
+            holder.playContentView.setImageResource(R.drawable.ic_telegram_download_arrow)
         } else {
-            View.GONE
+            holder.playContentView.setImageResource(R.drawable.ic_material_play_circle)
         }
 
-        val downloadUrl = mxcDownloadUrl
-        if (playable && !downloadUrl.isNullOrBlank()) {
+        if (!downloadUrl.isNullOrBlank()) {
             contentDownloadOverlayBinder.bind(
-                    attributes.informationData.eventId,
-                    downloadUrl,
-                    holder.downloadProgress
+                    eventId = attributes.informationData.eventId,
+                    mxcUrl = downloadUrl,
+                    progress = holder.downloadProgress,
+                    downloadIcon = holder.playContentView,
+                    showPlayIconOnSuccess = showAnimatedPlayControl
             )
         } else {
             holder.downloadProgress.isVisible = false
