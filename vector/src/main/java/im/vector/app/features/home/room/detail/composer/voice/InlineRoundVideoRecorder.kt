@@ -97,8 +97,11 @@ class InlineRoundVideoRecorder(
     fun stop(): File? {
         pendingStart = false
         if (!isRecording) {
+            val file = outputFile
+            outputFile = null
             cleanupCamera()
             hidePreview()
+            file?.let { runCatching { it.delete() } }
             return null
         }
 
@@ -121,6 +124,9 @@ class InlineRoundVideoRecorder(
 
         if (!valid) {
             file?.let { runCatching { it.delete() } }
+            if (duration < MIN_DURATION_MS) {
+                onFailure(IllegalStateException("Hold a little longer to record a video note."))
+            }
             return null
         }
         return file
