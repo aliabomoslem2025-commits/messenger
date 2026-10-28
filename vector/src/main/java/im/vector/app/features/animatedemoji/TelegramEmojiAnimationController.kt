@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.view.doOnLayout
 import com.airbnb.lottie.LottieAnimationView
 import com.airbnb.lottie.LottieComposition
 import com.airbnb.lottie.LottieCompositionFactory
@@ -20,6 +21,7 @@ import com.airbnb.lottie.LottieDrawable
 import im.vector.app.R
 import im.vector.app.core.utils.isAnimationEnabled
 import kotlin.random.Random
+import timber.log.Timber
 
 object TelegramEmojiAnimationController {
     private const val STANDALONE_SIZE_DP = 72
@@ -38,7 +40,8 @@ object TelegramEmojiAnimationController {
             val eventId: String,
             val emoji: String,
             private val snapshot: TextSnapshot,
-            val animationView: LottieAnimationView
+            val animationView: LottieAnimationView,
+            val onLoadFailure: (() -> Unit)? = null
     ) : View.OnAttachStateChangeListener {
         var hasStarted = false
         var finished = false
@@ -57,10 +60,12 @@ object TelegramEmojiAnimationController {
         fun startIfNeeded(view: TextView) {
             if (!view.isAttachedToWindow || finished || !compositionReady) return
             if (!hasStarted) {
+                Timber.d("Starting standalone emoji animation (event=$eventId, emoji=$emoji, view=${animationView.width}x${animationView.height})")
                 animationView.progress = 0f
                 animationView.playAnimation()
                 hasStarted = true
             } else {
+                Timber.d("Resuming standalone emoji animation (event=$eventId, emoji=$emoji)")
                 animationView.resumeAnimation()
             }
         }
@@ -159,9 +164,22 @@ object TelegramEmojiAnimationController {
     }
 
     /** Play the emoji animation above the transparent message content. */
-    fun playStandalone(textView: TextView, emoji: String, eventId: String, seed: Int = eventId.hashCode()): Boolean {
-        if (!textView.context.isAnimationEnabled()) return false
-        val animationView = animationViewFor(textView) ?: return false
+    fun playStandalone(
+            textView: TextView,
+            emoji: String,
+            eventId: String,
+            seed: Int = eventId.hashCode(),
+            onLoadFailure: (() -> Unit)? = null
+    ): Boolean {
+        if (!textView.context.isAnimationEnabled()) {
+            Timber.w("Standalone emoji animation skipped because system animations are disabled (event=$eventId)")
+            return false
+        }
+        val animationView = animationViewFor(textView) ?: run {
+            Timber.e("Standalone emoji animation view not found in timeline layout (event=$eventId, emoji=$emoji)")
+            return false
+        }
+        Timber.d("Requesting standalone emoji animation (event=$eventId, emoji=$emoji, attached=${textView.isAttachedToWindow})")
         // Keep the overlay at Telegram-style large-emoji dimensions even when the
         // surrounding message layout measures the Unicode fallback more narrowly.
         val standaloneSize = dp(textView.context, STANDALONE_SIZE_DP)
@@ -189,7 +207,7 @@ object TelegramEmojiAnimationController {
                 visibility = textView.visibility,
                 contentDescription = textView.contentDescription
         )
-        val state = StandaloneState(eventId, emoji, snapshot, animationView)
+        val state = StandaloneState(eventId, emoji, snapshot, animationView, onLoadFailure)
         textView.setTag(R.id.tag_telegram_animated_emoji_state, state)
         textView.addOnAttachStateChangeListener(state)
 
@@ -212,9 +230,11 @@ object TelegramEmojiAnimationController {
         ) { asset ->
             if (textView.getTag(R.id.tag_telegram_animated_emoji_state) !== state) return@findAsync
             if (asset == null) {
+                Timber.w("No animated-emoji asset mapped for emoji=$emoji, event=${state.eventId}")
                 restoreIfCurrent(textView, state)
                 return@findAsync
             }
+            Timber.d("Resolved animated-emoji asset ${asset.path} for event=${state.eventId}")
 
             loadComposition(
                     context = textView.context,
@@ -233,14 +253,21 @@ object TelegramEmojiAnimationController {
                             animationView.isClickable = false
                             animationView.isFocusable = false
                             state.compositionReady = true
+                            Timber.d("Loaded standalone Lottie composition ${asset.path} for event=${state.eventId}")
                             state.animatorListener = object : AnimatorListenerAdapter() {
+                                override fun onAnimationStart(animation: Animator) {
+                                    Timber.d("Standalone emoji animation started (event=${state.eventId}, asset=${asset.path})")
+                                }
+
                                 override fun onAnimationEnd(animation: Animator) {
+                                    Timber.d("Standalone emoji animation ended (event=${state.eventId}, asset=${asset.path})")
                                     if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
                                         state.finish(textView)
                                     }
                                 }
 
                                 override fun onAnimationCancel(animation: Animator) {
+                                    Timber.w("Standalone emoji animation was cancelled (event=${state.eventId}, asset=${asset.path})")
                                     if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
                                         state.finish(textView)
                                     }
@@ -251,12 +278,20 @@ object TelegramEmojiAnimationController {
                             animationView.visibility = View.VISIBLE
                             textView.requestLayout()
                             animationView.requestLayout()
-                            state.startIfNeeded(textView)
+                            // Start after the overlay has its final size, rather than
+                            // racing the RecyclerView/ViewStub layout pass.
+                            animationView.doOnLayout {
+                                if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
+                                    state.startIfNeeded(textView)
+                                }
+                            }
                         } catch (throwable: Throwable) {
+                            Timber.e(throwable, "Could not configure standalone Lottie animation (event=${state.eventId}, asset=${asset.path})")
                             restoreIfCurrent(textView, state)
                         }
                     },
                     onFailure = {
+                        Timber.e("Lottie composition loading failed (event=${state.eventId}, asset=${asset.path})")
                         restoreIfCurrent(textView, state)
                     }
             )
@@ -400,14 +435,16 @@ object TelegramEmojiAnimationController {
                 "$cacheKey:asset"
         ).addListener { composition ->
             onSuccess(composition)
-        }.addFailureListener {
+        }.addFailureListener { assetError ->
+            Timber.w(assetError, "Bundled Lottie asset could not be loaded: ${asset.path}; trying network fallback")
             LottieCompositionFactory.fromUrl(
                     appContext,
                     asset.url,
                     "$cacheKey:remote"
             ).addListener { composition ->
                 onSuccess(composition)
-            }.addFailureListener {
+            }.addFailureListener { remoteError ->
+                Timber.e(remoteError, "Bundled and remote Lottie loading both failed: ${asset.path}")
                 onFailure()
             }
         }
@@ -417,6 +454,10 @@ object TelegramEmojiAnimationController {
         if (view.getTag(R.id.tag_telegram_animated_emoji_state) !== state) return
         view.setTag(R.id.tag_telegram_animated_emoji_state, null)
         state.restore(view)
+        // Let the timeline binder retry on a subsequent bind if an asynchronous
+        // catalog/asset/composition load failed. Do not leave the event marked as
+        // already auto-played after a failed first attempt.
+        state.onLoadFailure?.invoke()
     }
 
     private fun dp(context: Context, value: Int): Int =
