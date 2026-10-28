@@ -60,10 +60,12 @@ object TelegramEmojiAnimationController {
         fun startIfNeeded(view: TextView) {
             if (!view.isAttachedToWindow || finished || !compositionReady) return
             if (!hasStarted) {
+                Timber.d("Starting standalone emoji animation (event=$eventId, emoji=$emoji, view=${animationView.width}x${animationView.height})")
                 animationView.progress = 0f
                 animationView.playAnimation()
                 hasStarted = true
             } else {
+                Timber.d("Resuming standalone emoji animation (event=$eventId, emoji=$emoji)")
                 animationView.resumeAnimation()
             }
         }
@@ -253,13 +255,19 @@ object TelegramEmojiAnimationController {
                             state.compositionReady = true
                             Timber.d("Loaded standalone Lottie composition ${asset.path} for event=${state.eventId}")
                             state.animatorListener = object : AnimatorListenerAdapter() {
+                                override fun onAnimationStart(animation: Animator) {
+                                    Timber.d("Standalone emoji animation started (event=${state.eventId}, asset=${asset.path})")
+                                }
+
                                 override fun onAnimationEnd(animation: Animator) {
+                                    Timber.d("Standalone emoji animation ended (event=${state.eventId}, asset=${asset.path})")
                                     if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
                                         state.finish(textView)
                                     }
                                 }
 
                                 override fun onAnimationCancel(animation: Animator) {
+                                    Timber.w("Standalone emoji animation was cancelled (event=${state.eventId}, asset=${asset.path})")
                                     if (textView.getTag(R.id.tag_telegram_animated_emoji_state) === state) {
                                         state.finish(textView)
                                     }
