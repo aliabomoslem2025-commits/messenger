@@ -174,8 +174,11 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.translationY = 0f
 
         val now = System.currentTimeMillis()
+        // Matrix can take longer than a few seconds to echo/sync the event and bind
+        // the final timeline item. Keep recent standalone emojis eligible for their
+        // one-shot animation across that delay, without replaying old timeline history.
         val hasRecentTimestamp = listOfNotNull(info.ageLocalTS, info.eventTimestamp)
-                .any { timestamp -> (now - timestamp) in -2_000L..15_000L }
+                .any { timestamp -> (now - timestamp) in -2_000L..STANDALONE_EMOJI_AUTO_PLAY_WINDOW_MS }
         // Matrix's local echo is available before a server timestamp exists. Start
         // the animation immediately for our own pending send instead of waiting for sync.
         val isLocalEcho = info.sentByMe && info.sendState.isSending()
@@ -281,6 +284,7 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
 
     companion object {
         private const val MAX_REMEMBERED_BIG_EMOJI_ANIMATIONS = 256
+        private const val STANDALONE_EMOJI_AUTO_PLAY_WINDOW_MS = 180_000L
         private val animatedBigEmojiEventIds = LinkedHashSet<String>()
         private val STUB_ID = R.id.messageContentTextStub
     }
