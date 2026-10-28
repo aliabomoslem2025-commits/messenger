@@ -122,15 +122,18 @@ abstract class MessageTextItem : AbsMessageItem<MessageTextItem.Holder>() {
         messageView.movementMethod = movementMethod
         renderSendState(messageView, messageView)
         messageView.onClick { view ->
-            if (!TelegramEmojiAnimationController.replay(view) && useBigFont) {
-                messageView.text?.toString()?.trim()?.takeIf { isSingleEmoji(it) }?.let { emoji ->
-                    TelegramEmojiAnimationController.playStandalone(
-                            messageView,
-                            emoji,
-                            attributes.informationData.eventId,
-                            attributes.informationData.eventId.hashCode()
-                    )
-                }
+            // The large standalone-emoji size is independent of useBigFont. Any
+            // single emoji message must be able to replay its animation when tapped,
+            // including older messages whose automatic one-shot window has expired.
+            val standaloneEmoji = messageView.text?.toString()?.trim()
+                    ?.takeIf { isSingleEmoji(it) }
+            if (!TelegramEmojiAnimationController.replay(view) && standaloneEmoji != null) {
+                TelegramEmojiAnimationController.playStandalone(
+                        messageView,
+                        standaloneEmoji,
+                        attributes.informationData.eventId,
+                        attributes.informationData.eventId.hashCode()
+                )
             }
             attributes.itemClickListener?.invoke(view)
         }
