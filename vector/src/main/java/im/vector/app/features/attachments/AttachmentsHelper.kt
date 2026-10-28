@@ -20,6 +20,7 @@ import im.vector.app.features.settings.VectorPreferences
 import im.vector.lib.core.utils.compat.getParcelableCompat
 import im.vector.lib.core.utils.compat.getSerializableCompat
 import im.vector.lib.multipicker.CameraVideoPicker
+import java.io.File
 import im.vector.lib.multipicker.MultiPicker
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import timber.log.Timber
@@ -111,14 +112,22 @@ class AttachmentsHelper(
      * Starts video capture directly instead of asking the user to choose between
      * photo and video first. The result follows the same preview and Matrix send path.
      */
-    fun recordVideo(cameraVideoActivityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
-        // Video notes use an in-app circular preview/recorder. The resulting file is
-        // still passed to MultiPicker below and then through the existing Matrix media
-        // preview/upload path; the recorder itself does not fake a successful send.
+    /**
+     * Allocate a Matrix-pipeline-compatible file for an inline circular video note.
+     * The returned file is consumed by the inline recorder; [onCameraVideoResult]
+     * then converts the same FileProvider URI into ContentAttachmentData.
+     */
+    fun prepareInlineVideoNoteOutput(): File {
         val output = CameraVideoPicker.createVideoCaptureOutput(context, videoNote = true)
         captureUri = output.uri
+        return output.file
+    }
+
+    fun recordVideo(cameraVideoActivityResultLauncher: ActivityResultLauncher<Intent>) = doSafe {
+        // The standalone camera entry point uses the exact same file and Matrix upload path.
+        val outputFile = prepareInlineVideoNoteOutput()
         val intent = Intent(context, VideoNoteCaptureActivity::class.java)
-                .putExtra(VideoNoteCaptureActivity.EXTRA_OUTPUT_PATH, output.file.absolutePath)
+                .putExtra(VideoNoteCaptureActivity.EXTRA_OUTPUT_PATH, outputFile.absolutePath)
         cameraVideoActivityResultLauncher.launch(intent)
     }
 
