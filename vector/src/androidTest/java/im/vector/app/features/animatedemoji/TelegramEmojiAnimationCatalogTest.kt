@@ -9,6 +9,7 @@ package im.vector.app.features.animatedemoji
 import androidx.test.platform.app.InstrumentationRegistry
 import im.vector.app.R
 import org.json.JSONArray
+import org.json.JSONObject
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -40,6 +41,24 @@ class TelegramEmojiAnimationCatalogTest {
             assertTrue("Row $index has an invalid asset path: $path", path.startsWith("lottie/"))
             assertFalse("Row $index contains path traversal: $path", path.split('/').any { it == ".." })
         }
+    }
+
+
+    @Test
+    fun commonStandaloneEmojiLottieAssetIsPackagedAndAnimated() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val path = "telegram_emoji/lottie/animated/U+1F602_1.json"
+        val jsonText = context.assets.open(path)
+            .bufferedReader(Charsets.UTF_8)
+            .use { it.readText() }
+        val composition = JSONObject(jsonText)
+
+        assertTrue("The packaged Lottie asset has no layers", composition.optJSONArray("layers")?.length() ?: 0 > 0)
+        assertTrue(
+            "The packaged Lottie asset has no animation duration",
+            composition.optDouble("op", 0.0) > composition.optDouble("ip", 0.0)
+        )
+        assertTrue("The packaged Lottie asset has no frame rate", composition.optDouble("fr", 0.0) > 0.0)
     }
 
     private fun readCatalog(): List<org.json.JSONObject> {
