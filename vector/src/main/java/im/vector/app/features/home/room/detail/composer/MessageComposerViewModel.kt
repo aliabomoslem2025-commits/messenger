@@ -115,6 +115,7 @@ class MessageComposerViewModel @AssistedInject constructor(
             is MessageComposerAction.EnterRegularMode -> handleEnterRegularMode(action)
             is MessageComposerAction.EnterReplyMode -> handleEnterReplyMode(room, action)
             is MessageComposerAction.SendMessage -> handleSendMessage(room, action)
+            is MessageComposerAction.SendMediaAttachment -> handleSendMediaAttachment(room, action)
             is MessageComposerAction.UserIsTyping -> handleUserIsTyping(room, action)
             is MessageComposerAction.OnTextChanged -> handleOnTextChanged(action)
             is MessageComposerAction.OnVoiceRecordingUiStateChanged -> handleOnVoiceRecordingUiStateChanged(action)
@@ -225,6 +226,18 @@ class MessageComposerViewModel @AssistedInject constructor(
         room.getTimelineEvent(action.eventId)?.let { timelineEvent ->
             setState { copy(sendMode = SendMode.Reply(timelineEvent, currentComposerText)) }
         }
+    }
+
+    private fun handleSendMediaAttachment(room: Room, action: MessageComposerAction.SendMediaAttachment) {
+        // Use the SDK's normal media pipeline so encryption, upload progress, retries and
+        // Matrix event send state remain authoritative for video notes.
+        room.sendService().sendMedia(
+                attachment = action.attachment,
+                compressBeforeSending = false,
+                roomIds = emptySet(),
+                rootThreadEventId = action.rootThreadEventId
+        )
+        _viewEvents.post(MessageComposerViewEvents.MessageSent)
     }
 
     private fun handleSendMessage(room: Room, action: MessageComposerAction.SendMessage) {
