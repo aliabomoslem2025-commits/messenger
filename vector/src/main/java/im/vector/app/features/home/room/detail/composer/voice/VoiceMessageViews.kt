@@ -146,6 +146,7 @@ class VoiceMessageViews(
                         videoDragState = nextState
                         when (nextState) {
                             is DraggingState.Cancelling -> renderCancelling(nextState.distanceX)
+                            DraggingState.Ready -> showVideoNoteRecordingViews()
                             DraggingState.Cancel -> {
                                 videoNoteCancelled = true
                                 videoNoteRequested = false
@@ -198,7 +199,13 @@ class VoiceMessageViews(
         views.voiceMessageTimer.isVisible = false
         views.voiceMessageTimerIndicator.isVisible = false
         views.voiceMessageSlideToCancel.isVisible = false
+        views.voiceMessageSlideToCancelDivider.isVisible = false
         views.voiceMessageBackgroundView.isVisible = false
+        views.voiceMessageSlideToCancel.translationX = 0f
+        views.voiceMessageSlideToCancel.translationY = 0f
+        views.voiceMessageMicButton.translationX = 0f
+        views.voiceMessageMicButton.translationY = 0f
+        views.voiceMessageLockArrow.translationY = 0f
         views.voiceMessageMicButton.animate().cancel()
         views.voiceMessageMicButton.animate().scaleX(1f).scaleY(1f).translationX(0f).translationY(0f).setDuration(120L)
                 .withEndAction { resetMicButtonUi() }.start()
