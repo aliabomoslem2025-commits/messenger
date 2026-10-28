@@ -8,9 +8,11 @@ package im.vector.app.features.animatedemoji
 
 import androidx.test.platform.app.InstrumentationRegistry
 import im.vector.app.R
+import com.airbnb.lottie.LottieCompositionFactory
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -59,6 +61,9 @@ class TelegramEmojiAnimationCatalogTest {
             composition.optDouble("op", 0.0) > composition.optDouble("ip", 0.0)
         )
         assertTrue("The packaged Lottie asset has no frame rate", composition.optDouble("fr", 0.0) > 0.0)
+        val parsed = LottieCompositionFactory.fromAssetSync(context, path, "standalone-emoji-asset-test")
+        assertNotNull("Lottie could not parse the packaged laugh-emoji animation: ${parsed.exception}", parsed.value)
+
     }
 
     private fun readCatalog(): List<org.json.JSONObject> {
