@@ -89,6 +89,7 @@
     <string name="telegram_audio_playing_notification_title">Playing audio</string>
     <string name="telegram_video_playing_notification_title">Playing video</string>
     <string name="telegram_video_note_title">Video note</string>
+    <string name="telegram_video_note_preview">Round video message preview</string>
     <string name="telegram_video_note_hint">Record a short video. The preview is circular.</string>
     <string name="telegram_video_note_record">Hold to record</string>
     <string name="telegram_video_note_stop">Stop</string>
