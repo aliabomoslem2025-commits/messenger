@@ -1015,12 +1015,16 @@ class MessageComposerViewModel @AssistedInject constructor(
     }
 
     private fun handleEntersBackground(room: Room, composerText: String) {
-        // Always stop all voice actions. It may be playing in timeline or active recording
-        val playingAudioContent = audioMessageHelper.stopAllVoiceActions(deleteRecord = false)
+        // Recordings are finalized into a draft when the app backgrounds, but playback is
+        // owned by AudioPlaybackService and must continue independently of this ViewModel.
+        val isVoiceRecording = com.airbnb.mvrx.withState(this) { it.isVoiceRecording }
+        val playingAudioContent = if (isVoiceRecording) {
+            audioMessageHelper.stopRecordingForBackground()
+        } else {
+            null
+        }
         // TODO remove this when there will be a listening indicator outside of the timeline
         voiceBroadcastHelper.pausePlayback()
-
-        val isVoiceRecording = com.airbnb.mvrx.withState(this) { it.isVoiceRecording }
         if (isVoiceRecording) {
             viewModelScope.launch {
                 playingAudioContent?.toContentAttachmentData()?.let { voiceDraft ->
