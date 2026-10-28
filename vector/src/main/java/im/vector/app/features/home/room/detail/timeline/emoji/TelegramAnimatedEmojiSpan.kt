@@ -353,7 +353,7 @@ internal class TelegramAnimatedEmojiSpan(
         }
         private val mainHandler = Handler(Looper.getMainLooper())
         // Bound parsed compositions in memory; the disk TGS cache is separately size-limited.
-        private val compositions = LruCache<String, LottieComposition>(MAX_CACHED_COMPOSITIONS)
         private const val MAX_CACHED_COMPOSITIONS = 32
+        private val compositions = LruCache<String, LottieComposition>(MAX_CACHED_COMPOSITIONS)
     }
 }
