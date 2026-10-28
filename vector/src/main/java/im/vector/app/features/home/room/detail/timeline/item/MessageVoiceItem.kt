@@ -50,7 +50,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     var izLocalFile = false
 
     @EpoxyAttribute
-    var downloaded: Boolean = false
+    var isDownloaded: Boolean = false
 
     @EpoxyAttribute
     lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
@@ -70,7 +70,7 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.voiceLayout, null)
-        holder.isFileDownloaded = downloaded || izLocalFile
+        holder.isFileDownloaded = isDownloaded || izLocalFile
         holder.voiceDownloadProgress.isVisible = false
         holder.voiceDownloadProgress.progress = 0
         val outgoingBubble = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
@@ -101,7 +101,6 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
             holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_telegram_download_arrow)
             holder.voicePlaybackControlButton.contentDescription = holder.view.context.getString(R.string.telegram_voice_download_message)
         }
-
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(attributes.informationData.eventId, izLocalFile, holder.progressLayout)
             if (!holder.isFileDownloaded && !izLocalFile && mxcUrl.isNotBlank()) {
