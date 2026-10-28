@@ -392,7 +392,11 @@ class AudioPlaybackService : Service() {
         }
 
         fun stopBackgroundVideoIfActive(context: Context) {
-            context.startService(Intent(context, AudioPlaybackService::class.java).setAction(ACTION_STOP_VIDEO))
+            val activeId = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                    .getString(KEY_ID, null)
+            if (activeId?.startsWith(VIDEO_PLAYBACK_PREFIX) == true) {
+                context.startService(Intent(context, AudioPlaybackService::class.java).setAction(ACTION_STOP_VIDEO))
+            }
         }
 
         fun playVideoAudioInBackground(context: Context, file: File, positionMs: Int) {
