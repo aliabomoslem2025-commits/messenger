@@ -22,10 +22,10 @@ import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
-import androidx.media.MediaMetadataCompat
+import android.support.v4.media.MediaMetadataCompat
 import androidx.media.app.NotificationCompat.MediaStyle
-import androidx.media.session.MediaSessionCompat
-import androidx.media.session.PlaybackStateCompat
+import android.support.v4.media.session.MediaSessionCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
@@ -88,7 +88,11 @@ class AudioPlaybackService : Service() {
                 val id = intent.getStringExtra(EXTRA_PLAYBACK_ID)
                 val path = intent.getStringExtra(EXTRA_FILE_PATH)
                 val startAt = intent.getIntExtra(EXTRA_START_POSITION, 0).coerceAtLeast(0)
-                if (id.isNullOrBlank() || path.isNullOrBlank() || !File(path).isFile) {
+                if (id.isNullOrBlank() || path.isNullOrBlank()) {
+                    // The notification's Resume command intentionally carries no file path;
+                    // it resumes from the persisted playback state.
+                    resumePersistedPlayback()
+                } else if (!File(path).isFile) {
                     stopPlaybackAndService()
                 } else {
                     startForegroundCompat(buildNotification(isPlaying = true))
@@ -322,7 +326,7 @@ class AudioPlaybackService : Service() {
             getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getString(KEY_PATH, null)
 
     private fun pendingIntentFlags(): Int =
-            PendingIntent.FLAG_UPDATE_CURRENT or if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0
+            PendingIntent.FLAG_UPDATE_CURRENT or (if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) PendingIntent.FLAG_IMMUTABLE else 0)
 
     override fun onBind(intent: Intent?): IBinder? = null
 
