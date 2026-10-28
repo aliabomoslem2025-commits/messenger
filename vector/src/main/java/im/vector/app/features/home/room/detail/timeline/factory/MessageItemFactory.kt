@@ -28,6 +28,7 @@ import im.vector.app.core.utils.containsOnlyEmojis
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
+import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadOverlayBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.helper.LocationPinProvider
@@ -122,6 +123,7 @@ class MessageItemFactory @Inject constructor(
         private val messageItemAttributesFactory: MessageItemAttributesFactory,
         private val contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder,
         private val contentDownloadStateTrackerBinder: ContentDownloadStateTrackerBinder,
+        private val contentDownloadOverlayBinder: ContentDownloadOverlayBinder,
         private val defaultItemFactory: DefaultItemFactory,
         private val noticeItemFactory: NoticeItemFactory,
         private val avatarSizeProvider: AvatarSizeProvider,
@@ -549,6 +551,7 @@ class MessageItemFactory @Inject constructor(
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
+                .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
                 .playable(playable)
                 .mxcDownloadUrl(imageUrl?.takeIf { it.startsWith("mxc://") && !imageIsDownloaded })
                 .isMediaDownloaded(imageIsDownloaded)
@@ -611,6 +614,7 @@ class MessageItemFactory @Inject constructor(
                 .attributes(attributes)
                 .imageContentRenderer(imageContentRenderer)
                 .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
+                .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
                 .playable(true)
                 .mxcDownloadUrl(videoUrl?.takeIf { it.startsWith("mxc://") && !videoIsDownloaded })
                 .isMediaDownloaded(videoIsDownloaded)
