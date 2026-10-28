@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail.composer.voice
 
-import android.app.Activity
 import android.Manifest
 import android.os.Bundle
 import android.widget.Toast
@@ -18,7 +17,6 @@ import androidx.core.view.isVisible
 import com.airbnb.mvrx.parentFragmentViewModel
 import com.airbnb.mvrx.withState
 import dagger.hilt.android.AndroidEntryPoint
-import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.hardware.vibrate
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.resources.BuildMeta
@@ -63,6 +61,16 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             // In this case, let the user start again the gesture
         } else if (deniedPermanently) {
             vectorBaseActivity.onPermissionDeniedSnackbar(CommonStrings.denied_permission_voice_message)
+        }
+    }
+
+    private val permissionVideoNoteLauncher = registerForPermissionsResult { allGranted, deniedPermanently ->
+        if (!allGranted && deniedPermanently && isAdded) {
+            Toast.makeText(
+                    requireContext(),
+                    R.string.telegram_video_note_permission_error,
+                    Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -211,7 +219,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
 
             override fun onVideoNoteRequested() {
                 val videoPermissions = listOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
-                if (checkPermissions(videoPermissions, requireActivity(), permissionVoiceMessageLauncher)) {
+                if (checkPermissions(videoPermissions, requireActivity(), permissionVideoNoteLauncher)) {
                     try {
                         val output = videoNoteAttachmentsHelper.prepareInlineVideoNoteOutput()
                         inlineVideoNoteOutputFile = output
