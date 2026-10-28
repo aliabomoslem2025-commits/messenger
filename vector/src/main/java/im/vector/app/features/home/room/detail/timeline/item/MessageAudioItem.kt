@@ -48,7 +48,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     var izLocalFile = false
 
     @EpoxyAttribute
-    var downloaded: Boolean = false
+    var isDownloaded: Boolean = false
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var onSeek: ((percentage: Float) -> Unit)? = null
@@ -70,7 +70,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     override fun bind(holder: Holder) {
         super.bind(holder)
         renderSendState(holder.rootLayout, null)
-        holder.isFileDownloaded = downloaded || izLocalFile
+        holder.isFileDownloaded = isDownloaded || izLocalFile
         holder.audioDownloadProgress.isVisible = false
         holder.audioDownloadProgress.progress = 0
         val outgoingBubble = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
