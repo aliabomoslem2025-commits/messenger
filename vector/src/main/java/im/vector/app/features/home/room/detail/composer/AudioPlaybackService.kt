@@ -118,7 +118,10 @@ class AudioPlaybackService : Service() {
             setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() = resumePersistedPlayback()
-                override fun onPause() = pausePlayback()
+                override fun onPause() {
+                    pausedByAudioFocus = false
+                    pausePlayback()
+                }
                 override fun onStop() = stopPlaybackAndService()
                 override fun onSeekTo(pos: Long) = seekTo(pos.toInt())
             })
@@ -143,7 +146,10 @@ class AudioPlaybackService : Service() {
                     startPlayback(id, path, startAt)
                 }
             }
-            ACTION_PAUSE -> pausePlayback()
+            ACTION_PAUSE -> {
+                pausedByAudioFocus = false
+                pausePlayback()
+            }
             ACTION_SEEK -> seekTo(intent.getIntExtra(EXTRA_SEEK_POSITION, 0))
             ACTION_STOP -> stopPlaybackAndService()
             ACTION_STOP_VIDEO -> if (playbackId?.startsWith(VIDEO_PLAYBACK_PREFIX) == true) stopPlaybackAndService()
@@ -155,6 +161,7 @@ class AudioPlaybackService : Service() {
 
     private fun startPlayback(id: String, path: String, startAt: Int) {
         releasePlayer()
+        pausedByAudioFocus = false
         playbackId = id
         pendingSeekMs = startAt.coerceAtLeast(0)
         prepared = false
