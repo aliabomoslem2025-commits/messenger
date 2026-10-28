@@ -132,14 +132,15 @@ class AudioMessageHelper @Inject constructor(
     fun startOrPausePlayback(id: String, file: File) {
         val playbackState = playbackTracker.getPlaybackState(id)
         stopRecordingAmplitudes()
-        if (playbackState is AudioMessagePlaybackTracker.Listener.State.Playing) {
+        val serviceIsPlayingThisMessage = AudioPlaybackService.isPlayingFor(context, id)
+        if (playbackState is AudioMessagePlaybackTracker.Listener.State.Playing || serviceIsPlayingThisMessage) {
             AudioPlaybackService.pause(context)
             playbackTracker.pausePlayback(id)
             currentPlayingId = id
         } else {
             // The service owns the MediaPlayer and persists it across Activity/Fragment
-            // lifecycle changes. The event id remains the key used by timeline controls.
-            val resumeAt = playbackTracker.getPlaybackTime(id) ?: 0
+            // lifecycle changes. Restore the service's position if this ViewModel was recreated.
+            val resumeAt = playbackTracker.getPlaybackTime(id) ?: AudioPlaybackService.persistedPosition(context, id) ?: 0
             playbackTracker.pauseAllPlaybacks()
             currentPlayingId = id
             AudioPlaybackService.play(context, id, file, resumeAt)
@@ -155,10 +156,15 @@ class AudioMessageHelper @Inject constructor(
 
     fun movePlaybackTo(id: String, percentage: Float, totalDuration: Int) {
         val toMillisecond = (totalDuration * percentage).toInt().coerceAtLeast(0)
+        val wasPlaying = playbackTracker.getPlaybackState(id) is AudioMessagePlaybackTracker.Listener.State.Playing ||
+                AudioPlaybackService.isPlayingFor(context, id)
         playbackTracker.pauseAllPlaybacks()
 
-        if (currentPlayingId == id) {
+        if (currentPlayingId == id || AudioPlaybackService.isActiveFor(context, id)) {
+            currentPlayingId = id
             AudioPlaybackService.seek(context, toMillisecond)
+        }
+        if (wasPlaying) {
             playbackTracker.updatePlayingAtPlaybackTime(id, toMillisecond, percentage)
         } else {
             playbackTracker.updatePausedAtPlaybackTime(id, toMillisecond, percentage)
