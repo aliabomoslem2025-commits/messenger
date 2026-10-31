@@ -52,6 +52,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
     private lateinit var videoNoteAttachmentsHelper: AttachmentsHelper
     private var inlineVideoNoteRecorder: InlineRoundVideoRecorder? = null
     private var inlineVideoNoteOutputFile: File? = null
+    private var inlineVideoNoteFinalizing = false
 
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
     private val messageComposerViewModel: MessageComposerViewModel by parentFragmentViewModel()
@@ -153,7 +154,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         super.onPause()
         // The camera/microphone must be released when the app backgrounds. Audio message
         // playback remains owned by AudioPlaybackService and continues independently.
-        if (inlineVideoNoteRecorder != null) {
+        if (inlineVideoNoteRecorder != null && !inlineVideoNoteFinalizing) {
             inlineVideoNoteRecorder?.cancel()
             inlineVideoNoteOutputFile?.let(videoNoteAttachmentsHelper::discardInlineVideoNoteOutput)
             inlineVideoNoteOutputFile = null
@@ -191,6 +192,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         val recorder = inlineVideoNoteRecorder ?: return
         val pendingFile = inlineVideoNoteOutputFile
         if (cancelled) {
+            inlineVideoNoteFinalizing = false
             recorder.cancel()
             videoNoteAttachmentsHelper.discardInlineVideoNoteOutput(pendingFile)
             inlineVideoNoteOutputFile = null
@@ -198,9 +200,11 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             return
         }
 
+        inlineVideoNoteFinalizing = true
         // Camera startup is asynchronous. If the user releases during initialization,
         // the recorder queues stop until MediaRecorder is ready, then returns the finalized MP4.
         recorder.stop { completedFile ->
+            inlineVideoNoteFinalizing = false
             val validFile = completedFile != null &&
                     completedFile.isFile &&
                     completedFile.length() > 1_024L
