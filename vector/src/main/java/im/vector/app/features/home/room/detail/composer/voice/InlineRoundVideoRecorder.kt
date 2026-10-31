@@ -39,7 +39,8 @@ class InlineRoundVideoRecorder(
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var camera: Camera? = null
-    private var cameraOrientation = 90
+    private var previewOrientation = 90
+    private var recordingOrientationHint = 90
     private var recorder: MediaRecorder? = null
     private var previewSurface: Surface? = null
     private var outputFile: File? = null
@@ -207,7 +208,9 @@ class InlineRoundVideoRecorder(
             val cameraId = preferredCameraId()
             val cameraInfo = Camera.CameraInfo()
             Camera.getCameraInfo(cameraId, cameraInfo)
-            cameraOrientation = calculateCameraOrientation(cameraInfo)
+            val orientation = calculateCameraOrientations(cameraInfo)
+            previewOrientation = orientation.first
+            recordingOrientationHint = orientation.second
             val openedCamera = Camera.open(cameraId)
             val parameters = openedCamera.parameters
             choosePreviewSize(parameters.supportedPreviewSizes)?.let { size ->
@@ -217,7 +220,7 @@ class InlineRoundVideoRecorder(
                     ?.firstOrNull { it == Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO }
                     ?.let { parameters.focusMode = it }
             openedCamera.parameters = parameters
-            openedCamera.setDisplayOrientation(cameraOrientation)
+            openedCamera.setDisplayOrientation(previewOrientation)
             openedCamera.setPreviewTexture(surfaceTexture)
             openedCamera.startPreview()
             camera = openedCamera
@@ -267,7 +270,7 @@ class InlineRoundVideoRecorder(
                 chooseVideoSize(activeCamera.parameters.supportedVideoSizes)?.let { size ->
                     setVideoSize(size.width, size.height)
                 }
-                setOrientationHint(cameraOrientation)
+                setOrientationHint(recordingOrientationHint)
                 previewSurface?.let(::setPreviewDisplay)
                 setMaxDuration(MAX_RECORDING_MS.toInt())
                 setOutputFile(file.absolutePath)
@@ -306,11 +309,11 @@ class InlineRoundVideoRecorder(
     }
 
     /**
-     * Match the preview and encoded MP4 rotation to both the active display rotation
-     * and the actual camera sensor. Hard-coding 90 degrees breaks landscape and a
-     * number of front-camera sensor layouts.
+     * Preview and encoded-video orientation are not the same for a front camera:
+     * preview is mirrored for the user, while the recorded MP4 must not inherit
+     * that mirror-compensation rotation.
      */
-    private fun calculateCameraOrientation(info: Camera.CameraInfo): Int {
+    private fun calculateCameraOrientations(info: Camera.CameraInfo): Pair<Int, Int> {
         val displayRotation = preview.display?.rotation ?: Surface.ROTATION_0
         val displayDegrees = when (displayRotation) {
             Surface.ROTATION_90 -> 90
@@ -319,10 +322,12 @@ class InlineRoundVideoRecorder(
             else -> 0
         }
         return if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            val result = (info.orientation + displayDegrees) % 360
-            (360 - result) % 360
+            val sensorAndDisplay = (info.orientation + displayDegrees) % 360
+            val previewDegrees = (360 - sensorAndDisplay) % 360
+            previewDegrees to sensorAndDisplay
         } else {
-            (info.orientation - displayDegrees + 360) % 360
+            val degrees = (info.orientation - displayDegrees + 360) % 360
+            degrees to degrees
         }
     }
 
