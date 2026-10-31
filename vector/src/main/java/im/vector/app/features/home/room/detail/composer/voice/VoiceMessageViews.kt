@@ -254,7 +254,6 @@ class VoiceMessageViews(
 
     fun showRecordingViews() {
         views.voiceMessageBackgroundView.isVisible = true
-        views.voiceMessageMicButton.setImageResource(R.drawable.ic_composer_rich_mic_pressed)
         views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
         views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             setMargins(0, 0, 0, 0)
