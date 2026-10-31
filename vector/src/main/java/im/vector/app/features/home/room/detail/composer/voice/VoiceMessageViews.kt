@@ -118,7 +118,7 @@ class VoiceMessageViews(
                     if (!holdStarted) {
                         // A tap switches capture mode; it must never create a zero-length recording.
                         videoNoteMode = !videoNoteMode
-                        button.setImageResource(if (videoNoteMode) R.drawable.ic_camera else R.drawable.ic_microphone)
+                        views.voiceMessageMicButton.setImageResource(if (videoNoteMode) R.drawable.ic_telegram_video_note else R.drawable.ic_microphone)
                         button.contentDescription = if (videoNoteMode) {
                             resources.getString(R.string.telegram_video_note_title)
                         } else {
@@ -181,7 +181,7 @@ class VoiceMessageViews(
     fun showVideoNoteRecordingViews() {
         views.voiceMessageBackgroundView.isVisible = true
         views.videoNotePreviewView.isVisible = true
-        views.voiceMessageMicButton.setImageResource(R.drawable.ic_camera)
+        views.voiceMessageMicButton.setImageResource(R.drawable.ic_telegram_video_note)
         views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
         views.voiceMessageMicButton.animate().scaleX(1.35f).scaleY(1.35f).setDuration(180L).start()
         views.voiceMessageSlideToCancel.isVisible = true
@@ -368,7 +368,7 @@ class VoiceMessageViews(
 
     fun resetMicButtonUi() {
         views.voiceMessageMicButton.isVisible = true
-        views.voiceMessageMicButton.setImageResource(if (videoNoteMode) R.drawable.ic_camera else R.drawable.ic_microphone)
+        views.voiceMessageMicButton.setImageResource(if (videoNoteMode) R.drawable.ic_telegram_video_note else R.drawable.ic_microphone)
         views.voiceMessageMicButton.setAttributeBackground(android.R.attr.selectableItemBackgroundBorderless)
         views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             if (rtlXMultiplier == -1) {
