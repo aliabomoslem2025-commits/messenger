@@ -7,53 +7,94 @@
 package im.vector.app.features.home.room.detail.composer.voice
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.util.AttributeSet
-import com.airbnb.lottie.LottieAnimationView
+import android.view.Gravity
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.ImageView
+import androidx.core.view.isVisible
 import im.vector.app.R
 
 /**
- * Uses Telegram's original 60-frame voice/video icon composition.
+ * Telegram-style two-state capture control.
  *
- * Frames 0..30 morph the video camera into the microphone; frames 30..60
- * morph the microphone back into the video camera. Keeping the same frame
- * ranges and endpoints makes the two mode transitions reversible.
+ * Voice/video capture mode is represented by two overlapping vector icons. The state
+ * transition crossfades and scales the incoming icon rather than rotating a static bitmap,
+ * and the touch listener on this parent keeps the existing press-and-hold gesture intact.
  */
 class TelegramVoiceVideoButton @JvmOverloads constructor(
         context: Context,
         attrs: AttributeSet? = null,
         defStyleAttr: Int = 0,
-) : LottieAnimationView(context, attrs, defStyleAttr) {
+) : FrameLayout(context, attrs, defStyleAttr) {
 
+    private val voiceIcon = createIcon(R.drawable.ic_microphone)
+    private val videoIcon = createIcon(R.drawable.ic_telegram_video_note)
     private var videoMode = false
 
     init {
-        setAnimation(R.raw.telegram_voice_and_video)
-        repeatCount = 0
-        setMinAndMaxFrame(0, VOICE_TO_VIDEO_FRAME)
-        progress = 1f
+        clipChildren = false
+        clipToPadding = false
+        addView(voiceIcon, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER))
+        addView(videoIcon, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER))
+        videoIcon.isVisible = false
+    }
+
+    private fun createIcon(resource: Int) = ImageView(context).apply {
+        setImageResource(resource)
+        imageTintList = ColorStateList.valueOf(Color.WHITE)
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
     fun setCaptureMode(video: Boolean, animated: Boolean) {
-        if (videoMode == video) return
+        val incoming = if (video) videoIcon else voiceIcon
+        val outgoing = if (video) voiceIcon else videoIcon
         videoMode = video
-        cancelAnimation()
-        repeatCount = 0
-        if (video) {
-            setMinAndMaxFrame(VOICE_TO_VIDEO_FRAME, ANIMATION_END_FRAME)
-        } else {
-            setMinAndMaxFrame(ANIMATION_START_FRAME, VOICE_TO_VIDEO_FRAME)
+
+        incoming.animate().cancel()
+        outgoing.animate().cancel()
+
+        if (!animated) {
+            incoming.isVisible = true
+            incoming.alpha = 1f
+            incoming.scaleX = 1f
+            incoming.scaleY = 1f
+            outgoing.isVisible = false
+            outgoing.alpha = 0f
+            outgoing.scaleX = 1f
+            outgoing.scaleY = 1f
+            return
         }
-        if (animated) {
-            progress = 0f
-            playAnimation()
-        } else {
-            progress = 1f
+
+        incoming.isVisible = true
+        incoming.alpha = 0f
+        incoming.scaleX = 0.78f
+        incoming.scaleY = 0.78f
+        incoming.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(170L)
+                .start()
+
+        if (outgoing.isVisible) {
+            outgoing.animate()
+                    .alpha(0f)
+                    .scaleX(0.82f)
+                    .scaleY(0.82f)
+                    .setDuration(135L)
+                    .withEndAction {
+                        outgoing.isVisible = false
+                        outgoing.alpha = 0f
+                        outgoing.scaleX = 1f
+                        outgoing.scaleY = 1f
+                    }
+                    .start()
         }
     }
 
-    companion object {
-        private const val ANIMATION_START_FRAME = 0
-        private const val VOICE_TO_VIDEO_FRAME = 30
-        private const val ANIMATION_END_FRAME = 60
-    }
+    fun isVideoMode(): Boolean = videoMode
 }
