@@ -58,12 +58,29 @@ abstract class BaseAttachmentProvider<Type>(
         }
 
         val attachmentInfo = getAttachmentInfoAt(position)
-        val downloadUrl = when (attachmentInfo) {
-            is AttachmentInfo.Image -> (attachmentInfo.data as? ImageContentRenderer.Data)?.url ?: attachmentInfo.url
-            is AttachmentInfo.AnimatedImage -> (attachmentInfo.data as? ImageContentRenderer.Data)?.url ?: attachmentInfo.url
-            is AttachmentInfo.Video -> (attachmentInfo.data as? VideoContentRenderer.Data)?.url ?: attachmentInfo.url
+        val mediaData = when (attachmentInfo) {
+            is AttachmentInfo.Image -> attachmentInfo.data as? ImageContentRenderer.Data
+            is AttachmentInfo.AnimatedImage -> attachmentInfo.data as? ImageContentRenderer.Data
+            is AttachmentInfo.Video -> attachmentInfo.data as? VideoContentRenderer.Data
         }
-        overlayView?.bindDownloadProgress(contentDownloadStateTracker, downloadUrl)
+        val downloadUrl = mediaData?.url ?: when (attachmentInfo) {
+            is AttachmentInfo.Image -> attachmentInfo.url
+            is AttachmentInfo.AnimatedImage -> attachmentInfo.url
+            is AttachmentInfo.Video -> attachmentInfo.url
+        }
+        val fileStateProvider: (() -> FileService.FileState?)? = mediaData?.let { data ->
+            {
+                runCatching {
+                    fileService.fileState(
+                            mxcUrl = data.url,
+                            fileName = data.filename,
+                            mimeType = data.mimeType,
+                            elementToDecrypt = data.elementToDecrypt
+                    )
+                }.getOrNull()
+            }
+        }
+        overlayView?.bindDownloadProgress(contentDownloadStateTracker, downloadUrl, fileStateProvider)
 
         val timelineEvent = getTimelineEventAtPosition(position)
         if (timelineEvent != null) {
