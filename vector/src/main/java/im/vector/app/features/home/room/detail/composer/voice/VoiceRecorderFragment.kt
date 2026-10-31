@@ -193,18 +193,31 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         if (cancelled) {
             recorder.cancel()
             videoNoteAttachmentsHelper.discardInlineVideoNoteOutput(pendingFile)
-        } else {
-            val completedFile = recorder.stop()
-            if (completedFile != null && completedFile.isFile && completedFile.length() > 1_024L) {
+            inlineVideoNoteOutputFile = null
+            views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+            return
+        }
+
+        // Camera startup is asynchronous. If the user releases during initialization,
+        // the recorder queues stop until MediaRecorder is ready, then returns the finalized MP4.
+        recorder.stop { completedFile ->
+            val validFile = completedFile != null &&
+                    completedFile.isFile &&
+                    completedFile.length() > 1_024L
+            if (validFile) {
                 // Reuse the normal Matrix attachment conversion/send path. The resulting m.video
                 // event carries a video_note_* filename marker for the round thumbnail treatment.
                 videoNoteAttachmentsHelper.onCameraVideoResult()
             } else {
                 videoNoteAttachmentsHelper.discardInlineVideoNoteOutput(pendingFile)
             }
+            inlineVideoNoteOutputFile = null
+            if (isAdded) {
+                requireActivity().runOnUiThread {
+                    if (isAdded) views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+                }
+            }
         }
-        inlineVideoNoteOutputFile = null
-        views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
     }
 
     private fun setupVoiceMessageView() {
