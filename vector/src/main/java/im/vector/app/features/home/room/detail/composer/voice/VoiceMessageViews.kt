@@ -118,7 +118,7 @@ class VoiceMessageViews(
                     if (!holdStarted) {
                         // A tap switches capture mode; it must never create a zero-length recording.
                         videoNoteMode = !videoNoteMode
-                        views.voiceMessageMicButton.setImageResource(if (videoNoteMode) R.drawable.ic_telegram_video_note else R.drawable.ic_microphone)
+                        views.voiceMessageMicButton.setCaptureMode(videoNoteMode, animated = false)
                         button.contentDescription = if (videoNoteMode) {
                             resources.getString(R.string.telegram_video_note_title)
                         } else {
@@ -127,7 +127,7 @@ class VoiceMessageViews(
                         button.animate().cancel()
                         button.scaleX = 1f
                         button.scaleY = 1f
-                        button.animate().rotationBy(180f).scaleX(1.08f).scaleY(1.08f).setDuration(120L)
+                        button.animate().scaleX(1.06f).scaleY(1.06f).setDuration(100L)
                                 .withEndAction { button.animate().scaleX(1f).scaleY(1f).setDuration(90L).start() }.start()
                     } else if (videoNoteCancelled) {
                         hideVideoNoteRecordingViews()
@@ -181,7 +181,7 @@ class VoiceMessageViews(
     fun showVideoNoteRecordingViews() {
         views.voiceMessageBackgroundView.isVisible = true
         views.videoNotePreviewView.isVisible = true
-        views.voiceMessageMicButton.setImageResource(R.drawable.ic_telegram_video_note)
+        views.voiceMessageMicButton.setCaptureMode(video = true, animated = false)
         views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
         views.voiceMessageMicButton.animate().scaleX(1.35f).scaleY(1.35f).setDuration(180L).start()
         views.voiceMessageSlideToCancel.isVisible = true
