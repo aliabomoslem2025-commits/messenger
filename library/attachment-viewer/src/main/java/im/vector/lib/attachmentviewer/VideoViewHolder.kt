@@ -57,8 +57,9 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     override fun entersBackground() {
-        if (views.videoView.isPlaying) {
-            progress = views.videoView.currentPosition
+        val wasPlaying = views.videoView.isPlaying
+        preserveVideoPosition()
+        if (wasPlaying) {
             // VideoView releases its decoder when stopped. Ask the app layer to keep
             // the media audio alive in a foreground service while the viewer is hidden.
             mVideoPath?.let { path ->
@@ -66,8 +67,21 @@ class VideoViewHolder constructor(itemView: View) :
                         AttachmentEvents.ContinueVideoPlaybackInBackground(path, progress)
                 )
             }
-            stopTimer()
+        }
+        stopTimer()
+        if (mVideoPath != null) {
             views.videoView.stopPlayback()
+        }
+    }
+
+    fun preserveVideoPosition() {
+        if (mVideoPath != null) {
+            runCatching {
+                val duration = views.videoView.duration
+                if (duration > 0) {
+                    progress = views.videoView.currentPosition.coerceIn(0, duration)
+                }
+            }
         }
     }
 
@@ -151,9 +165,7 @@ class VideoViewHolder constructor(itemView: View) :
                 views.videoView.start()
             }
             AttachmentCommands.PauseVideo -> {
-                if (views.videoView.isPlaying) {
-                    progress = views.videoView.currentPosition
-                }
+                preserveVideoPosition()
                 wasPaused = true
                 views.videoView.pause()
             }
