@@ -973,7 +973,7 @@ class MessageComposerViewModel @AssistedInject constructor(
                 // Download can fail
                 val audioFile = session.fileService().downloadFile(action.messageAudioContent)
                 // Play can fail
-                audioMessageHelper.startOrPausePlayback(action.eventId, audioFile)
+                audioMessageHelper.startOrPausePlayback(action.eventId, audioFile, action.messageAudioContent.body)
             } catch (failure: Throwable) {
                 _viewEvents.post(MessageComposerViewEvents.VoicePlaybackOrRecordingFailure(failure))
             }
