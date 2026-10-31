@@ -46,6 +46,9 @@ class InlineRoundVideoRecorder(
     private var isRecording = false
     private var startedAtMs = 0L
     private var maxDurationCallbackSent = false
+    private var stopRequested = false
+    private var pendingStopCallback: ((File?) -> Unit)? = null
+    private var pendingStopTimeout: Runnable? = null
 
     private val timerRunnable = object : Runnable {
         override fun run() {
@@ -94,19 +97,43 @@ class InlineRoundVideoRecorder(
         }
     }
 
-    fun stop(): File? {
-        pendingStart = false
-        if (!isRecording) {
-            val file = outputFile
-            outputFile = null
-            cleanupCamera()
-            hidePreview()
-            file?.let { runCatching { it.delete() } }
-            return null
+    /**
+     * Finish immediately when recording has started. If camera initialization is still in
+     * progress, retain the surface and stop as soon as MediaRecorder becomes ready.
+     */
+    fun stop(onComplete: (File?) -> Unit) {
+        if (isRecording) {
+            onComplete(stopNow())
+            return
+        }
+        if (!pendingStart) {
+            onComplete(null)
+            return
         }
 
-        val duration = (SystemClock.elapsedRealtime() - startedAtMs).coerceAtLeast(0L)
+        stopRequested = true
+        pendingStopCallback = onComplete
+        pendingStopTimeout?.let(mainHandler::removeCallbacks)
+        pendingStopTimeout = Runnable {
+            if (stopRequested && !isRecording) {
+                stopRequested = false
+                pendingStart = false
+                val callback = pendingStopCallback
+                pendingStopCallback = null
+                releaseRecorder()
+                cleanupCamera()
+                hidePreview()
+                outputFile?.let { runCatching { it.delete() } }
+                outputFile = null
+                callback?.invoke(null)
+            }
+        }.also { mainHandler.postDelayed(it, CAMERA_START_TIMEOUT_MS) }
+    }
+
+    private fun stopNow(): File? {
+        pendingStart = false
         mainHandler.removeCallbacks(timerRunnable)
+        val duration = (SystemClock.elapsedRealtime() - startedAtMs).coerceAtLeast(0L)
         val file = outputFile
         val valid = try {
             recorder?.stop()
@@ -134,6 +161,10 @@ class InlineRoundVideoRecorder(
 
     fun cancel() {
         pendingStart = false
+        stopRequested = false
+        pendingStopCallback = null
+        pendingStopTimeout?.let(mainHandler::removeCallbacks)
+        pendingStopTimeout = null
         mainHandler.removeCallbacks(timerRunnable)
         val file = outputFile
         if (isRecording) {
@@ -188,6 +219,14 @@ class InlineRoundVideoRecorder(
             previewSurface?.release()
             previewSurface = Surface(surfaceTexture)
             startMediaRecorder(openedCamera)
+            if (stopRequested && isRecording) {
+                pendingStopTimeout?.let(mainHandler::removeCallbacks)
+                pendingStopTimeout = null
+                stopRequested = false
+                val callback = pendingStopCallback
+                pendingStopCallback = null
+                mainHandler.post { callback?.invoke(stopNow()) }
+            }
         } catch (failure: Throwable) {
             pendingStart = false
             releaseRecorder()
@@ -195,6 +234,10 @@ class InlineRoundVideoRecorder(
             hidePreview()
             outputFile?.let { runCatching { it.delete() } }
             outputFile = null
+            pendingStopTimeout?.let(mainHandler::removeCallbacks)
+            pendingStopTimeout = null
+            stopRequested = false
+            pendingStopCallback = null
             onFailure(failure)
         }
     }
@@ -301,6 +344,7 @@ class InlineRoundVideoRecorder(
 
     companion object {
         private const val MAX_RECORDING_MS = 60_000L
+        private const val CAMERA_START_TIMEOUT_MS = 2_500L
         private const val MIN_DURATION_MS = 700L
         private const val MIN_VALID_FILE_BYTES = 1_024L
         private const val VIDEO_BIT_RATE = 1_500_000
