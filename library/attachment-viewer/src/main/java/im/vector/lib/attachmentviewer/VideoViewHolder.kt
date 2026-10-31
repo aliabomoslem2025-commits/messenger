@@ -125,9 +125,11 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     private fun startPlaying() {
-        views.videoThumbnailImage.isVisible = false
         views.videoLoaderProgress.isVisible = false
-        views.videoView.isVisible = true
+        // When restoring a user-paused clip, retain the still thumbnail until Play is
+        // explicitly requested. VideoView releases its decoder when the viewer backgrounds.
+        views.videoThumbnailImage.isVisible = wasPaused
+        views.videoView.isVisible = !wasPaused
 
         views.videoView.setOnPreparedListener { player ->
             videoWidth = player.videoWidth.coerceAtLeast(1)
@@ -156,6 +158,9 @@ class VideoViewHolder constructor(itemView: View) :
             if (progress > 0) {
                 views.videoView.seekTo(progress)
             }
+        } else if (progress > 0) {
+            // Retain the seek target for a later Play action without starting a paused clip.
+            views.videoView.seekTo(progress)
         }
     }
 
@@ -169,6 +174,8 @@ class VideoViewHolder constructor(itemView: View) :
         when (commands) {
             AttachmentCommands.StartVideo -> {
                 wasPaused = false
+                views.videoThumbnailImage.isVisible = false
+                views.videoView.isVisible = true
                 views.videoView.start()
             }
             AttachmentCommands.PauseVideo -> {
