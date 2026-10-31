@@ -276,7 +276,7 @@ class AudioPlaybackService : Service() {
 
         if (forcePlay || wasPlaying) {
             startForegroundCompat(buildNotification(isPlaying = true))
-            startPlayback(id, path, position)
+            startPlayback(id, path, position, playbackTitle)
         } else {
             // Android may recreate a sticky service after the process was reclaimed.
             // A user-paused item must remain paused; only an explicit Play action resumes it.
