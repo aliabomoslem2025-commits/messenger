@@ -102,7 +102,10 @@ class ContentDownloadOverlayBinder @Inject constructor(
             if (registrations[eventId] !== registration) return
             progress.isIndeterminate = true
             progress.isVisible = true
-            renderIcon(registration, downloaded = false)
+            // There is no safe SDK cancellation API for an in-flight MXC download.
+            // Hide the download affordance while the ring is active instead of showing
+            // a cancel-looking icon that cannot actually cancel the operation.
+            registration.downloadIcon?.isVisible = false
         }
 
         val listener = object : ContentDownloadStateTracker.UpdateListener {
@@ -132,7 +135,7 @@ class ContentDownloadOverlayBinder @Inject constructor(
                                     .toInt().coerceIn(0, 100)
                         }
                         progress.isVisible = true
-                        renderIcon(currentRegistration, downloaded = false)
+                        currentRegistration.downloadIcon?.isVisible = false
                     }
                     ContentDownloadStateTracker.State.Decrypting -> showDecryptionProgress(currentRegistration)
                     ContentDownloadStateTracker.State.Success -> {
@@ -198,6 +201,7 @@ class ContentDownloadOverlayBinder @Inject constructor(
         val session = activeSessionHolder.getSafeActiveSession() ?: return
         registration.progress.isIndeterminate = true
         registration.progress.isVisible = true
+        registration.downloadIcon?.isVisible = false
 
         val job = session.coroutineScope.launch {
             val result = runCatching { session.fileService().downloadFile(registration.messageContent) }
