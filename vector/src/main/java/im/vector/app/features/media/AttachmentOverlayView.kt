@@ -12,6 +12,8 @@ import android.graphics.Color
 import android.util.AttributeSet
 import android.widget.SeekBar
 import android.content.res.ColorStateList
+import android.os.Handler
+import android.os.Looper
 import androidx.core.view.isVisible
 import androidx.constraintlayout.widget.ConstraintLayout
 import java.util.Locale
@@ -20,6 +22,7 @@ import im.vector.app.databinding.MergeImageAttachmentOverlayBinding
 import im.vector.lib.attachmentviewer.AttachmentEventListener
 import im.vector.lib.attachmentviewer.AttachmentEvents
 import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
+import org.matrix.android.sdk.api.session.file.FileService
 
 class AttachmentOverlayView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -33,6 +36,23 @@ class AttachmentOverlayView @JvmOverloads constructor(
     private var trackedDownloadUrl: String? = null
     private var downloadStateTracker: ContentDownloadStateTracker? = null
     private var downloadListener: ContentDownloadStateTracker.UpdateListener? = null
+    private var fileStateProvider: (() -> FileService.FileState?)? = null
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var decryptionPollAttempts = 0
+    private val decryptionPoll = object : Runnable {
+        override fun run() {
+            val state = fileStateProvider?.invoke()
+            if (state is FileService.FileState.InCache && state.decryptedFileInCache) {
+                finishDownloadProgress(ready = true)
+            } else if (++decryptionPollAttempts < DECRYPTION_POLL_ATTEMPTS) {
+                views.overlayDownloadProgress.isIndeterminate = true
+                views.overlayDownloadProgress.isVisible = true
+                mainHandler.postDelayed(this, DECRYPTION_POLL_INTERVAL_MS)
+            } else {
+                finishDownloadProgress(ready = false)
+            }
+        }
+    }
 
     init {
         inflate(context, R.layout.merge_image_attachment_overlay, this)
@@ -80,7 +100,11 @@ class AttachmentOverlayView @JvmOverloads constructor(
      * Bind the viewer's top-bar save affordance to the selected MXC resource. The SDK tracker
      * reports actual transfer bytes; E2EE decryption is shown as an indeterminate ring.
      */
-    fun bindDownloadProgress(tracker: ContentDownloadStateTracker, url: String?) {
+    fun bindDownloadProgress(
+            tracker: ContentDownloadStateTracker,
+            url: String?,
+            fileStateProvider: (() -> FileService.FileState?)? = null,
+    ) {
         if (trackedDownloadUrl == url && downloadStateTracker === tracker) return
         unbindDownloadProgress()
         if (url.isNullOrBlank() || !url.startsWith("mxc://")) {
@@ -89,16 +113,25 @@ class AttachmentOverlayView @JvmOverloads constructor(
         }
         trackedDownloadUrl = url
         downloadStateTracker = tracker
+        this.fileStateProvider = fileStateProvider
         val listener = object : ContentDownloadStateTracker.UpdateListener {
             override fun onDownloadStateUpdate(state: ContentDownloadStateTracker.State) {
                 when (state) {
                     ContentDownloadStateTracker.State.Idle,
-                    is ContentDownloadStateTracker.State.Failure,
+                    is ContentDownloadStateTracker.State.Failure -> {
+                        mainHandler.removeCallbacks(decryptionPoll)
+                        finishDownloadProgress(ready = false)
+                    }
                     ContentDownloadStateTracker.State.Success -> {
-                        views.overlayDownloadProgress.isVisible = false
-                        views.overlayDownloadProgress.isIndeterminate = false
-                        views.overlayDownloadProgress.progress =
-                                if (state is ContentDownloadStateTracker.State.Success) 100 else 0
+                        if (isDecryptedFileReady()) {
+                            finishDownloadProgress(ready = true)
+                        } else {
+                            decryptionPollAttempts = 0
+                            views.overlayDownloadProgress.isIndeterminate = true
+                            views.overlayDownloadProgress.isVisible = true
+                            mainHandler.removeCallbacks(decryptionPoll)
+                            mainHandler.postDelayed(decryptionPoll, DECRYPTION_POLL_INTERVAL_MS)
+                        }
                     }
                     is ContentDownloadStateTracker.State.Downloading -> {
                         val determinate = !state.indeterminate && state.total > 0L
@@ -120,7 +153,20 @@ class AttachmentOverlayView @JvmOverloads constructor(
         tracker.track(url, listener)
     }
 
+    private fun isDecryptedFileReady(): Boolean {
+        val state = fileStateProvider?.invoke()
+        return state is FileService.FileState.InCache && state.decryptedFileInCache
+    }
+
+    private fun finishDownloadProgress(ready: Boolean) {
+        mainHandler.removeCallbacks(decryptionPoll)
+        views.overlayDownloadProgress.isIndeterminate = false
+        views.overlayDownloadProgress.progress = if (ready) 100 else 0
+        views.overlayDownloadProgress.isVisible = false
+    }
+
     private fun unbindDownloadProgress() {
+        mainHandler.removeCallbacks(decryptionPoll)
         val url = trackedDownloadUrl
         val tracker = downloadStateTracker
         val listener = downloadListener
@@ -130,7 +176,14 @@ class AttachmentOverlayView @JvmOverloads constructor(
         trackedDownloadUrl = null
         downloadStateTracker = null
         downloadListener = null
+        fileStateProvider = null
+        decryptionPollAttempts = 0
         views.overlayDownloadProgress.isVisible = false
+    }
+
+    companion object {
+        private const val DECRYPTION_POLL_INTERVAL_MS = 150L
+        private const val DECRYPTION_POLL_ATTEMPTS = 80
     }
 
     override fun onDetachedFromWindow() {
