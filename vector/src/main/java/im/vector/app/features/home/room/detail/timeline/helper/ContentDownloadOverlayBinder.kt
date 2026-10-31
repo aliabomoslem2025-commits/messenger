@@ -132,7 +132,7 @@ class ContentDownloadOverlayBinder @Inject constructor(
                                     .toInt().coerceIn(0, 100)
                         }
                         progress.isVisible = true
-                        renderIcon(registration, downloaded = false)
+                        renderIcon(currentRegistration, downloaded = false)
                     }
                     ContentDownloadStateTracker.State.Decrypting -> showDecryptionProgress(currentRegistration)
                     ContentDownloadStateTracker.State.Success -> {
