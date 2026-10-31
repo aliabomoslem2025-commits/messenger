@@ -156,7 +156,13 @@ class AudioPlaybackService : Service() {
             }
             ACTION_SEEK -> seekTo(intent.getIntExtra(EXTRA_SEEK_POSITION, 0))
             ACTION_STOP -> stopPlaybackAndService()
-            ACTION_STOP_VIDEO -> if (playbackId?.startsWith(VIDEO_PLAYBACK_PREFIX) == true) stopPlaybackAndService()
+            ACTION_STOP_VIDEO -> {
+                val activeId = playbackId ?: getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                        .getString(KEY_ID, null)
+                if (activeId?.startsWith(VIDEO_PLAYBACK_PREFIX) == true) {
+                    stopPlaybackAndService()
+                }
+            }
             null -> resumePersistedPlayback(forcePlay = false)
             else -> Unit
         }
