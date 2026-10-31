@@ -132,8 +132,9 @@ class VoiceMessageViews(
                     } else if (videoNoteCancelled) {
                         hideVideoNoteRecordingViews()
                     } else if (videoNoteRequested) {
+                        // Keep TextureView alive until the camera/MediaRecorder stop callback
+                        // completes. Hiding it here can destroy the SurfaceTexture too early.
                         actions.onVideoNoteReleased()
-                        hideVideoNoteRecordingViews()
                     } else {
                         actions.onMicButtonReleased()
                     }
