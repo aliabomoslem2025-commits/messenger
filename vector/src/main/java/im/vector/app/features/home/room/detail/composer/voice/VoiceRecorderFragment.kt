@@ -68,7 +68,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         if (!allGranted && deniedPermanently && isAdded) {
             Toast.makeText(
                     requireContext(),
-                    R.string.telegram_video_note_permission_error,
+                    im.vector.app.R.string.telegram_video_note_permission_error,
                     Toast.LENGTH_LONG
             ).show()
         }
