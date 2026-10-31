@@ -286,7 +286,7 @@ class ContentDownloadOverlayBinder @Inject constructor(
     }
 
     companion object {
-        private const val DECRYPTION_POLL_INTERVAL_MS = 150L
-        private const val DECRYPTION_POLL_ATTEMPTS = 80
+        private const val DECRYPTION_POLL_INTERVAL_MS = 500L
+        private const val DECRYPTION_POLL_ATTEMPTS = 240
     }
 }
