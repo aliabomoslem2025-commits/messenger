@@ -86,6 +86,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
 
     override fun onEvent(event: AttachmentEvents) {
         when (event) {
+            is AttachmentEvents.ContinueVideoPlaybackInBackground,
+            AttachmentEvents.StopBackgroundVideoPlayback -> Unit
             is AttachmentEvents.VideoEvent -> {
                 views.overlayPlayPauseButton.setImageResource(if (!event.isPlaying) R.drawable.ic_play_arrow else R.drawable.ic_pause)
                 views.overlayCurrentTimeText.text = formatPlaybackTime(event.progress)
