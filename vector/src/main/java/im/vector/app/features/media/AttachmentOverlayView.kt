@@ -11,12 +11,15 @@ import android.content.Context
 import android.graphics.Color
 import android.util.AttributeSet
 import android.widget.SeekBar
+import android.content.res.ColorStateList
+import androidx.core.view.isVisible
 import androidx.constraintlayout.widget.ConstraintLayout
 import java.util.Locale
 import im.vector.app.R
 import im.vector.app.databinding.MergeImageAttachmentOverlayBinding
 import im.vector.lib.attachmentviewer.AttachmentEventListener
 import im.vector.lib.attachmentviewer.AttachmentEvents
+import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 
 class AttachmentOverlayView @JvmOverloads constructor(
         context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -27,6 +30,9 @@ class AttachmentOverlayView @JvmOverloads constructor(
 
     private var isPlaying = false
     private var suspendSeekBarUpdate = false
+    private var trackedDownloadUrl: String? = null
+    private var downloadStateTracker: ContentDownloadStateTracker? = null
+    private var downloadListener: ContentDownloadStateTracker.UpdateListener? = null
 
     init {
         inflate(context, R.layout.merge_image_attachment_overlay, this)
@@ -41,6 +47,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
         views.overlayDownloadButton.setOnClickListener {
             interactionListener?.onDownload()
         }
+        views.overlayDownloadProgress.indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
+        views.overlayDownloadProgress.progressTintList = ColorStateList.valueOf(Color.WHITE)
         views.overlayPlayPauseButton.setOnClickListener {
             interactionListener?.onPlayPause(!isPlaying)
         }
@@ -65,6 +73,69 @@ class AttachmentOverlayView @JvmOverloads constructor(
     fun updateWith(counter: String, senderInfo: String) {
         views.overlayCounterText.text = counter
         views.overlayInfoText.text = senderInfo
+    }
+
+
+    /**
+     * Bind the viewer's top-bar save affordance to the selected MXC resource. The SDK tracker
+     * reports actual transfer bytes; E2EE decryption is shown as an indeterminate ring.
+     */
+    fun bindDownloadProgress(tracker: ContentDownloadStateTracker, url: String?) {
+        if (trackedDownloadUrl == url && downloadStateTracker === tracker) return
+        unbindDownloadProgress()
+        if (url.isNullOrBlank() || !url.startsWith("mxc://")) {
+            views.overlayDownloadProgress.isVisible = false
+            return
+        }
+        trackedDownloadUrl = url
+        downloadStateTracker = tracker
+        val listener = object : ContentDownloadStateTracker.UpdateListener {
+            override fun onDownloadStateUpdate(state: ContentDownloadStateTracker.State) {
+                when (state) {
+                    ContentDownloadStateTracker.State.Idle,
+                    is ContentDownloadStateTracker.State.Failure,
+                    ContentDownloadStateTracker.State.Success -> {
+                        views.overlayDownloadProgress.isVisible = false
+                        views.overlayDownloadProgress.isIndeterminate = false
+                        views.overlayDownloadProgress.progress =
+                                if (state is ContentDownloadStateTracker.State.Success) 100 else 0
+                    }
+                    is ContentDownloadStateTracker.State.Downloading -> {
+                        val determinate = !state.indeterminate && state.total > 0L
+                        views.overlayDownloadProgress.isIndeterminate = !determinate
+                        if (determinate) {
+                            views.overlayDownloadProgress.progress =
+                                    (100.0 * state.current.toDouble() / state.total.toDouble()).toInt().coerceIn(0, 100)
+                        }
+                        views.overlayDownloadProgress.isVisible = true
+                    }
+                    ContentDownloadStateTracker.State.Decrypting -> {
+                        views.overlayDownloadProgress.isIndeterminate = true
+                        views.overlayDownloadProgress.isVisible = true
+                    }
+                }
+            }
+        }
+        downloadListener = listener
+        tracker.track(url, listener)
+    }
+
+    private fun unbindDownloadProgress() {
+        val url = trackedDownloadUrl
+        val tracker = downloadStateTracker
+        val listener = downloadListener
+        if (url != null && tracker != null && listener != null) {
+            tracker.unTrack(url, listener)
+        }
+        trackedDownloadUrl = null
+        downloadStateTracker = null
+        downloadListener = null
+        views.overlayDownloadProgress.isVisible = false
+    }
+
+    override fun onDetachedFromWindow() {
+        unbindDownloadProgress()
+        super.onDetachedFromWindow()
     }
 
     private fun formatPlaybackTime(milliseconds: Int): String {
