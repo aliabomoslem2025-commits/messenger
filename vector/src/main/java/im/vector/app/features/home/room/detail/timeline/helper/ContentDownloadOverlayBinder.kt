@@ -107,21 +107,22 @@ class ContentDownloadOverlayBinder @Inject constructor(
 
         val listener = object : ContentDownloadStateTracker.UpdateListener {
             override fun onDownloadStateUpdate(state: ContentDownloadStateTracker.State) {
+                val currentRegistration = registrations[eventId] ?: return
                 when (state) {
                     ContentDownloadStateTracker.State.Idle -> {
                         when (val fileState = runCatching { session.fileService().fileState(content) }.getOrNull()) {
                             is FileService.FileState.InCache -> {
                                 if (fileState.decryptedFileInCache) {
-                                    setReady(registration)
+                                    setReady(currentRegistration)
                                 } else {
-                                    showDecryptionProgress(registration)
-                                    pollForDecryption(eventId, registration)
+                                    showDecryptionProgress(currentRegistration)
+                                    pollForDecryption(eventId, currentRegistration)
                                 }
                             }
                             FileService.FileState.Downloading -> {
-                                showDecryptionProgress(registration)
+                                showDecryptionProgress(currentRegistration)
                             }
-                            else -> setIdle(registration)
+                            else -> setIdle(currentRegistration)
                         }
                     }
                     is ContentDownloadStateTracker.State.Downloading -> {
@@ -133,26 +134,26 @@ class ContentDownloadOverlayBinder @Inject constructor(
                         progress.isVisible = true
                         renderIcon(registration, downloaded = false)
                     }
-                    ContentDownloadStateTracker.State.Decrypting -> showDecryptionProgress(registration)
+                    ContentDownloadStateTracker.State.Decrypting -> showDecryptionProgress(currentRegistration)
                     ContentDownloadStateTracker.State.Success -> {
                         when (val fileState = runCatching { session.fileService().fileState(content) }.getOrNull()) {
                             is FileService.FileState.InCache -> {
                                 if (fileState.decryptedFileInCache) {
-                                    setReady(registration)
+                                    setReady(currentRegistration)
                                 } else {
-                                    showDecryptionProgress(registration)
-                                    pollForDecryption(eventId, registration)
+                                    showDecryptionProgress(currentRegistration)
+                                    pollForDecryption(eventId, currentRegistration)
                                 }
                             }
                             else -> {
                                 // The progress interceptor finishes the raw transfer before the
                                 // SDK completes E2EE decryption and exposes the clear file.
-                                showDecryptionProgress(registration)
-                                pollForDecryption(eventId, registration)
+                                showDecryptionProgress(currentRegistration)
+                                pollForDecryption(eventId, currentRegistration)
                             }
                         }
                     }
-                    is ContentDownloadStateTracker.State.Failure -> setIdle(registration)
+                    is ContentDownloadStateTracker.State.Failure -> setIdle(currentRegistration)
                 }
             }
         }
