@@ -254,19 +254,19 @@ class ContentDownloadOverlayBinder @Inject constructor(
                     decryptionPollJobs.remove(eventId)
                     return@launch
                 }
-                if (fileState == FileService.FileState.Unknown) {
-                    registration.progress.isIndeterminate = false
-                    registration.progress.progress = 0
-                    registration.progress.isVisible = false
-                    registration.downloadIcon?.apply {
-                        setImageResource(R.drawable.ic_telegram_download_arrow)
-                        isVisible = true
-                    }
-                    decryptionPollJobs.remove(eventId)
-                    return@launch
+            }
+            // Unknown may be a short gap between raw transfer completion and the decrypted
+            // cache entry becoming visible. Keep the ring until the bounded poll expires.
+            decryptionPollJobs.remove(eventId)
+            if (registrations[eventId] === registration) {
+                registration.progress.isIndeterminate = false
+                registration.progress.progress = 0
+                registration.progress.isVisible = false
+                registration.downloadIcon?.apply {
+                    setImageResource(R.drawable.ic_telegram_download_arrow)
+                    isVisible = true
                 }
             }
-            decryptionPollJobs.remove(eventId)
         }
         decryptionPollJobs[eventId] = job
     }
