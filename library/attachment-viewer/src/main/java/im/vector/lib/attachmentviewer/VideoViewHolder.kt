@@ -72,10 +72,21 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     override fun entersForeground() {
-        // The app stops only the background video session associated with this viewer.
+        // Stop the audio-only fallback started while the viewer was backgrounded.
         eventListener?.get()?.onEvent(AttachmentEvents.StopBackgroundVideoPlayback)
+        // Picture-in-picture keeps the original VideoView alive. Do not rebuild it or
+        // reset its playback position when the Activity returns to the foreground.
+        if (views.videoView.isPlaying) {
+            isSelected = true
+            return
+        }
         onSelected(isSelected)
     }
+
+    fun isVideoPlaying(): Boolean = views.videoView.isPlaying
+
+    fun getVideoSize(): Pair<Int, Int> =
+            views.videoView.width.coerceAtLeast(1) to views.videoView.height.coerceAtLeast(1)
 
     override fun onSelected(selected: Boolean) {
         if (!selected) {
@@ -91,7 +102,7 @@ class VideoViewHolder constructor(itemView: View) :
                 startPlaying()
             }
         }
-        isSelected = true
+        isSelected = selected
     }
 
     private fun startPlaying() {
