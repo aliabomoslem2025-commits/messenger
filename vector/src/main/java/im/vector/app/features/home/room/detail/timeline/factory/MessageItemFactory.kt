@@ -540,7 +540,9 @@ class MessageItemFactory @Inject constructor(
 
         val imageUrl = messageContent.getFileUrl()
         val imageIsDownloaded = localFilesHelper.isLocalFile(imageUrl) || runCatching {
-            session.fileService().isFileInCache(messageContent)
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
         }.getOrDefault(false)
         val playable = messageContent.mimeType == MimeTypes.Gif
         // don't show play button because detecting animated webp isn't possible via mimetype
@@ -599,7 +601,9 @@ class MessageItemFactory @Inject constructor(
 
         val videoUrl = messageContent.getFileUrl()
         val videoIsDownloaded = localFilesHelper.isLocalFile(videoUrl) || runCatching {
-            session.fileService().isFileInCache(messageContent)
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
         }.getOrDefault(false)
         val videoData = VideoContentRenderer.Data(
                 eventId = informationData.eventId,
