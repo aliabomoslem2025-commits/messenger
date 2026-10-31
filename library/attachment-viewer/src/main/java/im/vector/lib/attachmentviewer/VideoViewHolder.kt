@@ -151,6 +151,9 @@ class VideoViewHolder constructor(itemView: View) :
                 views.videoView.start()
             }
             AttachmentCommands.PauseVideo -> {
+                if (views.videoView.isPlaying) {
+                    progress = views.videoView.currentPosition
+                }
                 wasPaused = true
                 views.videoView.pause()
             }
