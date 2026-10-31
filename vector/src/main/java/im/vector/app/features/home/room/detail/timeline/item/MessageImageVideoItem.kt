@@ -154,6 +154,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
             )
         } else {
             holder.downloadProgress.isVisible = false
+            holder.playContentView.setOnClickListener {
+                clickListener?.invoke(holder.imageView)
+            }
         }
     }
 
