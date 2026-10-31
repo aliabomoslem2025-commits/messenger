@@ -237,7 +237,9 @@ class InlineRoundVideoRecorder(
             pendingStopTimeout?.let(mainHandler::removeCallbacks)
             pendingStopTimeout = null
             stopRequested = false
+            val stopCallback = pendingStopCallback
             pendingStopCallback = null
+            stopCallback?.invoke(null)
             onFailure(failure)
         }
     }
