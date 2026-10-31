@@ -129,7 +129,7 @@ class AudioMessageHelper @Inject constructor(
         }
     }
 
-    fun startOrPausePlayback(id: String, file: File) {
+    fun startOrPausePlayback(id: String, file: File, title: String = file.nameWithoutExtension) {
         val playbackState = playbackTracker.getPlaybackState(id)
         stopRecordingAmplitudes()
         val serviceIsPlayingThisMessage = AudioPlaybackService.isPlayingFor(context, id)
@@ -143,7 +143,7 @@ class AudioMessageHelper @Inject constructor(
             val resumeAt = playbackTracker.getPlaybackTime(id) ?: AudioPlaybackService.persistedPosition(context, id) ?: 0
             playbackTracker.pauseAllPlaybacks()
             currentPlayingId = id
-            AudioPlaybackService.play(context, id, file, resumeAt)
+            AudioPlaybackService.play(context, id, file, resumeAt, title)
             playbackTracker.startPlayback(id)
         }
     }
