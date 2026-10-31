@@ -118,7 +118,7 @@ class AudioPlaybackService : Service() {
         mediaSession = MediaSessionCompat(this, "MessengerMessageAudio").apply {
             setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
             setCallback(object : MediaSessionCompat.Callback() {
-                override fun onPlay() = resumePersistedPlayback()
+                override fun onPlay() = resumePersistedPlayback(forcePlay = true)
                 override fun onPause() {
                     pausedByAudioFocus = false
                     pausePlayback()
@@ -139,7 +139,7 @@ class AudioPlaybackService : Service() {
                 if (id.isNullOrBlank() || path.isNullOrBlank()) {
                     // The notification's Resume command intentionally carries no file path;
                     // it resumes from the persisted playback state.
-                    resumePersistedPlayback()
+                    resumePersistedPlayback(forcePlay = true)
                 } else if (!File(path).isFile) {
                     stopPlaybackAndService()
                 } else {
@@ -154,7 +154,7 @@ class AudioPlaybackService : Service() {
             ACTION_SEEK -> seekTo(intent.getIntExtra(EXTRA_SEEK_POSITION, 0))
             ACTION_STOP -> stopPlaybackAndService()
             ACTION_STOP_VIDEO -> if (playbackId?.startsWith(VIDEO_PLAYBACK_PREFIX) == true) stopPlaybackAndService()
-            null -> resumePersistedPlayback()
+            null -> resumePersistedPlayback(forcePlay = false)
             else -> Unit
         }
         return START_STICKY
@@ -256,17 +256,31 @@ class AudioPlaybackService : Service() {
         }
     }
 
-    private fun resumePersistedPlayback() {
+    private fun resumePersistedPlayback(forcePlay: Boolean) {
         val prefs = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
         val path = prefs.getString(KEY_PATH, null)
         val id = prefs.getString(KEY_ID, null)
-        val position = prefs.getInt(KEY_POSITION, 0)
+        val position = prefs.getInt(KEY_POSITION, 0).coerceAtLeast(0)
+        val wasPlaying = prefs.getBoolean(KEY_IS_PLAYING, false)
         if (path.isNullOrBlank() || id.isNullOrBlank() || !File(path).isFile) {
             stopPlaybackAndService()
             return
         }
-        startForegroundCompat(buildNotification(isPlaying = true))
-        startPlayback(id, path, position)
+
+        if (forcePlay || wasPlaying) {
+            startForegroundCompat(buildNotification(isPlaying = true))
+            startPlayback(id, path, position)
+        } else {
+            // Android may recreate a sticky service after the process was reclaimed.
+            // A user-paused item must remain paused; only an explicit Play action resumes it.
+            playbackId = id
+            pendingSeekMs = position
+            prepared = false
+            updateSessionMetadata(id, 0)
+            updateSessionPlaybackState(PlaybackStateCompat.STATE_PAUSED, position, 0)
+            startForegroundCompat(buildNotification(isPlaying = false))
+            playbackTracker.updatePausedAtPlaybackTime(id, position, 0f)
+        }
     }
 
     private fun updateSessionMetadata(id: String, durationMs: Int) {
