@@ -144,7 +144,9 @@ class AudioPlaybackService : Service() {
                     stopPlaybackAndService()
                 } else {
                     startForegroundCompat(buildNotification(isPlaying = true))
-                    startPlayback(id, path, startAt)
+                    val title = intent.getStringExtra(EXTRA_TITLE)?.takeIf { it.isNotBlank() }
+                            ?: File(path).nameWithoutExtension
+                    startPlayback(id, path, startAt, title)
                 }
             }
             ACTION_PAUSE -> {
@@ -160,10 +162,11 @@ class AudioPlaybackService : Service() {
         return START_STICKY
     }
 
-    private fun startPlayback(id: String, path: String, startAt: Int) {
+    private fun startPlayback(id: String, path: String, startAt: Int, title: String) {
         releasePlayer()
         pausedByAudioFocus = false
         playbackId = id
+        playbackTitle = title.ifBlank { File(path).nameWithoutExtension }
         pendingSeekMs = startAt.coerceAtLeast(0)
         prepared = false
         persistPlayback(id, path, pendingSeekMs)
@@ -263,6 +266,9 @@ class AudioPlaybackService : Service() {
         val position = prefs.getInt(KEY_POSITION, 0).coerceAtLeast(0)
         val duration = prefs.getInt(KEY_DURATION, 0).coerceAtLeast(0)
         val wasPlaying = prefs.getBoolean(KEY_IS_PLAYING, false)
+        playbackTitle = prefs.getString(KEY_TITLE, null)?.takeIf { it.isNotBlank() }
+                ?: path?.let { File(it).nameWithoutExtension }
+                ?: "Audio message"
         if (path.isNullOrBlank() || id.isNullOrBlank() || !File(path).isFile) {
             stopPlaybackAndService()
             return
@@ -289,9 +295,7 @@ class AudioPlaybackService : Service() {
     }
 
     private fun updateSessionMetadata(id: String, durationMs: Int) {
-        val title = getPersistedPath()?.let { File(it).nameWithoutExtension }
-                ?.takeIf { it.isNotBlank() }
-                ?: "Audio message"
+        val title = playbackTitle.ifBlank { "Audio message" }
         mediaSession.setMetadata(
                 MediaMetadataCompat.Builder()
                         .putString(MediaMetadataCompat.METADATA_KEY_TITLE, title)
@@ -335,9 +339,7 @@ class AudioPlaybackService : Service() {
         } else {
             getString(R.string.telegram_audio_playing_notification_title)
         }
-        val mediaTitle = getPersistedPath()?.let { File(it).nameWithoutExtension }
-                ?.takeIf { it.isNotBlank() }
-                ?: "Audio message"
+        val mediaTitle = playbackTitle.ifBlank { "Audio message" }
         return NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_play_pause_play)
                 .setContentTitle(notificationTitle)
@@ -441,6 +443,7 @@ class AudioPlaybackService : Service() {
         getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit()
                 .putString(KEY_ID, id)
                 .putString(KEY_PATH, path)
+                .putString(KEY_TITLE, playbackTitle)
                 .putInt(KEY_POSITION, positionMs.coerceAtLeast(0))
                 .putInt(KEY_DURATION, if (prepared) runCatching { mediaPlayer?.duration ?: 0 }.getOrDefault(0) else {
                     getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getInt(KEY_DURATION, 0)
@@ -479,6 +482,7 @@ class AudioPlaybackService : Service() {
         private const val PREFERENCES = "message_audio_playback_state"
         private const val KEY_ID = "playback_id"
         private const val KEY_PATH = "playback_path"
+        private const val KEY_TITLE = "playback_title"
         private const val KEY_POSITION = "playback_position"
         private const val KEY_DURATION = "playback_duration"
         private const val KEY_IS_PLAYING = "playback_is_playing"
@@ -492,6 +496,7 @@ class AudioPlaybackService : Service() {
         private const val VIDEO_PLAYBACK_PREFIX = "video:"
         private const val EXTRA_PLAYBACK_ID = "playback_id"
         private const val EXTRA_FILE_PATH = "file_path"
+        private const val EXTRA_TITLE = "playback_title"
         private const val EXTRA_START_POSITION = "start_position"
         private const val EXTRA_SEEK_POSITION = "seek_position"
 
@@ -510,11 +515,12 @@ class AudioPlaybackService : Service() {
             return if (preferences.getString(KEY_ID, null) == id) preferences.getInt(KEY_POSITION, 0) else null
         }
 
-        fun play(context: Context, id: String, file: File, startPositionMs: Int) {
+        fun play(context: Context, id: String, file: File, startPositionMs: Int, title: String? = null) {
             val intent = Intent(context, AudioPlaybackService::class.java)
                     .setAction(ACTION_PLAY)
                     .putExtra(EXTRA_PLAYBACK_ID, id)
                     .putExtra(EXTRA_FILE_PATH, file.absolutePath)
+                    .putExtra(EXTRA_TITLE, title?.takeIf { it.isNotBlank() } ?: file.nameWithoutExtension)
                     .putExtra(EXTRA_START_POSITION, startPositionMs.coerceAtLeast(0))
             ContextCompat.startForegroundService(context, intent)
         }
@@ -545,7 +551,7 @@ class AudioPlaybackService : Service() {
 
         fun playVideoAudioInBackground(context: Context, file: File, positionMs: Int) {
             if (!file.isFile) return
-            play(context, VIDEO_PLAYBACK_PREFIX + file.absolutePath, file, positionMs)
+            play(context, VIDEO_PLAYBACK_PREFIX + file.absolutePath, file, positionMs, "Video")
         }
     }
 }
