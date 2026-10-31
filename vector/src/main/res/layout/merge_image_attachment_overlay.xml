@@ -90,6 +90,7 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:indeterminate="true"
+        android:progressDrawable="@drawable/bg_telegram_voice_download_progress"
         android:indeterminateDrawable="@drawable/bg_telegram_voice_download_indeterminate"
         android:indeterminateTint="?colorOnPrimary"
         android:visibility="gone"
