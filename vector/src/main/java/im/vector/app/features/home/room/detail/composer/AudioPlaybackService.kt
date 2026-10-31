@@ -50,6 +50,7 @@ class AudioPlaybackService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var mediaPlayer: MediaPlayer? = null
     private var playbackId: String? = null
+    private var playbackTitle: String = "Audio message"
     private var prepared = false
     private var pendingSeekMs = 0
     private var pausedByAudioFocus = false
