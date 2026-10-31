@@ -26,6 +26,8 @@ class VideoViewHolder constructor(itemView: View) :
     private var countUpTimer: CountUpTimer? = null
     private var progress: Int = 0
     private var wasPaused = false
+    private var videoWidth: Int = 0
+    private var videoHeight: Int = 0
 
     var eventListener: WeakReference<AttachmentEventListener>? = null
 
@@ -37,6 +39,8 @@ class VideoViewHolder constructor(itemView: View) :
         super.onRecycled()
         stopTimer()
         mVideoPath = null
+        videoWidth = 0
+        videoHeight = 0
     }
 
     fun videoReady(file: File) {
@@ -100,7 +104,8 @@ class VideoViewHolder constructor(itemView: View) :
     fun isVideoPlaying(): Boolean = views.videoView.isPlaying
 
     fun getVideoSize(): Pair<Int, Int> =
-            views.videoView.width.coerceAtLeast(1) to views.videoView.height.coerceAtLeast(1)
+            (videoWidth.takeIf { it > 0 } ?: views.videoView.width.coerceAtLeast(1)) to
+                    (videoHeight.takeIf { it > 0 } ?: views.videoView.height.coerceAtLeast(1))
 
     override fun onSelected(selected: Boolean) {
         if (!selected) {
@@ -124,7 +129,9 @@ class VideoViewHolder constructor(itemView: View) :
         views.videoLoaderProgress.isVisible = false
         views.videoView.isVisible = true
 
-        views.videoView.setOnPreparedListener {
+        views.videoView.setOnPreparedListener { player ->
+            videoWidth = player.videoWidth.coerceAtLeast(1)
+            videoHeight = player.videoHeight.coerceAtLeast(1)
             stopTimer()
             countUpTimer = CountUpTimer(intervalInMs = 100).also {
                 it.tickListener = CountUpTimer.TickListener {
@@ -183,5 +190,7 @@ class VideoViewHolder constructor(itemView: View) :
         super.bind(attachmentInfo)
         progress = 0
         wasPaused = false
+        videoWidth = 0
+        videoHeight = 0
     }
 }
