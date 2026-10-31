@@ -33,6 +33,7 @@ import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -62,6 +63,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
 
     @EpoxyAttribute
     var mxcDownloadUrl: String? = null
+
+    @EpoxyAttribute
+    var messageContent: MessageWithAttachmentContent? = null
 
     @EpoxyAttribute
     var isMediaDownloaded: Boolean = false
@@ -144,7 +148,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                     mxcUrl = downloadUrl,
                     progress = holder.downloadProgress,
                     downloadIcon = holder.playContentView,
-                    showPlayIconOnSuccess = showAnimatedPlayControl
+                    showPlayIconOnSuccess = showAnimatedPlayControl,
+                    messageContent = messageContent,
+                    onMediaClick = { clickListener?.invoke(holder.imageView) }
             )
         } else {
             holder.downloadProgress.isVisible = false
@@ -158,6 +164,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         contentDownloadOverlayBinder.unbind(attributes.informationData.eventId)
         holder.imageView.setOnClickListener(null)
         holder.imageView.setOnLongClickListener(null)
+        holder.playContentView.setOnClickListener(null)
         super.unbind(holder)
     }
 
