@@ -43,7 +43,7 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible" />
 
-    <ImageButton
+    <im.vector.app.features.home.room.detail.composer.voice.TelegramVoiceVideoButton
         android:id="@+id/voiceMessageMicButton"
         android:layout_width="52dp"
         android:layout_height="52dp"
@@ -53,9 +53,8 @@
         android:layout_marginBottom="8dp"
         android:background="@drawable/bg_telegram_record_button"
         android:contentDescription="@string/a11y_start_voice_message"
-        android:padding="14dp"
-        android:src="@drawable/ic_microphone"
-        app:tint="@android:color/white"
+        android:padding="12dp"
+        android:scaleType="centerInside"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
