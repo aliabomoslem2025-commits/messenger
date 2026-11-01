@@ -63,6 +63,13 @@ class ContentDownloadStateTrackerBinder @Inject constructor(private val activeSe
         }
     }
 
+    /**
+     * Cancels only the active MXC HTTP transfer. Returns false when the file is already
+     * in cache/decryption or when there is no cancellable network request.
+     */
+    fun cancelDownload(mxcUrl: String): Boolean =
+            activeSessionHolder.getSafeActiveSession()?.fileService()?.cancelDownload(mxcUrl) ?: false
+
     fun unbind(mxcUrl: String) {
         activeSessionHolder.getSafeActiveSession()?.also { session ->
             val downloadStateTracker = session.contentDownloadProgressTracker()
@@ -163,10 +170,13 @@ private class AudioContentDownloadUpdater(
         when (state) {
             ContentDownloadStateTracker.State.Idle -> {
                 holder.audioDownloadProgress.isVisible = false
+                holder.audioPlaybackControlButton.isEnabled = true
                 if (!holder.isFileDownloaded) showDownloadAction()
             }
             is ContentDownloadStateTracker.State.Downloading -> {
                 holder.audioDownloadProgress.isVisible = true
+                holder.audioPlaybackControlButton.isEnabled = true
+                holder.audioPlaybackControlButton.setImageResource(R.drawable.ic_cross)
                 holder.audioDownloadProgress.isIndeterminate = state.indeterminate || state.total <= 0L
                 if (holder.audioDownloadProgress.isIndeterminate) {
                     holder.audioDownloadProgress.progress = 0
@@ -179,15 +189,19 @@ private class AudioContentDownloadUpdater(
             ContentDownloadStateTracker.State.Decrypting -> {
                 holder.audioDownloadProgress.isVisible = true
                 holder.audioDownloadProgress.isIndeterminate = true
+                // Matrix's decrypt phase is not interruptible, so disable the cancel affordance.
+                holder.audioPlaybackControlButton.isEnabled = false
                 showDownloadAction()
             }
             ContentDownloadStateTracker.State.Success -> {
                 stop()
+                holder.audioPlaybackControlButton.isEnabled = true
                 holder.isFileDownloaded = true
                 showPlaybackAction()
             }
             is ContentDownloadStateTracker.State.Failure -> {
                 stop()
+                holder.audioPlaybackControlButton.isEnabled = true
                 holder.isFileDownloaded = false
                 showDownloadAction()
             }
@@ -224,10 +238,13 @@ private class VoiceContentDownloadUpdater(
         when (state) {
             ContentDownloadStateTracker.State.Idle -> {
                 holder.voiceDownloadProgress.isVisible = false
+                holder.voicePlaybackControlButton.isEnabled = true
                 if (!holder.isFileDownloaded) showDownloadAction()
             }
             is ContentDownloadStateTracker.State.Downloading -> {
                 holder.voiceDownloadProgress.isVisible = true
+                holder.voicePlaybackControlButton.isEnabled = true
+                holder.voicePlaybackControlButton.setImageResource(R.drawable.ic_cross)
                 holder.voiceDownloadProgress.isIndeterminate = state.indeterminate || state.total <= 0L
                 if (!holder.voiceDownloadProgress.isIndeterminate) {
                     holder.voiceDownloadProgress.progress =
@@ -238,15 +255,18 @@ private class VoiceContentDownloadUpdater(
             ContentDownloadStateTracker.State.Decrypting -> {
                 holder.voiceDownloadProgress.isVisible = true
                 holder.voiceDownloadProgress.isIndeterminate = true
+                holder.voicePlaybackControlButton.isEnabled = false
                 showDownloadAction()
             }
             ContentDownloadStateTracker.State.Success -> {
                 stop()
+                holder.voicePlaybackControlButton.isEnabled = true
                 holder.isFileDownloaded = true
                 showPlaybackAction()
             }
             is ContentDownloadStateTracker.State.Failure -> {
                 stop()
+                holder.voicePlaybackControlButton.isEnabled = true
                 holder.isFileDownloaded = false
                 showDownloadAction()
             }
