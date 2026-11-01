@@ -48,6 +48,7 @@ class AttachmentProviderFactory @Inject constructor(
                 imageContentRenderer = imageContentRenderer,
                 dateFormatter = vectorDateFormatter,
                 fileService = session.fileService(),
+                contentDownloadStateTracker = session.contentDownloadProgressTracker(),
                 coroutineScope = coroutineScope,
                 stringProvider = stringProvider
         )
