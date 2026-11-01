@@ -53,6 +53,7 @@ class AudioPlaybackService : Service() {
     private var playbackTitle: String = "Audio message"
     private var prepared = false
     private var pendingSeekMs = 0
+    private var playbackSpeed = 1f
     private var pausedByAudioFocus = false
     private var audioManager: AudioManager? = null
     private var audioFocusRequest: AudioFocusRequest? = null
@@ -116,6 +117,8 @@ class AudioPlaybackService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        playbackSpeed = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+                .getFloat(KEY_SPEED, 1f).coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED)
         mediaSession = MediaSessionCompat(this, "MessengerMessageAudio").apply {
             setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS)
             setCallback(object : MediaSessionCompat.Callback() {
@@ -155,6 +158,7 @@ class AudioPlaybackService : Service() {
                 pausePlayback()
             }
             ACTION_SEEK -> seekTo(intent.getIntExtra(EXTRA_SEEK_POSITION, 0))
+            ACTION_SET_SPEED -> setPlaybackSpeed(intent.getFloatExtra(EXTRA_SPEED, 1f))
             ACTION_STOP -> stopPlaybackAndService()
             ACTION_STOP_VIDEO -> {
                 val activeId = playbackId ?: getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
@@ -197,6 +201,11 @@ class AudioPlaybackService : Service() {
                 val duration = max(preparedPlayer.duration, 1)
                 val seekPosition = pendingSeekMs.coerceAtMost(duration - 1)
                 if (seekPosition > 0) preparedPlayer.seekTo(seekPosition)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    runCatching {
+                        preparedPlayer.playbackParams = preparedPlayer.playbackParams.setSpeed(playbackSpeed)
+                    }
+                }
                 preparedPlayer.start()
                 persistPlayback(id, path, seekPosition)
                 playbackTracker.startPlayback(id)
@@ -221,6 +230,30 @@ class AudioPlaybackService : Service() {
         } catch (failure: Throwable) {
             playbackTracker.onError(id, failure)
             stopPlaybackAndService()
+        }
+    }
+
+    private fun setPlaybackSpeed(speed: Float) {
+        playbackSpeed = speed.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            runCatching {
+                mediaPlayer?.takeIf { prepared }?.let { player ->
+                    player.playbackParams = player.playbackParams.setSpeed(playbackSpeed)
+                }
+            }
+        }
+        getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit()
+                .putFloat(KEY_SPEED, playbackSpeed)
+                .apply()
+        val id = playbackId
+        if (id != null && prepared) {
+            persistPlayback(id, getPersistedPath(), pendingSeekMs)
+            val duration = max(mediaPlayer?.duration ?: 1, 1)
+            updateSessionPlaybackState(
+                    if (mediaPlayer?.isPlaying == true) PlaybackStateCompat.STATE_PLAYING else PlaybackStateCompat.STATE_PAUSED,
+                    mediaPlayer?.currentPosition ?: pendingSeekMs,
+                    duration
+            )
         }
     }
 
@@ -273,6 +306,7 @@ class AudioPlaybackService : Service() {
         val position = prefs.getInt(KEY_POSITION, 0).coerceAtLeast(0)
         val duration = prefs.getInt(KEY_DURATION, 0).coerceAtLeast(0)
         val wasPlaying = prefs.getBoolean(KEY_IS_PLAYING, false)
+        playbackSpeed = prefs.getFloat(KEY_SPEED, 1f).coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED)
         playbackTitle = prefs.getString(KEY_TITLE, null)?.takeIf { it.isNotBlank() }
                 ?: path?.let { File(it).nameWithoutExtension }
                 ?: "Audio message"
@@ -321,7 +355,7 @@ class AudioPlaybackService : Service() {
         mediaSession.setPlaybackState(
                 PlaybackStateCompat.Builder()
                         .setActions(actions)
-                        .setState(state, positionMs.toLong(), if (state == PlaybackStateCompat.STATE_PLAYING) 1f else 0f)
+                        .setState(state, positionMs.toLong(), if (state == PlaybackStateCompat.STATE_PLAYING) playbackSpeed else 0f)
                         .setBufferedPosition(durationMs.toLong())
                         .build()
         )
@@ -389,6 +423,7 @@ class AudioPlaybackService : Service() {
         playbackId = null
         prepared = false
         pendingSeekMs = 0
+        playbackSpeed = 1f
         id?.let(playbackTracker::stopPlaybackOrRecorder)
         abandonAudioFocus()
         pausedByAudioFocus = false
@@ -456,6 +491,7 @@ class AudioPlaybackService : Service() {
                     getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).getInt(KEY_DURATION, 0)
                 })
                 .putBoolean(KEY_IS_PLAYING, mediaPlayer?.isPlaying == true)
+                .putFloat(KEY_SPEED, playbackSpeed)
                 .apply()
     }
 
@@ -493,11 +529,15 @@ class AudioPlaybackService : Service() {
         private const val KEY_POSITION = "playback_position"
         private const val KEY_DURATION = "playback_duration"
         private const val KEY_IS_PLAYING = "playback_is_playing"
+        private const val KEY_SPEED = "playback_speed"
+        private const val MIN_PLAYBACK_SPEED = 0.5f
+        private const val MAX_PLAYBACK_SPEED = 2.0f
         private const val PROGRESS_INTERVAL_MS = 250L
 
         private const val ACTION_PLAY = "im.vector.app.action.AUDIO_PLAY"
         private const val ACTION_PAUSE = "im.vector.app.action.AUDIO_PAUSE"
         private const val ACTION_SEEK = "im.vector.app.action.AUDIO_SEEK"
+        private const val ACTION_SET_SPEED = "im.vector.app.action.AUDIO_SET_SPEED"
         private const val ACTION_STOP = "im.vector.app.action.AUDIO_STOP"
         private const val ACTION_STOP_VIDEO = "im.vector.app.action.STOP_BACKGROUND_VIDEO"
         private const val VIDEO_PLAYBACK_PREFIX = "video:"
@@ -506,6 +546,7 @@ class AudioPlaybackService : Service() {
         private const val EXTRA_TITLE = "playback_title"
         private const val EXTRA_START_POSITION = "start_position"
         private const val EXTRA_SEEK_POSITION = "seek_position"
+        private const val EXTRA_SPEED = "playback_speed"
 
         fun isActiveFor(context: Context, id: String): Boolean {
             val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
@@ -541,6 +582,20 @@ class AudioPlaybackService : Service() {
                     Intent(context, AudioPlaybackService::class.java)
                             .setAction(ACTION_SEEK)
                             .putExtra(EXTRA_SEEK_POSITION, positionMs.coerceAtLeast(0))
+            )
+        }
+
+        fun currentPlaybackSpeed(context: Context, id: String? = null): Float {
+            val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            if (id != null && preferences.getString(KEY_ID, null) != id) return 1f
+            return preferences.getFloat(KEY_SPEED, 1f).coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED)
+        }
+
+        fun setPlaybackSpeed(context: Context, speed: Float) {
+            context.startService(
+                    Intent(context, AudioPlaybackService::class.java)
+                            .setAction(ACTION_SET_SPEED)
+                            .putExtra(EXTRA_SPEED, speed.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED))
             )
         }
 
