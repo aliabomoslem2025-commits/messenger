@@ -310,7 +310,7 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
         val hasQueue = queueEventIds.size > 1
         views.audioPlayerPreviousButton.isEnabled = hasQueue && (shuffleEnabled || queueIndex > 0 || repeatMode == 1)
         views.audioPlayerNextButton.isEnabled = hasQueue &&
-                (shuffleEnabled || queueIndex in 0 until queueEventIds.lastIndex || repeatMode != 0)
+                (shuffleEnabled || queueIndex in 0 until queueEventIds.lastIndex || repeatMode == 1)
         views.audioPlayerShuffleButton.isEnabled = hasQueue
         views.audioPlayerRepeatButton.isEnabled = hasQueue
         val activeTint = ThemeUtils.getColor(this, im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent)
@@ -323,9 +323,9 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
         )
         views.audioPlayerRepeatButton.contentDescription = getString(
                 when (repeatMode) {
-                    1 -> R.string.telegram_audio_player_repeat_all
-                    2 -> R.string.telegram_audio_player_repeat_one
-                    else -> R.string.telegram_audio_player_repeat_off
+                    1 -> R.string.telegram_audio_repeat_all
+                    2 -> R.string.telegram_audio_repeat_one
+                    else -> R.string.telegram_audio_repeat_off
                 }
         )
     }
