@@ -158,6 +158,16 @@
             android:textStyle="bold" />
 
         <ImageButton
+            android:id="@+id/audioPlayerPreviousButton"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_audio_previous_track"
+            android:padding="8dp"
+            android:src="@drawable/ic_telegram_skip_previous"
+            app:tint="?vctr_content_primary" />
+
+        <ImageButton
             android:id="@+id/audioPlayerRewindButton"
             android:layout_width="56dp"
             android:layout_height="56dp"
@@ -190,6 +200,51 @@
             android:src="@drawable/ic_player_forward_30"
             app:tint="?vctr_content_primary" />
 
+        <ImageButton
+            android:id="@+id/audioPlayerNextButton"
+            android:layout_width="36dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_audio_next_track"
+            android:padding="8dp"
+            android:src="@drawable/ic_telegram_skip_next"
+            app:tint="?vctr_content_primary" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/audioPlayerQueueControls"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerControls">
+
+        <ImageButton
+            android:id="@+id/audioPlayerShuffleButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_audio_shuffle"
+            android:padding="9dp"
+            android:src="@drawable/ic_telegram_shuffle"
+            app:tint="?vctr_content_secondary" />
+
+        <ImageButton
+            android:id="@+id/audioPlayerRepeatButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="28dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_audio_repeat"
+            android:padding="9dp"
+            android:src="@drawable/ic_telegram_repeat"
+            app:tint="?vctr_content_secondary" />
+
     </LinearLayout>
 
     <ProgressBar
@@ -202,7 +257,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/audioPlayerControls" />
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerQueueControls" />
 
     <TextView
         android:id="@+id/audioPlayerStatus"
