@@ -592,11 +592,19 @@ class AudioPlaybackService : Service() {
         }
 
         fun setPlaybackSpeed(context: Context, speed: Float) {
-            context.startService(
-                    Intent(context, AudioPlaybackService::class.java)
-                            .setAction(ACTION_SET_SPEED)
-                            .putExtra(EXTRA_SPEED, speed.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED))
-            )
+            val safeSpeed = speed.coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED)
+            val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+            preferences.edit().putFloat(KEY_SPEED, safeSpeed).apply()
+
+            // Do not start a background Service just to save a preference when nothing is
+            // playing. An active service receives the command and updates MediaPlayer live.
+            if (preferences.getString(KEY_ID, null) != null) {
+                context.startService(
+                        Intent(context, AudioPlaybackService::class.java)
+                                .setAction(ACTION_SET_SPEED)
+                                .putExtra(EXTRA_SPEED, safeSpeed)
+                )
+            }
         }
 
         fun stop(context: Context) {
