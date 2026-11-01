@@ -91,12 +91,15 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                 isUserSeeking = false
                 val position = durationMs * (seekBar?.progress ?: 0) / 1_000
                 eventId?.let { id ->
+                    val wasPlaying = playbackTracker.getPlaybackState(id) is AudioMessagePlaybackTracker.Listener.State.Playing ||
+                            AudioPlaybackService.isPlayingFor(this@TelegramAudioPlayerActivity, id)
                     AudioPlaybackService.seek(this@TelegramAudioPlayerActivity, position)
-                    playbackTracker.updatePausedAtPlaybackTime(
-                            id,
-                            position,
-                            if (durationMs > 0) position.toFloat() / durationMs else 0f
-                    )
+                    val percentage = if (durationMs > 0) position.toFloat() / durationMs else 0f
+                    if (wasPlaying) {
+                        playbackTracker.updatePlayingAtPlaybackTime(id, position, percentage)
+                    } else {
+                        playbackTracker.updatePausedAtPlaybackTime(id, position, percentage)
+                    }
                 }
             }
         })
@@ -203,13 +206,16 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
         val current = playbackTracker.getPlaybackTime(id)
                 ?: AudioPlaybackService.persistedPosition(this, id)
                 ?: 0
+        val wasPlaying = playbackTracker.getPlaybackState(id) is AudioMessagePlaybackTracker.Listener.State.Playing ||
+                AudioPlaybackService.isPlayingFor(this, id)
         val target = (current + deltaMs).coerceIn(0, (durationMs - 1).coerceAtLeast(0))
         AudioPlaybackService.seek(this, target)
-        playbackTracker.updatePausedAtPlaybackTime(
-                id,
-                target,
-                if (durationMs > 0) target.toFloat() / durationMs else 0f
-        )
+        val percentage = if (durationMs > 0) target.toFloat() / durationMs else 0f
+        if (wasPlaying) {
+            playbackTracker.updatePlayingAtPlaybackTime(id, target, percentage)
+        } else {
+            playbackTracker.updatePausedAtPlaybackTime(id, target, percentage)
+        }
     }
 
     private fun cyclePlaybackSpeed() {
