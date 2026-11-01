@@ -41,6 +41,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="28dp"
         android:background="@drawable/bg_telegram_audio_cover"
+        android:clipToOutline="true"
         android:elevation="8dp"
         app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
