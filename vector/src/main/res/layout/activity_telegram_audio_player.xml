@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp">
+
+    <ImageButton
+        android:id="@+id/audioPlayerCloseButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="14dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/action_close"
+        android:padding="10dp"
+        android:src="@drawable/ic_close_24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?vctr_content_primary" />
+
+    <TextView
+        android:id="@+id/audioPlayerHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.12"
+        android:text="@string/telegram_audio_player_header"
+        android:textColor="?vctr_content_secondary"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@id/audioPlayerCloseButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/audioPlayerCloseButton" />
+
+    <FrameLayout
+        android:id="@+id/audioPlayerCoverFrame"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/bg_telegram_audio_cover"
+        android:elevation="8dp"
+        app:layout_constraintDimensionRatio="1:1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerCloseButton"
+        app:layout_constraintWidth_max="320dp"
+        app:layout_constraintWidth_min="240dp"
+        app:layout_constraintWidth_percent="0.82">
+
+        <ImageView
+            android:id="@+id/audioPlayerCoverImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/audioPlayerCoverFallback"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="♪"
+            android:textColor="@android:color/white"
+            android:textSize="112sp"
+            android:textStyle="normal" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/audioPlayerTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:textColor="?vctr_content_primary"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerCoverFrame"
+        tools:text="Song name.mp3" />
+
+    <TextView
+        android:id="@+id/audioPlayerArtist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="?vctr_content_secondary"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerTitle"
+        tools:text="Artist • Album" />
+
+    <SeekBar
+        android:id="@+id/audioPlayerSeekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:max="1000"
+        android:progress="0"
+        android:progressTint="?vctr_telegram_send_accent"
+        android:thumbTint="?vctr_telegram_send_accent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerArtist" />
+
+    <TextView
+        android:id="@+id/audioPlayerCurrentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0:00"
+        android:textColor="?vctr_content_secondary"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@id/audioPlayerSeekBar"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerSeekBar" />
+
+    <TextView
+        android:id="@+id/audioPlayerDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0:00"
+        android:textColor="?vctr_content_secondary"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="@id/audioPlayerSeekBar"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerSeekBar" />
+
+    <LinearLayout
+        android:id="@+id/audioPlayerControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerCurrentTime">
+
+        <TextView
+            android:id="@+id/audioPlayerSpeedButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:gravity="center"
+            android:text="1×"
+            android:textColor="?vctr_content_primary"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ImageButton
+            android:id="@+id/audioPlayerRewindButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_audio_rewind_15"
+            android:padding="14dp"
+            android:src="@drawable/ic_player_backward_30"
+            app:tint="?vctr_content_primary" />
+
+        <ImageButton
+            android:id="@+id/audioPlayerPlayPauseButton"
+            android:layout_width="76dp"
+            android:layout_height="76dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_telegram_voice_action"
+            android:contentDescription="@string/a11y_play_voice_message"
+            android:padding="20dp"
+            android:src="@drawable/ic_play_pause_play"
+            app:tint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/audioPlayerForwardButton"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_audio_forward_15"
+            android:padding="14dp"
+            android:src="@drawable/ic_player_forward_30"
+            app:tint="?vctr_content_primary" />
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/audioPlayerLoadingProgress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="3dp"
+        android:layout_marginTop="14dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerControls" />
+
+    <TextView
+        android:id="@+id/audioPlayerStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:textColor="?vctr_content_secondary"
+        android:textSize="12sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/audioPlayerLoadingProgress"
+        tools:text="Loading audio…" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
