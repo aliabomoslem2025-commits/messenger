@@ -127,7 +127,12 @@ abstract class MessageVoiceItem : AbsMessageItem<MessageVoiceItem.Holder>() {
 
     private fun onWaveformViewReady(holder: Holder) {
         holder.voicePlaybackWaveform.setOnLongClickListener(attributes.itemLongClickListener)
-        holder.voicePlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
+        holder.voicePlaybackControlButton.setOnClickListener {
+            if (mxcUrl.isNotBlank() && contentDownloadStateTrackerBinder.cancelDownload(mxcUrl)) {
+                return@setOnClickListener
+            }
+            playbackControlButtonClickListener?.invoke(it)
+        }
 
         val outgoingBubble = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)?.isIncoming == false
         val waveformColorIdle = if (outgoingBubble) {
