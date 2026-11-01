@@ -73,10 +73,8 @@ internal class DefaultContentDownloadStateTracker @Inject constructor() : Progre
     override fun error(url: String, errorCode: Int) {
         mainHandler.post {
             Timber.v("## DL Progress Error code:$errorCode")
+            // updateState already notifies every observer. Do not dispatch the same failure twice.
             updateState(url, ContentDownloadStateTracker.State.Failure(errorCode))
-            listeners[url]?.forEach {
-                tryOrNull { it.onDownloadStateUpdate(ContentDownloadStateTracker.State.Failure(errorCode)) }
-            }
         }
     }
 
