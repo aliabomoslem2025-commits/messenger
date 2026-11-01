@@ -130,7 +130,11 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                     val content = event.root.getClearContent().toModel<MessageAudioContent>()
                             ?: throw IllegalStateException("The event is not an audio message")
                     val file = session.fileService().downloadFile(content)
-                    val metadata = readMetadata(file)
+                    // Metadata extraction is optional. Some codecs/containers can be played
+                    // by MediaPlayer but are not fully understood by MediaMetadataRetriever.
+                    val metadata = runCatching { readMetadata(file) }.getOrElse {
+                        AudioMetadata(null, null, null, 0, null)
+                    }
 
                     LoadedAudio(
                             file = file,
