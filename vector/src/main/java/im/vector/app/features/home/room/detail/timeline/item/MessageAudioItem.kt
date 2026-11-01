@@ -106,7 +106,12 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         }
         applyLayoutTint(holder)
         bindSeekBar(holder)
-        holder.audioPlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
+        holder.audioPlaybackControlButton.setOnClickListener {
+            if (mxcUrl.isNotBlank() && contentDownloadStateTrackerBinder.cancelDownload(mxcUrl)) {
+                return@setOnClickListener
+            }
+            playbackControlButtonClickListener?.invoke(it)
+        }
         renderStateBasedOnAudioPlayback(holder)
     }
 
