@@ -57,9 +57,21 @@
             android:ellipsize="end"
             android:layout_marginTop="6dp"
             app:layout_constraintStart_toEndOf="@id/audioPlaybackControlButton"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/audioFullPlayerButton"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Filename.mp3" />
+
+        <ImageButton
+            android:id="@+id/audioFullPlayerButton"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_open_audio_player"
+            android:padding="5dp"
+            android:src="@drawable/ic_expand_less"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?vctr_content_secondary" />
 
         <TextView
             android:id="@+id/audioPlaybackDuration"
