@@ -428,7 +428,9 @@ class AudioPlaybackService : Service() {
         abandonAudioFocus()
         pausedByAudioFocus = false
         updateSessionPlaybackState(PlaybackStateCompat.STATE_STOPPED, 0, 0)
-        getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE).edit().clear().apply()
+        val preferences = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+        val savedSpeed = preferences.getFloat(KEY_SPEED, playbackSpeed).coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED)
+        preferences.edit().clear().putFloat(KEY_SPEED, savedSpeed).apply()
         stopForeground(true)
         stopSelf()
     }
