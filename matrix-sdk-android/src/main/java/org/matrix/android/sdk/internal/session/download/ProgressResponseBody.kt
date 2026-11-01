@@ -45,9 +45,18 @@ internal class ProgressResponseBody(
     fun source(source: Source): Source {
         return object : ForwardingSource(source) {
             var totalBytesRead = 0L
+            var failureReported = false
 
             override fun read(sink: Buffer, byteCount: Long): Long {
-                val bytesRead = super.read(sink, byteCount)
+                val bytesRead = try {
+                    super.read(sink, byteCount)
+                } catch (failure: java.io.IOException) {
+                    if (!failureReported) {
+                        failureReported = true
+                        progressListener.error(chainUrl, -1)
+                    }
+                    throw failure
+                }
                 // read() returns the number of bytes read, or -1 if this source is exhausted.
                 totalBytesRead += if (bytesRead != -1L) bytesRead else 0L
                 progressListener.update(chainUrl, totalBytesRead, responseBody.contentLength(), bytesRead == -1L)
