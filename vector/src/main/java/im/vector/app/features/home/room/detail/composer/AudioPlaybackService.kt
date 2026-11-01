@@ -260,6 +260,7 @@ class AudioPlaybackService : Service() {
                 persistPlayback(id, path, seekPosition)
                 playbackTracker.startPlayback(id)
                 updateSessionMetadata(id, duration)
+                sendTrackChanged(id, playbackTitle, duration)
                 updateSessionPlaybackState(PlaybackStateCompat.STATE_PLAYING, seekPosition, duration)
                 updateNotification(isPlaying = true)
                 handler.removeCallbacks(progressTicker)
@@ -287,6 +288,16 @@ class AudioPlaybackService : Service() {
             playbackTracker.onError(id, failure)
             stopPlaybackAndService()
         }
+    }
+
+    private fun sendTrackChanged(id: String, title: String, durationMs: Int) {
+        sendBroadcast(
+                Intent(ACTION_TRACK_CHANGED)
+                        .setPackage(packageName)
+                        .putExtra(EXTRA_TRACK_ID, id)
+                        .putExtra(EXTRA_TRACK_TITLE, title)
+                        .putExtra(EXTRA_TRACK_DURATION, durationMs)
+        )
     }
 
     private fun loadQueueFromPreferences() {
@@ -438,8 +449,9 @@ class AudioPlaybackService : Service() {
                     },
                     onFailure = { failure ->
                         playbackTracker.onError(eventId, failure)
-                        if (attemptsRemaining > 1 && playNextQueueTrack()) {
-                            // Skip a broken/unavailable item and keep the queue moving.
+                        val nextIndex = nextQueueIndex()
+                        if (attemptsRemaining > 1 && nextIndex != null) {
+                            playQueueTrack(nextIndex, attemptsRemaining - 1)
                         } else {
                             stopPlaybackAndService()
                         }
@@ -680,13 +692,16 @@ class AudioPlaybackService : Service() {
         playbackId = null
         prepared = false
         pendingSeekMs = 0
-        playbackSpeed = 1f
         id?.let(playbackTracker::stopPlaybackOrRecorder)
         abandonAudioFocus()
         pausedByAudioFocus = false
         updateSessionPlaybackState(PlaybackStateCompat.STATE_STOPPED, 0, 0)
         val preferences = getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
         val savedSpeed = preferences.getFloat(KEY_SPEED, playbackSpeed).coerceIn(MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED)
+        playbackSpeed = savedSpeed
+        queueLoadingJob?.cancel()
+        queueLoadingJob = null
+        queueRequestGeneration++
         preferences.edit().clear().putFloat(KEY_SPEED, savedSpeed).apply()
         stopForeground(true)
         stopSelf()
@@ -811,6 +826,10 @@ class AudioPlaybackService : Service() {
         private const val ACTION_PREVIOUS = "im.vector.app.action.AUDIO_PREVIOUS"
         private const val ACTION_SET_SHUFFLE = "im.vector.app.action.AUDIO_SET_SHUFFLE"
         private const val ACTION_SET_REPEAT = "im.vector.app.action.AUDIO_SET_REPEAT"
+        const val ACTION_TRACK_CHANGED = "im.vector.app.action.AUDIO_TRACK_CHANGED"
+        private const val EXTRA_TRACK_ID = "track_id"
+        private const val EXTRA_TRACK_TITLE = "track_title"
+        private const val EXTRA_TRACK_DURATION = "track_duration"
         private const val EXTRA_SHUFFLE = "queue_shuffle"
         private const val EXTRA_REPEAT = "queue_repeat"
         private const val REPEAT_OFF = 0
