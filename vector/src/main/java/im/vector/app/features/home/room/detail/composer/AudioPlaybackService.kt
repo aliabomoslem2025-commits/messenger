@@ -183,6 +183,9 @@ class AudioPlaybackService : Service() {
                 } else if (!File(path).isFile) {
                     stopPlaybackAndService()
                 } else {
+                    queueLoadingJob?.cancel()
+                    queueLoadingJob = null
+                    queueRequestGeneration++
                     startForegroundCompat(buildNotification(isPlaying = true))
                     val title = intent.getStringExtra(EXTRA_TITLE)?.takeIf { it.isNotBlank() }
                             ?: File(path).nameWithoutExtension
@@ -445,6 +448,7 @@ class AudioPlaybackService : Service() {
             if (generation != queueRequestGeneration) return@launch
             result.fold(
                     onSuccess = { (file, title) ->
+                        queueLoadingJob = null
                         startPlayback(eventId, file.absolutePath, 0, title)
                     },
                     onFailure = { failure ->
@@ -623,12 +627,6 @@ class AudioPlaybackService : Service() {
                     this,
                     13,
                     Intent(this, AudioPlaybackService::class.java).setAction(ACTION_PREVIOUS),
-                    pendingIntentFlags()
-            )
-            val nextIntent = PendingIntent.getService(
-                    this,
-                    14,
-                    Intent(this, AudioPlaybackService::class.java).setAction(ACTION_NEXT),
                     pendingIntentFlags()
             )
             builder.addAction(R.drawable.ic_telegram_skip_previous, "Previous", previousIntent)
