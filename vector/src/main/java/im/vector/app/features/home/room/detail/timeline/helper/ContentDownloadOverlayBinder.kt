@@ -102,13 +102,9 @@ class ContentDownloadOverlayBinder @Inject constructor(
             if (registrations[eventId] !== registration) return
             progress.isIndeterminate = true
             progress.isVisible = true
-            // There is no safe SDK cancellation API for an in-flight MXC download.
-            // Hide the download affordance while the ring is active instead of showing
-            // a cancel-looking icon that cannot actually cancel the operation.
-            registration.downloadIcon?.apply {
-            setImageResource(R.drawable.ic_cross)
-            isVisible = true
-        }
+            // Decryption is not interruptible through the Matrix SDK. Do not show
+            // a cancel-looking control while the indeterminate decryption ring is active.
+            registration.downloadIcon?.isVisible = false
         }
 
         val listener = object : ContentDownloadStateTracker.UpdateListener {
