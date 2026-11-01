@@ -105,7 +105,10 @@ class ContentDownloadOverlayBinder @Inject constructor(
             // There is no safe SDK cancellation API for an in-flight MXC download.
             // Hide the download affordance while the ring is active instead of showing
             // a cancel-looking icon that cannot actually cancel the operation.
-            registration.downloadIcon?.isVisible = false
+            registration.downloadIcon?.apply {
+            setImageResource(R.drawable.ic_cross)
+            isVisible = true
+        }
         }
 
         val listener = object : ContentDownloadStateTracker.UpdateListener {
@@ -135,7 +138,10 @@ class ContentDownloadOverlayBinder @Inject constructor(
                                     .toInt().coerceIn(0, 100)
                         }
                         progress.isVisible = true
-                        currentRegistration.downloadIcon?.isVisible = false
+                        currentRegistration.downloadIcon?.apply {
+                            setImageResource(R.drawable.ic_cross)
+                            isVisible = true
+                        }
                     }
                     ContentDownloadStateTracker.State.Decrypting -> showDecryptionProgress(currentRegistration)
                     ContentDownloadStateTracker.State.Success -> {
@@ -190,7 +196,17 @@ class ContentDownloadOverlayBinder @Inject constructor(
                         startDownload(eventId, registration)
                     }
                 }
-                FileService.FileState.Downloading -> Unit
+                FileService.FileState.Downloading -> {
+                    if (session.fileService().cancelDownload(mxcUrl)) {
+                        registration.downloadIcon?.apply {
+                            setImageResource(R.drawable.ic_telegram_download_arrow)
+                            isVisible = true
+                        }
+                        registration.progress.isIndeterminate = false
+                        registration.progress.progress = 0
+                        registration.progress.isVisible = false
+                    }
+                }
                 else -> startDownload(eventId, registration)
             }
         }
