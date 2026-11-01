@@ -247,6 +247,19 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                         views.audioPlayerSeekBar.isEnabled = durationMs > 0
                         setLoading(false)
                         updateSpeedLabel()
+                        val activeEventId = eventId ?: targetEventId
+                        if (!AudioPlaybackService.isActiveFor(this@TelegramAudioPlayerActivity, activeEventId)) {
+                            val resumeAt = playbackTracker.getPlaybackTime(activeEventId)
+                                    ?: AudioPlaybackService.persistedPosition(this@TelegramAudioPlayerActivity, activeEventId)
+                                    ?: 0
+                            AudioPlaybackService.play(
+                                    this@TelegramAudioPlayerActivity,
+                                    activeEventId,
+                                    loaded.file,
+                                    resumeAt,
+                                    loaded.title
+                            )
+                        }
                         renderCurrentPlaybackState()
                     },
                     onFailure = { failure ->
