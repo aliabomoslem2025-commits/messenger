@@ -37,6 +37,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
     private var downloadStateTracker: ContentDownloadStateTracker? = null
     private var downloadListener: ContentDownloadStateTracker.UpdateListener? = null
     private var fileStateProvider: (() -> FileService.FileState?)? = null
+    private var cancelDownload: (() -> Boolean)? = null
+    private var networkDownloadActive = false
     private val mainHandler = Handler(Looper.getMainLooper())
     private var decryptionPollAttempts = 0
     // Lazily created because its callback accesses the binding initialized in init{}.
@@ -68,7 +70,14 @@ class AttachmentOverlayView @JvmOverloads constructor(
             interactionListener?.onShare()
         }
         views.overlayDownloadButton.setOnClickListener {
-            interactionListener?.onDownload()
+            if (networkDownloadActive) {
+                if (cancelDownload?.invoke() == true) {
+                    networkDownloadActive = false
+                    views.overlayDownloadButton.setImageResource(R.drawable.ic_material_save)
+                }
+            } else {
+                interactionListener?.onDownload()
+            }
         }
         views.overlayDownloadProgress.indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
         views.overlayDownloadProgress.progressTintList = ColorStateList.valueOf(Color.WHITE)
@@ -107,6 +116,7 @@ class AttachmentOverlayView @JvmOverloads constructor(
             tracker: ContentDownloadStateTracker,
             url: String?,
             fileStateProvider: (() -> FileService.FileState?)? = null,
+            cancelDownload: (() -> Boolean)? = null,
     ) {
         if (trackedDownloadUrl == url && downloadStateTracker === tracker) return
         unbindDownloadProgress()
@@ -117,15 +127,24 @@ class AttachmentOverlayView @JvmOverloads constructor(
         trackedDownloadUrl = url
         downloadStateTracker = tracker
         this.fileStateProvider = fileStateProvider
+        this.cancelDownload = cancelDownload
+        networkDownloadActive = fileStateProvider?.invoke() == FileService.FileState.Downloading
+        views.overlayDownloadButton.setImageResource(
+                if (networkDownloadActive) R.drawable.ic_cross else R.drawable.ic_material_save
+        )
         val listener = object : ContentDownloadStateTracker.UpdateListener {
             override fun onDownloadStateUpdate(state: ContentDownloadStateTracker.State) {
                 when (state) {
                     ContentDownloadStateTracker.State.Idle,
                     is ContentDownloadStateTracker.State.Failure -> {
+                        networkDownloadActive = false
+                        views.overlayDownloadButton.setImageResource(R.drawable.ic_material_save)
                         mainHandler.removeCallbacks(decryptionPoll)
                         finishDownloadProgress(ready = false)
                     }
                     ContentDownloadStateTracker.State.Success -> {
+                        networkDownloadActive = false
+                        views.overlayDownloadButton.setImageResource(R.drawable.ic_material_save)
                         if (isDecryptedFileReady()) {
                             finishDownloadProgress(ready = true)
                         } else {
@@ -137,6 +156,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
                         }
                     }
                     is ContentDownloadStateTracker.State.Downloading -> {
+                        networkDownloadActive = true
+                        views.overlayDownloadButton.setImageResource(R.drawable.ic_cross)
                         val determinate = !state.indeterminate && state.total > 0L
                         views.overlayDownloadProgress.isIndeterminate = !determinate
                         if (determinate) {
@@ -146,6 +167,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
                         views.overlayDownloadProgress.isVisible = true
                     }
                     ContentDownloadStateTracker.State.Decrypting -> {
+                        networkDownloadActive = false
+                        views.overlayDownloadButton.setImageResource(R.drawable.ic_material_save)
                         views.overlayDownloadProgress.isIndeterminate = true
                         views.overlayDownloadProgress.isVisible = true
                     }
@@ -180,6 +203,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
         downloadStateTracker = null
         downloadListener = null
         fileStateProvider = null
+        cancelDownload = null
+        networkDownloadActive = false
         decryptionPollAttempts = 0
         views.overlayDownloadProgress.isVisible = false
     }
