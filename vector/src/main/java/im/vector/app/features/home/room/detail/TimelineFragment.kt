@@ -1874,6 +1874,10 @@ class TimelineFragment :
         messageComposerViewModel.handle(MessageComposerAction.AudioSeekBarMovedTo(eventId, duration, percentage))
     }
 
+    override fun onAudioPlayerRequested(eventId: String) {
+        startActivity(TelegramAudioPlayerActivity.newIntent(requireContext(), timelineArgs.roomId, eventId))
+    }
+
     private fun onShareActionClicked(action: EventSharedAction.Share) {
         when (action.messageContent) {
             is MessageTextContent -> shareText(requireContext(), action.messageContent.body)
