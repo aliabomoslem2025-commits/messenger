@@ -76,7 +76,12 @@ internal class TimelineEventDataSource @Inject constructor(
                     .findAll()
                     .mapNotNull { entity ->
                         timelineEventMapper.map(entity).takeIf { event ->
-                            event.root.getClearContent().toModel<MessageAudioContent>() != null
+                            val audioContent = event.root.getClearContent().toModel<MessageAudioContent>()
+                            // Telegram's music queue excludes Matrix voice messages. Voice messages
+                            // are identified by MSC3245 voice metadata and/or MSC1767 waveform data.
+                            audioContent != null &&
+                                    audioContent.voiceMessageIndicator == null &&
+                                    audioContent.audioWaveformInfo == null
                         }
                     }
         }
