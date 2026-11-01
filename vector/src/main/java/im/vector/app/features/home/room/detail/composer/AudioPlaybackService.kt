@@ -434,15 +434,18 @@ class AudioPlaybackService : Service() {
 
         queueLoadingJob = session.coroutineScope.launch {
             val result = runCatching {
-                val room = session.getRoom(roomId)
-                        ?: throw IllegalStateException("Audio playlist room is unavailable")
-                val event = withContext(Dispatchers.IO) {
-                    room.timelineService().getTimelineEvent(eventId)
-                } ?: throw IllegalStateException("Audio playlist event is unavailable")
-                val content = event.root.getClearContent().toModel<MessageAudioContent>()
-                        ?: throw IllegalStateException("Playlist item is not an audio message")
-                val file = session.fileService().downloadFile(content)
-                file to content.body
+                withContext(Dispatchers.IO) {
+                    val room = session.getRoom(roomId)
+                            ?: throw IllegalStateException("Audio playlist room is unavailable")
+                    val event = room.timelineService().getTimelineEvent(eventId)
+                            ?: throw IllegalStateException("Audio playlist event is unavailable")
+                    val content = event.root.getClearContent().toModel<MessageAudioContent>()
+                            ?: throw IllegalStateException("Playlist item is not an audio message")
+                    // FileService performs E2EE decryption after its internal network context
+                    // returns, so keep the entire call off the main thread.
+                    val file = session.fileService().downloadFile(content)
+                    file to content.body
+                }
             }
 
             if (generation != queueRequestGeneration) return@launch
