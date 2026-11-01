@@ -281,7 +281,9 @@ class AudioPlaybackService : Service() {
             }
             next.setOnErrorListener { _, what, extra ->
                 playbackTracker.onError(id, IllegalStateException("Audio playback failed ($what/$extra)"))
-                stopPlaybackAndService()
+                if (id.startsWith(VIDEO_PLAYBACK_PREFIX) || !playNextQueueTrack()) {
+                    stopPlaybackAndService()
+                }
                 true
             }
             next.setDataSource(path)
