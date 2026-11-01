@@ -25,6 +25,7 @@ import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.databinding.ActivityTelegramAudioPlayerBinding
 import im.vector.app.features.home.room.detail.composer.AudioPlaybackService
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
+import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -307,13 +308,13 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
 
     private fun renderQueueControls() {
         val hasQueue = queueEventIds.size > 1
-        views.audioPlayerPreviousButton.isEnabled = hasQueue && (queueIndex > 0 || repeatMode == 1)
+        views.audioPlayerPreviousButton.isEnabled = hasQueue && (shuffleEnabled || queueIndex > 0 || repeatMode == 1)
         views.audioPlayerNextButton.isEnabled = hasQueue &&
-                (queueIndex in 0 until queueEventIds.lastIndex || repeatMode != 0)
+                (shuffleEnabled || queueIndex in 0 until queueEventIds.lastIndex || repeatMode != 0)
         views.audioPlayerShuffleButton.isEnabled = hasQueue
         views.audioPlayerRepeatButton.isEnabled = hasQueue
-        val activeTint = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.riotx_accent)
-        val idleTint = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.riotx_text_secondary)
+        val activeTint = ThemeUtils.getColor(this, im.vector.lib.ui.styles.R.attr.vctr_telegram_send_accent)
+        val idleTint = ThemeUtils.getColor(this, im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
         views.audioPlayerShuffleButton.imageTintList = android.content.res.ColorStateList.valueOf(
                 if (shuffleEnabled) activeTint else idleTint
         )
