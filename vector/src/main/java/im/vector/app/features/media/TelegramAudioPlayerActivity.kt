@@ -6,14 +6,17 @@
 
 package im.vector.app.features.media
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,6 +57,26 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
     private var title: String = ""
     private var durationMs: Int = 0
     private var isUserSeeking = false
+    private var queueEventIds: List<String> = emptyList()
+    private var queueIndex = -1
+    private var shuffleEnabled = false
+    private var repeatMode = 0
+    private var trackReceiverRegistered = false
+
+    private val trackChangedReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val changedEventId = intent.getStringExtra("track_id") ?: return
+            if (changedEventId == eventId) return
+            eventId?.let(playbackTracker::untrack)
+            eventId = changedEventId
+            queueIndex = queueEventIds.indexOf(changedEventId)
+            playbackTracker.track(changedEventId) { state ->
+                renderPlaybackState(state)
+            }
+            renderQueueControls()
+            loadAudio(targetEventId = changedEventId, initializeQueue = false)
+        }
+    }
 
     private val speeds = floatArrayOf(1f, 1.25f, 1.5f, 2f)
 
@@ -74,6 +97,26 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
         views.audioPlayerRewindButton.setOnClickListener { seekRelative(-15_000) }
         views.audioPlayerForwardButton.setOnClickListener { seekRelative(15_000) }
         views.audioPlayerSpeedButton.setOnClickListener { cyclePlaybackSpeed() }
+        views.audioPlayerPreviousButton.setOnClickListener { AudioPlaybackService.skipToPrevious(this) }
+        views.audioPlayerNextButton.setOnClickListener { AudioPlaybackService.skipToNext(this) }
+        views.audioPlayerShuffleButton.setOnClickListener {
+            shuffleEnabled = !shuffleEnabled
+            AudioPlaybackService.setShuffleEnabled(this, shuffleEnabled)
+            renderQueueControls()
+        }
+        views.audioPlayerRepeatButton.setOnClickListener {
+            repeatMode = (repeatMode + 1) % 3
+            AudioPlaybackService.setRepeatMode(this, repeatMode)
+            renderQueueControls()
+        }
+
+        ContextCompat.registerReceiver(
+                this,
+                trackChangedReceiver,
+                IntentFilter(AudioPlaybackService.ACTION_TRACK_CHANGED),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+        trackReceiverRegistered = true
 
         views.audioPlayerSeekBar.max = 1_000
         views.audioPlayerSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -110,12 +153,16 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
             }
         }
         updateSpeedLabel()
-        loadAudio()
+        shuffleEnabled = AudioPlaybackService.isShuffleEnabled(this)
+        repeatMode = AudioPlaybackService.repeatMode(this)
+        loadAudio(initializeQueue = true)
     }
 
-    private fun loadAudio() {
+    private fun loadAudio(
+            targetEventId: String = eventId ?: return,
+            initializeQueue: Boolean = false
+    ) {
         val targetRoomId = roomId ?: return
-        val targetEventId = eventId ?: return
         setLoading(true, getString(R.string.telegram_audio_player_loading))
 
         lifecycleScope.launch {
@@ -129,6 +176,16 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                             ?: throw IllegalStateException("The audio event is no longer available")
                     val content = event.root.getClearContent().toModel<MessageAudioContent>()
                             ?: throw IllegalStateException("The event is not an audio message")
+                    val audioQueue = if (initializeQueue) {
+                        room.timelineService().getAudioMessages().map { it.eventId }.distinct()
+                    } else {
+                        emptyList()
+                    }
+                    val normalizedQueue = if (initializeQueue && targetEventId !in audioQueue) {
+                        audioQueue + targetEventId
+                    } else {
+                        audioQueue
+                    }
                     val file = session.fileService().downloadFile(content)
                     // Metadata extraction is optional. Some codecs/containers can be played
                     // by MediaPlayer but are not fully understood by MediaMetadataRetriever.
@@ -144,7 +201,8 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                             duration = metadata.durationMs.takeIf { it > 0 }
                                     ?: content.audioInfo?.duration
                                     ?: 0,
-                            artwork = metadata.artwork
+                            artwork = metadata.artwork,
+                            queueEventIds = normalizedQueue
                     )
                 }
             }
@@ -154,6 +212,22 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                         audioFile = loaded.file
                         title = loaded.title
                         durationMs = loaded.duration.coerceAtLeast(0)
+                        if (initializeQueue) {
+                            queueEventIds = loaded.queueEventIds
+                            queueIndex = queueEventIds.indexOf(targetEventId)
+                            AudioPlaybackService.setQueue(
+                                    this@TelegramAudioPlayerActivity,
+                                    targetRoomId,
+                                    queueEventIds,
+                                    targetEventId
+                            )
+                            shuffleEnabled = AudioPlaybackService.isShuffleEnabled(this@TelegramAudioPlayerActivity)
+                            repeatMode = AudioPlaybackService.repeatMode(this@TelegramAudioPlayerActivity)
+                            renderQueueControls()
+                        } else if (queueIndex < 0) {
+                            queueIndex = queueEventIds.indexOf(targetEventId)
+                            renderQueueControls()
+                        }
                         views.audioPlayerTitle.text = loaded.title
                         views.audioPlayerArtist.text = listOfNotNull(
                                 loaded.artist,
@@ -229,6 +303,30 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
         val nextSpeed = speeds[(currentIndex + 1) % speeds.size]
         AudioPlaybackService.setPlaybackSpeed(this, nextSpeed)
         updateSpeedLabel(nextSpeed)
+    }
+
+    private fun renderQueueControls() {
+        val hasQueue = queueEventIds.size > 1
+        views.audioPlayerPreviousButton.isEnabled = hasQueue && (queueIndex > 0 || repeatMode == 1)
+        views.audioPlayerNextButton.isEnabled = hasQueue &&
+                (queueIndex in 0 until queueEventIds.lastIndex || repeatMode != 0)
+        views.audioPlayerShuffleButton.isEnabled = hasQueue
+        views.audioPlayerRepeatButton.isEnabled = hasQueue
+        val activeTint = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.riotx_accent)
+        val idleTint = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.riotx_text_secondary)
+        views.audioPlayerShuffleButton.imageTintList = android.content.res.ColorStateList.valueOf(
+                if (shuffleEnabled) activeTint else idleTint
+        )
+        views.audioPlayerRepeatButton.imageTintList = android.content.res.ColorStateList.valueOf(
+                if (repeatMode == 0) idleTint else activeTint
+        )
+        views.audioPlayerRepeatButton.contentDescription = getString(
+                when (repeatMode) {
+                    1 -> R.string.telegram_audio_player_repeat_all
+                    2 -> R.string.telegram_audio_player_repeat_one
+                    else -> R.string.telegram_audio_player_repeat_off
+                }
+        )
     }
 
     private fun updateSpeedLabel(speed: Float = AudioPlaybackService.currentPlaybackSpeed(this, eventId)) {
@@ -336,6 +434,10 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         eventId?.let(playbackTracker::untrack)
+        if (trackReceiverRegistered) {
+            unregisterReceiver(trackChangedReceiver)
+            trackReceiverRegistered = false
+        }
         super.onDestroy()
     }
 
@@ -353,7 +455,8 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
             val artist: String?,
             val album: String?,
             val duration: Int,
-            val artwork: ByteArray?
+            val artwork: ByteArray?,
+            val queueEventIds: List<String>
     )
 
     companion object {
