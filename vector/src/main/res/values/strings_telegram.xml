@@ -116,4 +116,11 @@
     <string name="telegram_stories_video">Video</string>
     <string name="telegram_stories_open_viewer">Open Stories</string>
     <string name="telegram_stories_yours">Your story</string>
+    <string name="telegram_open_audio_player">Open full audio player</string>
+    <string name="telegram_audio_player_header">PLAYING FROM MESSENGER</string>
+    <string name="telegram_audio_player_loading">Preparing audio…</string>
+    <string name="telegram_audio_player_unavailable">This audio file is unavailable</string>
+    <string name="telegram_audio_player_artist_fallback">Unknown artist</string>
+    <string name="telegram_audio_player_album_fallback">Audio file</string>
+    <string name="telegram_audio_player_speed">Playback speed</string>
 </resources>
