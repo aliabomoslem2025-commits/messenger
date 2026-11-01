@@ -158,6 +158,7 @@ import im.vector.app.features.location.LocationSharingMode
 import im.vector.app.features.location.toLocationData
 import im.vector.app.features.media.AttachmentData
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.media.TelegramAudioPlayerActivity
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.notifications.NotificationDrawerManager
 import im.vector.app.features.notifications.NotificationUtils
