@@ -342,6 +342,7 @@ class MessageItemFactory @Inject constructor(
                 .filename(messageContent.body)
                 .duration(messageContent.audioInfo?.duration ?: 0)
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
+                .fullPlayerClickListener { params.callback?.onAudioPlayerRequested(informationData.eventId) }
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(isLocalFile)
                 .isDownloaded(isDownloaded)
