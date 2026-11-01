@@ -147,6 +147,10 @@
             android:supportsPictureInPicture="true"
             android:theme="@style/Theme.Vector.Black.Transparent"
             tools:ignore="Instantiatable" />
+        <activity
+            android:name=".features.media.TelegramAudioPlayerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Vector.Black.Transparent" />
         <activity android:name=".features.media.BigImageViewerActivity" />
         <activity
             android:name=".features.rageshake.BugReportActivity"
