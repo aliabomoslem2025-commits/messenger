@@ -57,6 +57,12 @@ interface TimelineService {
     fun getAttachmentMessages(): List<TimelineEvent>
 
     /**
+     * Returns all cached m.audio timeline events in this room, ordered oldest to newest.
+     * This is a local snapshot: it does not trigger pagination or download media.
+     */
+    fun getAudioMessages(): List<TimelineEvent>
+
+    /**
      * Returns a snapshot list of TimelineEvent with a content relation of the given type to the given eventId.
      */
     fun getTimelineEventsRelatedTo(relationType: String, eventId: String): List<TimelineEvent>
