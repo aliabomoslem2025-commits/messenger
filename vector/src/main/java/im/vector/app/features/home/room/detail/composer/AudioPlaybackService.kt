@@ -395,12 +395,12 @@ class AudioPlaybackService : Service() {
     }
 
     private fun playPreviousQueueTrack(): Boolean {
-        val previousIndex = previousQueueIndex() ?: return false
         val player = mediaPlayer
         if (player != null && prepared && player.currentPosition > PREVIOUS_RESTART_THRESHOLD_MS) {
             seekTo(0)
             return true
         }
+        val previousIndex = previousQueueIndex() ?: return false
         playQueueTrack(previousIndex, queueEventIds.size)
         return true
     }
