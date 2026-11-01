@@ -80,7 +80,14 @@ abstract class BaseAttachmentProvider<Type>(
                 }.getOrNull()
             }
         }
-        overlayView?.bindDownloadProgress(contentDownloadStateTracker, downloadUrl, fileStateProvider)
+        overlayView?.bindDownloadProgress(
+                tracker = contentDownloadStateTracker,
+                url = downloadUrl,
+                fileStateProvider = fileStateProvider,
+                cancelDownload = {
+                    downloadUrl?.let(fileService::cancelDownload) ?: false
+                }
+        )
 
         val timelineEvent = getTimelineEventAtPosition(position)
         if (timelineEvent != null) {
