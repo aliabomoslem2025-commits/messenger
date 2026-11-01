@@ -184,7 +184,6 @@ private class AudioContentDownloadUpdater(
                     holder.audioDownloadProgress.progress =
                             (100.0 * state.current.toDouble() / state.total.toDouble()).toInt().coerceIn(0, 100)
                 }
-                showDownloadAction()
             }
             ContentDownloadStateTracker.State.Decrypting -> {
                 holder.audioDownloadProgress.isVisible = true
@@ -250,7 +249,6 @@ private class VoiceContentDownloadUpdater(
                     holder.voiceDownloadProgress.progress =
                             (100.0 * state.current.toDouble() / state.total.toDouble()).toInt().coerceIn(0, 100)
                 }
-                showDownloadAction()
             }
             ContentDownloadStateTracker.State.Decrypting -> {
                 holder.voiceDownloadProgress.isVisible = true
