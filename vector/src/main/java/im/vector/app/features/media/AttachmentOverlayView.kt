@@ -39,17 +39,20 @@ class AttachmentOverlayView @JvmOverloads constructor(
     private var fileStateProvider: (() -> FileService.FileState?)? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private var decryptionPollAttempts = 0
-    private val decryptionPoll = object : Runnable {
-        override fun run() {
-            val state = fileStateProvider?.invoke()
-            if (state is FileService.FileState.InCache && state.decryptedFileInCache) {
-                finishDownloadProgress(ready = true)
-            } else if (++decryptionPollAttempts < DECRYPTION_POLL_ATTEMPTS) {
-                views.overlayDownloadProgress.isIndeterminate = true
-                views.overlayDownloadProgress.isVisible = true
-                mainHandler.postDelayed(this, DECRYPTION_POLL_INTERVAL_MS)
-            } else {
-                finishDownloadProgress(ready = false)
+    // Lazily created because its callback accesses the binding initialized in init{}.
+    private val decryptionPoll by lazy {
+        object : Runnable {
+            override fun run() {
+                val state = fileStateProvider?.invoke()
+                if (state is FileService.FileState.InCache && state.decryptedFileInCache) {
+                    finishDownloadProgress(ready = true)
+                } else if (++decryptionPollAttempts < DECRYPTION_POLL_ATTEMPTS) {
+                    views.overlayDownloadProgress.isIndeterminate = true
+                    views.overlayDownloadProgress.isVisible = true
+                    mainHandler.postDelayed(this, DECRYPTION_POLL_INTERVAL_MS)
+                } else {
+                    finishDownloadProgress(ready = false)
+                }
             }
         }
     }
