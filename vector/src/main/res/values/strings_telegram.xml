@@ -123,4 +123,6 @@
     <string name="telegram_audio_player_artist_fallback">Unknown artist</string>
     <string name="telegram_audio_player_album_fallback">Audio file</string>
     <string name="telegram_audio_player_speed">Playback speed</string>
+    <string name="telegram_audio_rewind_15">Rewind 15 seconds</string>
+    <string name="telegram_audio_forward_15">Forward 15 seconds</string>
 </resources>
