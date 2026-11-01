@@ -907,16 +907,35 @@ class AudioPlaybackService : Service() {
         fun setQueue(context: Context, roomId: String, eventIds: List<String>, currentEventId: String) {
             val uniqueIds = eventIds.distinct()
             if (uniqueIds.isEmpty()) return
+
             val queuePreferences = context.getSharedPreferences(QUEUE_PREFERENCES, Context.MODE_PRIVATE)
-            val currentIndex = uniqueIds.indexOf(currentEventId).coerceAtLeast(0)
+            val sameRoom = queuePreferences.getString(KEY_QUEUE_ROOM_ID, null) == roomId
+            val previousIds = parseIds(queuePreferences.getString(KEY_QUEUE_IDS, null))
+            val previousOriginalIds = parseIds(queuePreferences.getString(KEY_QUEUE_ORIGINAL_IDS, null))
+            val previousShuffle = queuePreferences.getBoolean(KEY_QUEUE_SHUFFLE, false)
+            val previousRepeat = queuePreferences.getInt(KEY_QUEUE_REPEAT, REPEAT_OFF)
+
+            // Reopening the full player for another message in the same room must not
+            // silently turn off shuffle/repeat or throw away the shuffled order.
+            val preserveExistingOrder = sameRoom &&
+                    previousIds.size == uniqueIds.size &&
+                    previousIds.toSet() == uniqueIds.toSet()
+            val orderedIds = if (preserveExistingOrder) previousIds else uniqueIds.toMutableList()
+            val originalIds = if (preserveExistingOrder && previousOriginalIds.isNotEmpty()) {
+                previousOriginalIds
+            } else {
+                uniqueIds.toMutableList()
+            }
+            val currentIndex = orderedIds.indexOf(currentEventId).coerceAtLeast(0)
             queuePreferences.edit()
                     .putString(KEY_QUEUE_ROOM_ID, roomId)
-                    .putString(KEY_QUEUE_IDS, JSONArray(uniqueIds).toString())
-                    .putString(KEY_QUEUE_ORIGINAL_IDS, JSONArray(uniqueIds).toString())
+                    .putString(KEY_QUEUE_IDS, JSONArray(orderedIds).toString())
+                    .putString(KEY_QUEUE_ORIGINAL_IDS, JSONArray(originalIds).toString())
                     .putInt(KEY_QUEUE_INDEX, currentIndex)
-                    .putBoolean(KEY_QUEUE_SHUFFLE, false)
-                    .putInt(KEY_QUEUE_REPEAT, REPEAT_OFF)
+                    .putBoolean(KEY_QUEUE_SHUFFLE, preserveExistingOrder && previousShuffle)
+                    .putInt(KEY_QUEUE_REPEAT, if (sameRoom) previousRepeat.coerceIn(REPEAT_OFF, REPEAT_ONE) else REPEAT_OFF)
                     .apply()
+
             val playbackPreferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
             if (playbackPreferences.getString(KEY_ID, null) != null) {
                 context.startService(Intent(context, AudioPlaybackService::class.java).setAction(ACTION_RELOAD_QUEUE))
