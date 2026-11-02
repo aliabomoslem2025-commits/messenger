@@ -38,6 +38,7 @@ sealed interface TimelineMessageLayout : Parcelable {
             val cornersRadius: CornersRadius,
             val timestampInsideMessage: Boolean,
             val addMessageOverlay: Boolean,
+            val isDirect: Boolean = false,
             override val layoutRes: Int = if (isIncoming) {
                 R.layout.item_timeline_event_bubble_incoming_base
             } else {

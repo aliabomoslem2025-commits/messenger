@@ -102,6 +102,9 @@ class TimelineMessageLayoutFactory @Inject constructor(
         val isStandaloneEmoji = messageContent.isStandaloneEmoji()
         val shouldBuildBubble = event.shouldBuildBubbleLayout()
         val useBubbleLayout = layoutSettingsProvider.getLayoutSettings() == TimelineLayoutSettings.BUBBLE
+        val isDirectRoom = params.partialState.roomSummary?.isDirect == true
+        // Telegram 1:1 chats do not repeat an avatar/name on each incoming message.
+        val showSenderDetails = showInformation && !isSentByMe && !isDirectRoom
 
         // Standalone emoji messages must use transparent Telegram-style geometry even
         // when the user's regular timeline preference is Element's modern layout.
@@ -111,13 +114,14 @@ class TimelineMessageLayoutFactory @Inject constructor(
                     nextDisplayableEvent = nextDisplayableEvent,
                     prevDisplayableEvent = prevDisplayableEvent,
                     addDaySeparator = addDaySeparator,
-                    showInformation = showInformation,
+                    showInformation = showSenderDetails,
                     isSentByMe = isSentByMe,
                     messageContent = messageContent,
-                    isStandaloneEmoji = isStandaloneEmoji
+                    isStandaloneEmoji = isStandaloneEmoji,
+                    isDirectRoom = isDirectRoom
             )
         } else {
-            buildModernLayout(showInformation)
+            buildModernLayout(showSenderDetails, showInformation)
         }
         return messageLayout
     }
@@ -130,7 +134,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
             showInformation: Boolean,
             isSentByMe: Boolean,
             messageContent: MessageContent?,
-            isStandaloneEmoji: Boolean
+            isStandaloneEmoji: Boolean,
+            isDirectRoom: Boolean
     ): TimelineMessageLayout.Bubble {
         val isFirstFromThisSender = nextDisplayableEvent == null ||
                 !nextDisplayableEvent.shouldBuildBubbleLayout() ||
@@ -154,7 +159,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 isPseudoBubble = messageContent.isPseudoBubble() || isStandaloneEmoji,
                 timestampInsideMessage = messageContent.timestampInsideMessage() || isStandaloneEmoji,
                 // Do not draw the translucent media overlay behind a standalone emoji.
-                addMessageOverlay = if (isStandaloneEmoji) false else messageContent.shouldAddMessageOverlay()
+                addMessageOverlay = if (isStandaloneEmoji) false else messageContent.shouldAddMessageOverlay(),
+                isDirect = isDirectRoom
         )
     }
 
@@ -196,11 +202,11 @@ class TimelineMessageLayoutFactory @Inject constructor(
         return false
     }
 
-    private fun buildModernLayout(showInformation: Boolean): TimelineMessageLayout.Default {
+    private fun buildModernLayout(showSenderDetails: Boolean, showTimestamp: Boolean): TimelineMessageLayout.Default {
         return TimelineMessageLayout.Default(
-                showAvatar = showInformation,
-                showDisplayName = showInformation,
-                showTimestamp = showInformation || vectorPreferences.alwaysShowTimeStamps()
+                showAvatar = showSenderDetails,
+                showDisplayName = showSenderDetails,
+                showTimestamp = showTimestamp || vectorPreferences.alwaysShowTimeStamps()
         )
     }
 

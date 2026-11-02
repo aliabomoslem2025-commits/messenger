@@ -38,9 +38,9 @@
 
     <!-- Chat canvas has dedicated Telegram-inspired light/dark tones without changing other app screens. -->
     <attr name="vctr_chat_background" format="color" />
-    <color name="vctr_chat_background_light">#D9EBA9</color>
+    <color name="vctr_chat_background_light">#F2F6FA</color>
     <attr name="vctr_chat_wallpaper_doodle" format="color" />
-    <color name="telegram_chat_wallpaper_doodle_light">#C5DD8C</color>
+    <color name="telegram_chat_wallpaper_doodle_light">#DCE8F2</color>
     <color name="telegram_chat_wallpaper_doodle_dark">#111D29</color>
     <color name="telegram_chat_wallpaper_doodle_black">#111820</color>
     <color name="vctr_chat_background_dark">#050A11</color>

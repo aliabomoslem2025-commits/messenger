@@ -46,6 +46,16 @@ class EncryptedItemFactory @Inject constructor(
         return when {
             EventType.ENCRYPTED == event.root.getClearType() -> {
                 val cryptoError = event.root.mCryptoError
+                val informationData = messageInformationDataFactory.create(params)
+                val bubbleLayout = informationData.messageLayout as? im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout.Bubble
+                // ForegroundColorSpan overrides TextView.setTextColor(). Resolve the
+                // placeholder palette here so failed-decryption text stays white on
+                // outgoing blue bubbles and legible on incoming neutral bubbles.
+                val placeholderTextColor = when {
+                    bubbleLayout != null && !bubbleLayout.isIncoming -> colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_message_bubble_outbound_text)
+                    bubbleLayout != null -> colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+                    else -> colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                }
 
                 val spannableStr = if (vectorPreferences.developerMode()) {
                     val errorDescription =
@@ -59,14 +69,12 @@ class EncryptedItemFactory @Inject constructor(
                     val message = stringProvider.getString(CommonStrings.encrypted_message).takeIf { cryptoError == null }
                             ?: stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt, errorDescription)
                     span(message) {
-                        textStyle = "italic"
-                        textColor = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                        textColor = placeholderTextColor
                     }
                 } else {
-                    val colorFromAttribute = colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_secondary)
+                    val colorFromAttribute = placeholderTextColor
                     if (cryptoError == null) {
                         span(stringProvider.getString(CommonStrings.encrypted_message)) {
-                            textStyle = "italic"
                             textColor = colorFromAttribute
                         }
                     } else {
@@ -78,8 +86,7 @@ class EncryptedItemFactory @Inject constructor(
                                         +" "
                                     }
                                     span(stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt_final)) {
-                                        textStyle = "italic"
-                                        textColor = colorFromAttribute
+                                                    textColor = colorFromAttribute
                                     }
                                 }
                             }
@@ -90,8 +97,7 @@ class EncryptedItemFactory @Inject constructor(
                                         +" "
                                     }
                                     span(stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt_friendly)) {
-                                        textStyle = "italic"
-                                        textColor = colorFromAttribute
+                                                    textColor = colorFromAttribute
                                     }
                                 }
                             }
@@ -99,7 +105,6 @@ class EncryptedItemFactory @Inject constructor(
                     }
                 }
 
-                val informationData = messageInformationDataFactory.create(params)
                 val threadDetails = if (params.isFromThreadTimeline()) null else event.root.threadDetails
                 val attributes = attributesFactory.create(
                         messageContent = event.root.content.toModel<EncryptedEventContent>(),

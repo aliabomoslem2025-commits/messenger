@@ -182,20 +182,17 @@ class MessageBubbleView @JvmOverloads constructor(
     }
 
     private fun TimelineMessageLayout.Bubble.setMargins() = apply {
-        if (isIncoming) {
-            views.messageEndGuideline.updateLayoutParams<LayoutParams> {
-                marginEnd = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_end)
-            }
-            views.messageStartGuideline.updateLayoutParams<LayoutParams> {
-                marginStart = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_start)
-            }
-        } else {
-            views.messageEndGuideline.updateLayoutParams<LayoutParams> {
-                marginEnd = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_start)
-            }
-            views.messageStartGuideline.updateLayoutParams<LayoutParams> {
-                marginStart = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_end)
-            }
+        val edgeInset = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_end)
+        val groupAvatarGutter = resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_margin_start)
+        val startInset = if (isIncoming && !isDirect) groupAvatarGutter else edgeInset
+
+        // Telegram sent messages sit close to the trailing edge. The previous 28dp
+        // trailing inset made each outgoing bubble look detached from the screen edge.
+        views.messageStartGuideline.updateLayoutParams<LayoutParams> {
+            marginStart = startInset
+        }
+        views.messageEndGuideline.updateLayoutParams<LayoutParams> {
+            marginEnd = edgeInset
         }
     }
 
