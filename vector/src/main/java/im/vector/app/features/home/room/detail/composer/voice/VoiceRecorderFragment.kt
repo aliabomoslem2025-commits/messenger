@@ -53,6 +53,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
     private var inlineVideoNoteRecorder: InlineRoundVideoRecorder? = null
     private var inlineVideoNoteOutputFile: File? = null
     private var inlineVideoNoteFinalizing = false
+    private var voiceRecordingStartedByGesture = false
 
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
     private val messageComposerViewModel: MessageComposerViewModel by parentFragmentViewModel()
@@ -232,7 +233,12 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         views.voiceMessageRecorderView.callback = object : VoiceMessageRecorderView.Callback {
 
             override fun onVoiceRecordingStarted() {
-                if (checkPermissions(PERMISSIONS_FOR_VOICE_MESSAGE, requireActivity(), permissionVoiceMessageLauncher)) {
+                voiceRecordingStartedByGesture = checkPermissions(
+                        PERMISSIONS_FOR_VOICE_MESSAGE,
+                        requireActivity(),
+                        permissionVoiceMessageLauncher
+                )
+                if (voiceRecordingStartedByGesture) {
                     messageComposerViewModel.handle(MessageComposerAction.StartRecordingVoiceMessage)
                     vibrate(requireContext())
                 }
@@ -272,22 +278,30 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             }
 
             override fun onVoiceRecordingCancelled() {
+                if (!voiceRecordingStartedByGesture) {
+                    updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Idle)
+                    return
+                }
+                voiceRecordingStartedByGesture = false
                 messageComposerViewModel.handle(MessageComposerAction.EndRecordingVoiceMessage(isCancelled = true, rootThreadEventId = getRootThreadEventId()))
                 vibrate(requireContext())
                 updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Idle)
             }
 
             override fun onVoiceRecordingLocked() {
+                if (!voiceRecordingStartedByGesture) return
                 val startedState = withState(messageComposerViewModel) { it.voiceRecordingUiState as? VoiceMessageRecorderView.RecordingUiState.Recording }
                 val startTime = startedState?.recordingStartTimestamp ?: clock.epochMillis()
                 updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Locked(startTime))
             }
 
             override fun onVoiceRecordingEnded() {
-                onSendVoiceMessage()
+                if (voiceRecordingStartedByGesture) onSendVoiceMessage()
             }
 
             override fun onSendVoiceMessage() {
+                if (!voiceRecordingStartedByGesture) return
+                voiceRecordingStartedByGesture = false
                 messageComposerViewModel.handle(
                         MessageComposerAction.EndRecordingVoiceMessage(isCancelled = false, rootThreadEventId = getRootThreadEventId())
                 )
@@ -295,6 +309,8 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             }
 
             override fun onDeleteVoiceMessage() {
+                if (!voiceRecordingStartedByGesture) return
+                voiceRecordingStartedByGesture = false
                 messageComposerViewModel.handle(
                         MessageComposerAction.EndRecordingVoiceMessage(isCancelled = true, rootThreadEventId = getRootThreadEventId())
                 )
