@@ -29,7 +29,8 @@ class AttachmentOverlayView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr), AttachmentEventListener {
 
     var interactionListener: AttachmentInteractionListener? = null
-    val views: MergeImageAttachmentOverlayBinding
+    lateinit var views: MergeImageAttachmentOverlayBinding
+        private set
 
     private var isPlaying = false
     private var suspendSeekBarUpdate = false
