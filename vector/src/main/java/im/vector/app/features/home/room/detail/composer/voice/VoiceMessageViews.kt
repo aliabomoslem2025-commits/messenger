@@ -133,6 +133,9 @@ class VoiceMessageViews(
                         videoNoteLocked = false
                         videoNoteRequested = false
                         actions.onVideoNoteReleased()
+                    } else if (videoNoteLocked) {
+                        // ACTION_UP that follows the upward lock gesture must not toggle
+                        // capture mode or stop the recording.
                     } else if (!holdStarted) {
                         // A tap switches capture mode; it must never create a zero-length recording.
                         videoNoteMode = !videoNoteMode
