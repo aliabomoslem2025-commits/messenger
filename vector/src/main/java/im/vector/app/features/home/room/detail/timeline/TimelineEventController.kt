@@ -151,6 +151,8 @@ class TimelineEventController @Inject constructor(
 
         fun onAudioSeekBarMovedTo(eventId: String, duration: Int, percentage: Float)
 
+        fun onAudioPlayerRequested(eventId: String) = Unit
+
         fun onAddMoreReaction(event: TimelineEvent)
     }
 

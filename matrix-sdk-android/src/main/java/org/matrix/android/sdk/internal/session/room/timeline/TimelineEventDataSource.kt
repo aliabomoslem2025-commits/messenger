@@ -23,6 +23,7 @@ import org.matrix.android.sdk.api.session.events.model.getRelationContent
 import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.Optional
@@ -64,6 +65,25 @@ internal class TimelineEventDataSource @Inject constructor(
                     .findAll()
                     ?.mapNotNull { timelineEventMapper.map(it).takeIf { it.root.isImageMessage() || it.root.isVideoMessage() } }
                     .orEmpty()
+        }
+    }
+
+    fun getAudioMessages(roomId: String): List<TimelineEvent> {
+        return realmSessionProvider.withRealm { realm ->
+            TimelineEventEntity.whereRoomId(realm, roomId)
+                    .sort(TimelineEventEntityFields.ROOT.ORIGIN_SERVER_TS, Sort.ASCENDING)
+                    .distinct(TimelineEventEntityFields.EVENT_ID)
+                    .findAll()
+                    .mapNotNull { entity ->
+                        timelineEventMapper.map(entity).takeIf { event ->
+                            val audioContent = event.root.getClearContent().toModel<MessageAudioContent>()
+                            // Telegram's music queue excludes Matrix voice messages. Voice messages
+                            // are identified by MSC3245 voice metadata and/or MSC1767 waveform data.
+                            audioContent != null &&
+                                    audioContent.voiceMessageIndicator == null &&
+                                    audioContent.audioWaveformInfo == null
+                        }
+                    }
         }
     }
 

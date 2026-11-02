@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.file.FileService
+import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import java.io.File
 
@@ -36,6 +37,7 @@ abstract class BaseAttachmentProvider<Type>(
         private val imageContentRenderer: ImageContentRenderer,
         protected val fileService: FileService,
         private val coroutineScope: CoroutineScope,
+        private val contentDownloadStateTracker: ContentDownloadStateTracker,
         private val dateFormatter: VectorDateFormatter,
         private val stringProvider: StringProvider
 ) : AttachmentSourceProvider {
@@ -54,6 +56,38 @@ abstract class BaseAttachmentProvider<Type>(
             overlayView = AttachmentOverlayView(context)
             overlayView?.interactionListener = interactionListener
         }
+
+        val attachmentInfo = getAttachmentInfoAt(position)
+        val mediaData = when (attachmentInfo) {
+            is AttachmentInfo.Image -> attachmentInfo.data as? ImageContentRenderer.Data
+            is AttachmentInfo.AnimatedImage -> attachmentInfo.data as? ImageContentRenderer.Data
+            is AttachmentInfo.Video -> attachmentInfo.data as? VideoContentRenderer.Data
+        }
+        val downloadUrl = mediaData?.url ?: when (attachmentInfo) {
+            is AttachmentInfo.Image -> attachmentInfo.url
+            is AttachmentInfo.AnimatedImage -> attachmentInfo.url
+            is AttachmentInfo.Video -> attachmentInfo.url
+        }
+        val fileStateProvider: (() -> FileService.FileState?)? = mediaData?.let { data ->
+            {
+                runCatching {
+                    fileService.fileState(
+                            mxcUrl = data.url,
+                            fileName = data.filename,
+                            mimeType = data.mimeType,
+                            elementToDecrypt = data.elementToDecrypt
+                    )
+                }.getOrNull()
+            }
+        }
+        overlayView?.bindDownloadProgress(
+                tracker = contentDownloadStateTracker,
+                url = downloadUrl,
+                fileStateProvider = fileStateProvider,
+                cancelDownload = {
+                    downloadUrl?.let(fileService::cancelDownload) ?: false
+                }
+        )
 
         val timelineEvent = getTimelineEventAtPosition(position)
         if (timelineEvent != null) {

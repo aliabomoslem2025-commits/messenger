@@ -13,6 +13,7 @@ import im.vector.lib.attachmentviewer.AttachmentInfo
 import kotlinx.coroutines.CoroutineScope
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.file.FileService
+import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -25,12 +26,14 @@ class DataAttachmentRoomProvider(
         imageContentRenderer: ImageContentRenderer,
         dateFormatter: VectorDateFormatter,
         fileService: FileService,
+        contentDownloadStateTracker: ContentDownloadStateTracker,
         coroutineScope: CoroutineScope,
         stringProvider: StringProvider
 ) : BaseAttachmentProvider<AttachmentData>(
         attachments = attachments,
         imageContentRenderer = imageContentRenderer,
         fileService = fileService,
+        contentDownloadStateTracker = contentDownloadStateTracker,
         coroutineScope = coroutineScope,
         dateFormatter = dateFormatter,
         stringProvider = stringProvider

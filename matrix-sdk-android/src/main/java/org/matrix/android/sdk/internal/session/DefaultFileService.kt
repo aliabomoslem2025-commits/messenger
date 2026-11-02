@@ -23,6 +23,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.completeWith
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -79,6 +80,7 @@ internal class DefaultFileService @Inject constructor(
      * map of mxCurl to callbacks.
      */
     private val ongoing = mutableMapOf<String, CompletableDeferred<File>>()
+    private val ongoingCalls = mutableMapOf<String, Call>()
 
     /**
      * Download file in the cache folder, and eventually decrypt it.
@@ -152,9 +154,16 @@ internal class DefaultFileService @Inject constructor(
                         }
                     }
 
+                    val call = okHttpClient.newCall(request)
+                    synchronized(ongoing) {
+                        ongoingCalls[url] = call
+                    }
                     val response = try {
-                        okHttpClient.newCall(request).execute()
+                        call.execute()
                     } catch (failure: Throwable) {
+                        synchronized(ongoing) {
+                            if (ongoingCalls[url] === call) ongoingCalls.remove(url)
+                        }
                         throw if (failure is IOException) {
                             Failure.NetworkConnection(failure)
                         } else {
@@ -162,20 +171,26 @@ internal class DefaultFileService @Inject constructor(
                         }
                     }
 
-                    if (!response.isSuccessful) {
-                        throw Failure.NetworkConnection(IOException())
+                    try {
+                        if (!response.isSuccessful) {
+                            throw Failure.NetworkConnection(IOException())
+                        }
+
+                        val source = response.body?.source() ?: throw Failure.NetworkConnection(IOException())
+
+                        Timber.v("Response size ${response.body?.contentLength()} - Stream available: ${!source.exhausted()}")
+
+                        // Write to an atomic part file so a cancelled transfer never leaves
+                        // a partially downloaded file that would look like a cache hit.
+                        val atomicFileCreator = AtomicFileCreator(cachedFiles.file).also { atomicFileDownload = it }
+                        writeToFile(source.inputStream(), atomicFileCreator.partFile)
+                        atomicFileCreator.commit()
+                    } finally {
+                        response.close()
+                        synchronized(ongoing) {
+                            if (ongoingCalls[url] === call) ongoingCalls.remove(url)
+                        }
                     }
-
-                    val source = response.body?.source() ?: throw Failure.NetworkConnection(IOException())
-
-                    Timber.v("Response size ${response.body?.contentLength()} - Stream available: ${!source.exhausted()}")
-
-                    // Write the file to cache (encrypted version if the file is encrypted)
-                    // Write to a part file first, so if we abort before done, we don't have a broken cached file
-                    val atomicFileCreator = AtomicFileCreator(cachedFiles.file).also { atomicFileDownload = it }
-                    writeToFile(source.inputStream(), atomicFileCreator.partFile)
-                    response.close()
-                    atomicFileCreator.commit()
                 } else {
                     Timber.v("## FileService: cache hit for $url")
                 }
@@ -245,6 +260,12 @@ internal class DefaultFileService @Inject constructor(
             // Just copy the original file
             originalFile.copyTo(files.file)
         }
+    }
+
+    override fun cancelDownload(mxcUrl: String): Boolean {
+        val call = synchronized(ongoing) { ongoingCalls[mxcUrl] } ?: return false
+        call.cancel()
+        return true
     }
 
     override fun isFileInCache(

@@ -342,6 +342,7 @@ class MessageItemFactory @Inject constructor(
                 .filename(messageContent.body)
                 .duration(messageContent.audioInfo?.duration ?: 0)
                 .playbackControlButtonClickListener(playbackControlButtonClickListener)
+                .fullPlayerClickListener { params.callback?.onAudioPlayerRequested(informationData.eventId) }
                 .audioMessagePlaybackTracker(audioMessagePlaybackTracker)
                 .izLocalFile(isLocalFile)
                 .isDownloaded(isDownloaded)
@@ -540,7 +541,9 @@ class MessageItemFactory @Inject constructor(
 
         val imageUrl = messageContent.getFileUrl()
         val imageIsDownloaded = localFilesHelper.isLocalFile(imageUrl) || runCatching {
-            session.fileService().isFileInCache(messageContent)
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
         }.getOrDefault(false)
         val playable = messageContent.mimeType == MimeTypes.Gif
         // don't show play button because detecting animated webp isn't possible via mimetype
@@ -554,6 +557,7 @@ class MessageItemFactory @Inject constructor(
                 .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
                 .playable(playable)
                 .mxcDownloadUrl(imageUrl?.takeIf { it.startsWith("mxc://") && !imageIsDownloaded })
+                .messageContent(messageContent)
                 .isMediaDownloaded(imageIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(data)
@@ -598,7 +602,9 @@ class MessageItemFactory @Inject constructor(
 
         val videoUrl = messageContent.getFileUrl()
         val videoIsDownloaded = localFilesHelper.isLocalFile(videoUrl) || runCatching {
-            session.fileService().isFileInCache(messageContent)
+            val fileState = session.fileService().fileState(messageContent)
+            fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                    fileState.decryptedFileInCache
         }.getOrDefault(false)
         val videoData = VideoContentRenderer.Data(
                 eventId = informationData.eventId,
@@ -617,6 +623,7 @@ class MessageItemFactory @Inject constructor(
                 .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
                 .playable(true)
                 .mxcDownloadUrl(videoUrl?.takeIf { it.startsWith("mxc://") && !videoIsDownloaded })
+                .messageContent(messageContent)
                 .isMediaDownloaded(videoIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)

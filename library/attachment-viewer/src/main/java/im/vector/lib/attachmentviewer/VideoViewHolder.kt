@@ -26,6 +26,8 @@ class VideoViewHolder constructor(itemView: View) :
     private var countUpTimer: CountUpTimer? = null
     private var progress: Int = 0
     private var wasPaused = false
+    private var videoWidth: Int = 0
+    private var videoHeight: Int = 0
 
     var eventListener: WeakReference<AttachmentEventListener>? = null
 
@@ -37,6 +39,8 @@ class VideoViewHolder constructor(itemView: View) :
         super.onRecycled()
         stopTimer()
         mVideoPath = null
+        videoWidth = 0
+        videoHeight = 0
     }
 
     fun videoReady(file: File) {
@@ -57,8 +61,9 @@ class VideoViewHolder constructor(itemView: View) :
     }
 
     override fun entersBackground() {
-        if (views.videoView.isPlaying) {
-            progress = views.videoView.currentPosition
+        val wasPlaying = views.videoView.isPlaying
+        preserveVideoPosition()
+        if (wasPlaying) {
             // VideoView releases its decoder when stopped. Ask the app layer to keep
             // the media audio alive in a foreground service while the viewer is hidden.
             mVideoPath?.let { path ->
@@ -66,16 +71,41 @@ class VideoViewHolder constructor(itemView: View) :
                         AttachmentEvents.ContinueVideoPlaybackInBackground(path, progress)
                 )
             }
-            stopTimer()
+        }
+        stopTimer()
+        if (mVideoPath != null) {
             views.videoView.stopPlayback()
         }
     }
 
+    fun preserveVideoPosition() {
+        if (mVideoPath != null) {
+            runCatching {
+                val duration = views.videoView.duration
+                if (duration > 0) {
+                    progress = views.videoView.currentPosition.coerceIn(0, duration)
+                }
+            }
+        }
+    }
+
     override fun entersForeground() {
-        // The app stops only the background video session associated with this viewer.
+        // Stop the audio-only fallback started while the viewer was backgrounded.
         eventListener?.get()?.onEvent(AttachmentEvents.StopBackgroundVideoPlayback)
+        // Picture-in-picture keeps the original VideoView alive. Do not rebuild it or
+        // reset its playback position when the Activity returns to the foreground.
+        if (views.videoView.isPlaying) {
+            isSelected = true
+            return
+        }
         onSelected(isSelected)
     }
+
+    fun isVideoPlaying(): Boolean = views.videoView.isPlaying
+
+    fun getVideoSize(): Pair<Int, Int> =
+            (videoWidth.takeIf { it > 0 } ?: views.videoView.width.coerceAtLeast(1)) to
+                    (videoHeight.takeIf { it > 0 } ?: views.videoView.height.coerceAtLeast(1))
 
     override fun onSelected(selected: Boolean) {
         if (!selected) {
@@ -91,15 +121,19 @@ class VideoViewHolder constructor(itemView: View) :
                 startPlaying()
             }
         }
-        isSelected = true
+        isSelected = selected
     }
 
     private fun startPlaying() {
-        views.videoThumbnailImage.isVisible = false
         views.videoLoaderProgress.isVisible = false
-        views.videoView.isVisible = true
+        // When restoring a user-paused clip, retain the still thumbnail until Play is
+        // explicitly requested. VideoView releases its decoder when the viewer backgrounds.
+        views.videoThumbnailImage.isVisible = wasPaused
+        views.videoView.isVisible = !wasPaused
 
-        views.videoView.setOnPreparedListener {
+        views.videoView.setOnPreparedListener { player ->
+            videoWidth = player.videoWidth.coerceAtLeast(1)
+            videoHeight = player.videoHeight.coerceAtLeast(1)
             stopTimer()
             countUpTimer = CountUpTimer(intervalInMs = 100).also {
                 it.tickListener = CountUpTimer.TickListener {
@@ -124,6 +158,9 @@ class VideoViewHolder constructor(itemView: View) :
             if (progress > 0) {
                 views.videoView.seekTo(progress)
             }
+        } else if (progress > 0) {
+            // Retain the seek target for a later Play action without starting a paused clip.
+            views.videoView.seekTo(progress)
         }
     }
 
@@ -137,9 +174,12 @@ class VideoViewHolder constructor(itemView: View) :
         when (commands) {
             AttachmentCommands.StartVideo -> {
                 wasPaused = false
+                views.videoThumbnailImage.isVisible = false
+                views.videoView.isVisible = true
                 views.videoView.start()
             }
             AttachmentCommands.PauseVideo -> {
+                preserveVideoPosition()
                 wasPaused = true
                 views.videoView.pause()
             }
@@ -157,5 +197,7 @@ class VideoViewHolder constructor(itemView: View) :
         super.bind(attachmentInfo)
         progress = 0
         wasPaused = false
+        videoWidth = 0
+        videoHeight = 0
     }
 }

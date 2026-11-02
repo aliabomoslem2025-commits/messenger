@@ -59,6 +59,15 @@ interface FileService {
                     elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt()
             )
 
+    /**
+     * Cancel the active network transfer for an MXC URL.
+     *
+     * Returns true only when an HTTP call was actively cancelled. If the transfer has
+     * already finished and the SDK is decrypting the cached file, this returns false.
+     * Concurrent callers sharing the same MXC download are all affected by cancellation.
+     */
+    fun cancelDownload(mxcUrl: String): Boolean = false
+
     fun isFileInCache(
             mxcUrl: String?,
             fileName: String,

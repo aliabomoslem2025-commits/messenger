@@ -62,6 +62,9 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var playbackControlButtonClickListener: ClickListener? = null
 
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var fullPlayerClickListener: ClickListener? = null
+
     @EpoxyAttribute
     lateinit var audioMessagePlaybackTracker: AudioMessagePlaybackTracker
 
@@ -106,7 +109,13 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         }
         applyLayoutTint(holder)
         bindSeekBar(holder)
-        holder.audioPlaybackControlButton.setOnClickListener { playbackControlButtonClickListener?.invoke(it) }
+        holder.audioPlaybackControlButton.setOnClickListener {
+            if (mxcUrl.isNotBlank() && contentDownloadStateTrackerBinder.cancelDownload(mxcUrl)) {
+                return@setOnClickListener
+            }
+            playbackControlButtonClickListener?.invoke(it)
+        }
+        holder.audioFullPlayerButton.setOnClickListener { fullPlayerClickListener?.invoke(it) }
         renderStateBasedOnAudioPlayback(holder)
     }
 
@@ -256,6 +265,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         contentUploadStateTrackerBinder.unbind(attributes.informationData.eventId)
         contentDownloadStateTrackerBinder.unbind(mxcUrl)
         audioMessagePlaybackTracker.untrack(attributes.informationData.eventId)
+        holder.audioFullPlayerButton.setOnClickListener(null)
     }
 
     override fun getViewStubId() = STUB_ID
@@ -264,6 +274,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
         val rootLayout by bind<ViewGroup>(R.id.messageRootLayout)
         val mainLayout by bind<ViewGroup>(R.id.messageMainInnerLayout)
         val filenameView by bind<TextView>(R.id.messageFilenameView)
+        val audioFullPlayerButton by bind<ImageButton>(R.id.audioFullPlayerButton)
         val audioPlaybackControlButton by bind<ImageButton>(R.id.audioPlaybackControlButton)
         val audioDownloadProgress by bind<android.widget.ProgressBar>(R.id.audioDownloadProgress)
         var isFileDownloaded: Boolean = false

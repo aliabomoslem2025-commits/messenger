@@ -10,6 +10,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.app.PictureInPictureParams
+import android.util.Rational
 import android.os.Parcelable
 import android.view.View
 import android.view.ViewTreeObserver
@@ -147,6 +149,23 @@ class VectorAttachmentViewerActivity : AttachmentViewerActivity(), AttachmentInt
         window.navigationBarColor = ContextCompat.getColor(this, im.vector.lib.ui.styles.R.color.black_alpha)
 
         observeViewEvents()
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !isInPictureInPictureMode) {
+            val video = currentVideoViewHolder()
+            if (video?.isVideoPlaying() == true) {
+                val (width, height) = video.getVideoSize()
+                runCatching {
+                    enterPictureInPictureMode(
+                            PictureInPictureParams.Builder()
+                                    .setAspectRatio(Rational(width.coerceAtLeast(1), height.coerceAtLeast(1)))
+                                    .build()
+                    )
+                }.onFailure { Timber.w(it, "Unable to enter video picture-in-picture mode") }
+            }
+        }
     }
 
     override fun onResume() {

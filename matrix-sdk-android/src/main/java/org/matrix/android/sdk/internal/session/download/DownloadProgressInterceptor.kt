@@ -36,7 +36,14 @@ internal class DownloadProgressInterceptor @Inject constructor(
                 .removeHeader(DOWNLOAD_PROGRESS_INTERCEPTOR_HEADER)
                 .build()
 
-        val originalResponse = chain.proceed(request)
+        val originalResponse = try {
+            chain.proceed(request)
+        } catch (failure: java.io.IOException) {
+            // Includes explicit FileService.cancelDownload() calls. Keep every observer's
+            // progress UI in sync even when OkHttp is cancelled before headers arrive.
+            downloadStateTracker.error(mxcURl ?: url.toExternalForm(), -1)
+            throw failure
+        }
         if (!originalResponse.isSuccessful) {
             downloadStateTracker.error(mxcURl ?: url.toExternalForm(), originalResponse.code)
             return originalResponse

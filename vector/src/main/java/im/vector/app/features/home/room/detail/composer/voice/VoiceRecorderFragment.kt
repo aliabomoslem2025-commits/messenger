@@ -52,6 +52,8 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
     private lateinit var videoNoteAttachmentsHelper: AttachmentsHelper
     private var inlineVideoNoteRecorder: InlineRoundVideoRecorder? = null
     private var inlineVideoNoteOutputFile: File? = null
+    private var inlineVideoNoteFinalizing = false
+    private var voiceRecordingStartedByGesture = false
 
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
     private val messageComposerViewModel: MessageComposerViewModel by parentFragmentViewModel()
@@ -68,7 +70,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         if (!allGranted && deniedPermanently && isAdded) {
             Toast.makeText(
                     requireContext(),
-                    R.string.telegram_video_note_permission_error,
+                    im.vector.app.R.string.telegram_video_note_permission_error,
                     Toast.LENGTH_LONG
             ).show()
         }
@@ -153,7 +155,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         super.onPause()
         // The camera/microphone must be released when the app backgrounds. Audio message
         // playback remains owned by AudioPlaybackService and continues independently.
-        if (inlineVideoNoteRecorder != null) {
+        if (inlineVideoNoteRecorder != null && !inlineVideoNoteFinalizing) {
             inlineVideoNoteRecorder?.cancel()
             inlineVideoNoteOutputFile?.let(videoNoteAttachmentsHelper::discardInlineVideoNoteOutput)
             inlineVideoNoteOutputFile = null
@@ -188,23 +190,42 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
     }
 
     private fun finishInlineVideoNote(cancelled: Boolean) {
+        // The timer and MediaRecorder can both report the maximum duration on adjacent
+        // callbacks. Finalize only once so the same MP4 is never sent/deleted twice.
+        if (inlineVideoNoteFinalizing && !cancelled) return
         val recorder = inlineVideoNoteRecorder ?: return
         val pendingFile = inlineVideoNoteOutputFile
         if (cancelled) {
+            inlineVideoNoteFinalizing = false
             recorder.cancel()
             videoNoteAttachmentsHelper.discardInlineVideoNoteOutput(pendingFile)
-        } else {
-            val completedFile = recorder.stop()
-            if (completedFile != null && completedFile.isFile && completedFile.length() > 1_024L) {
+            inlineVideoNoteOutputFile = null
+            views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+            return
+        }
+
+        inlineVideoNoteFinalizing = true
+        // Camera startup is asynchronous. If the user releases during initialization,
+        // the recorder queues stop until MediaRecorder is ready, then returns the finalized MP4.
+        recorder.stop { completedFile ->
+            inlineVideoNoteFinalizing = false
+            val validFile = completedFile != null &&
+                    completedFile.isFile &&
+                    completedFile.length() > 1_024L
+            if (validFile) {
                 // Reuse the normal Matrix attachment conversion/send path. The resulting m.video
                 // event carries a video_note_* filename marker for the round thumbnail treatment.
                 videoNoteAttachmentsHelper.onCameraVideoResult()
             } else {
                 videoNoteAttachmentsHelper.discardInlineVideoNoteOutput(pendingFile)
             }
+            inlineVideoNoteOutputFile = null
+            if (isAdded) {
+                requireActivity().runOnUiThread {
+                    if (isAdded) views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
+                }
+            }
         }
-        inlineVideoNoteOutputFile = null
-        views.voiceMessageRecorderView.hideVideoNoteRecordingViews()
     }
 
     private fun setupVoiceMessageView() {
@@ -212,7 +233,12 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         views.voiceMessageRecorderView.callback = object : VoiceMessageRecorderView.Callback {
 
             override fun onVoiceRecordingStarted() {
-                if (checkPermissions(PERMISSIONS_FOR_VOICE_MESSAGE, requireActivity(), permissionVoiceMessageLauncher)) {
+                voiceRecordingStartedByGesture = checkPermissions(
+                        PERMISSIONS_FOR_VOICE_MESSAGE,
+                        requireActivity(),
+                        permissionVoiceMessageLauncher
+                )
+                if (voiceRecordingStartedByGesture) {
                     messageComposerViewModel.handle(MessageComposerAction.StartRecordingVoiceMessage)
                     vibrate(requireContext())
                 }
@@ -252,22 +278,30 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             }
 
             override fun onVoiceRecordingCancelled() {
+                if (!voiceRecordingStartedByGesture) {
+                    updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Idle)
+                    return
+                }
+                voiceRecordingStartedByGesture = false
                 messageComposerViewModel.handle(MessageComposerAction.EndRecordingVoiceMessage(isCancelled = true, rootThreadEventId = getRootThreadEventId()))
                 vibrate(requireContext())
                 updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Idle)
             }
 
             override fun onVoiceRecordingLocked() {
+                if (!voiceRecordingStartedByGesture) return
                 val startedState = withState(messageComposerViewModel) { it.voiceRecordingUiState as? VoiceMessageRecorderView.RecordingUiState.Recording }
                 val startTime = startedState?.recordingStartTimestamp ?: clock.epochMillis()
                 updateRecordingUiState(VoiceMessageRecorderView.RecordingUiState.Locked(startTime))
             }
 
             override fun onVoiceRecordingEnded() {
-                onSendVoiceMessage()
+                if (voiceRecordingStartedByGesture) onSendVoiceMessage()
             }
 
             override fun onSendVoiceMessage() {
+                if (!voiceRecordingStartedByGesture) return
+                voiceRecordingStartedByGesture = false
                 messageComposerViewModel.handle(
                         MessageComposerAction.EndRecordingVoiceMessage(isCancelled = false, rootThreadEventId = getRootThreadEventId())
                 )
@@ -275,6 +309,8 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             }
 
             override fun onDeleteVoiceMessage() {
+                if (!voiceRecordingStartedByGesture) return
+                voiceRecordingStartedByGesture = false
                 messageComposerViewModel.handle(
                         MessageComposerAction.EndRecordingVoiceMessage(isCancelled = true, rootThreadEventId = getRootThreadEventId())
                 )

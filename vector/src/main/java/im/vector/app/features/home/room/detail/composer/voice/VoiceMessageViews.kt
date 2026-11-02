@@ -118,7 +118,7 @@ class VoiceMessageViews(
                     if (!holdStarted) {
                         // A tap switches capture mode; it must never create a zero-length recording.
                         videoNoteMode = !videoNoteMode
-                        button.setImageResource(if (videoNoteMode) R.drawable.ic_camera else R.drawable.ic_microphone)
+                        views.voiceMessageMicButton.setCaptureMode(videoNoteMode, animated = true)
                         button.contentDescription = if (videoNoteMode) {
                             resources.getString(R.string.telegram_video_note_title)
                         } else {
@@ -127,13 +127,14 @@ class VoiceMessageViews(
                         button.animate().cancel()
                         button.scaleX = 1f
                         button.scaleY = 1f
-                        button.animate().rotationBy(180f).scaleX(1.08f).scaleY(1.08f).setDuration(120L)
+                        button.animate().scaleX(1.06f).scaleY(1.06f).setDuration(100L)
                                 .withEndAction { button.animate().scaleX(1f).scaleY(1f).setDuration(90L).start() }.start()
                     } else if (videoNoteCancelled) {
                         hideVideoNoteRecordingViews()
                     } else if (videoNoteRequested) {
+                        // Keep TextureView alive until the camera/MediaRecorder stop callback
+                        // completes. Hiding it here can destroy the SurfaceTexture too early.
                         actions.onVideoNoteReleased()
-                        hideVideoNoteRecordingViews()
                     } else {
                         actions.onMicButtonReleased()
                     }
@@ -181,7 +182,7 @@ class VoiceMessageViews(
     fun showVideoNoteRecordingViews() {
         views.voiceMessageBackgroundView.isVisible = true
         views.videoNotePreviewView.isVisible = true
-        views.voiceMessageMicButton.setImageResource(R.drawable.ic_camera)
+        views.voiceMessageMicButton.setCaptureMode(video = true, animated = false)
         views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
         views.voiceMessageMicButton.animate().scaleX(1.35f).scaleY(1.35f).setDuration(180L).start()
         views.voiceMessageSlideToCancel.isVisible = true
@@ -254,7 +255,6 @@ class VoiceMessageViews(
 
     fun showRecordingViews() {
         views.voiceMessageBackgroundView.isVisible = true
-        views.voiceMessageMicButton.setImageResource(R.drawable.ic_composer_rich_mic_pressed)
         views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
         views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             setMargins(0, 0, 0, 0)
@@ -368,7 +368,7 @@ class VoiceMessageViews(
 
     fun resetMicButtonUi() {
         views.voiceMessageMicButton.isVisible = true
-        views.voiceMessageMicButton.setImageResource(if (videoNoteMode) R.drawable.ic_camera else R.drawable.ic_microphone)
+        views.voiceMessageMicButton.setCaptureMode(videoNoteMode, animated = false)
         views.voiceMessageMicButton.setAttributeBackground(android.R.attr.selectableItemBackgroundBorderless)
         views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
             if (rtlXMultiplier == -1) {

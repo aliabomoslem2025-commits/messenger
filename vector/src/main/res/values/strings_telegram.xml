@@ -116,4 +116,20 @@
     <string name="telegram_stories_video">Video</string>
     <string name="telegram_stories_open_viewer">Open Stories</string>
     <string name="telegram_stories_yours">Your story</string>
+    <string name="telegram_open_audio_player">Open full audio player</string>
+    <string name="telegram_audio_player_header">PLAYING FROM MESSENGER</string>
+    <string name="telegram_audio_player_loading">Preparing audio…</string>
+    <string name="telegram_audio_player_unavailable">This audio file is unavailable</string>
+    <string name="telegram_audio_player_artist_fallback">Unknown artist</string>
+    <string name="telegram_audio_player_album_fallback">Audio file</string>
+    <string name="telegram_audio_player_speed">Playback speed</string>
+    <string name="telegram_audio_rewind_15">Rewind 15 seconds</string>
+    <string name="telegram_audio_forward_15">Forward 15 seconds</string>
+    <string name="telegram_audio_previous_track">Previous track</string>
+    <string name="telegram_audio_next_track">Next track</string>
+    <string name="telegram_audio_shuffle">Shuffle playlist</string>
+    <string name="telegram_audio_repeat">Repeat mode</string>
+    <string name="telegram_audio_repeat_off">Repeat off</string>
+    <string name="telegram_audio_repeat_all">Repeat all</string>
+    <string name="telegram_audio_repeat_one">Repeat current track</string>
 </resources>

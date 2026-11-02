@@ -84,6 +84,9 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
 
     private var isImagePagerIdle = true
 
+    protected fun currentVideoViewHolder(): VideoViewHolder? =
+            attachmentsAdapter.recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? VideoViewHolder
+
     fun setSourceProvider(sourceProvider: AttachmentSourceProvider) {
         attachmentsAdapter.attachmentSourceProvider = sourceProvider
     }
@@ -169,7 +172,13 @@ abstract class AttachmentViewerActivity : AppCompatActivity(), AttachmentEventLi
     }
 
     override fun onPause() {
-        attachmentsAdapter.onPause(currentPosition)
+        // A VideoView must remain attached to its surface when Android enters PiP.
+        // For a normal background transition, release it and continue audio in the app service.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isInPictureInPictureMode) {
+            currentVideoViewHolder()?.preserveVideoPosition()
+        } else {
+            attachmentsAdapter.onPause(currentPosition)
+        }
         super.onPause()
     }
 

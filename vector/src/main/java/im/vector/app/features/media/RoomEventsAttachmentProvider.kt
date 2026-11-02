@@ -15,6 +15,7 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.file.FileService
+import org.matrix.android.sdk.api.session.file.ContentDownloadStateTracker
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
@@ -31,12 +32,14 @@ class RoomEventsAttachmentProvider(
         imageContentRenderer: ImageContentRenderer,
         dateFormatter: VectorDateFormatter,
         fileService: FileService,
+        contentDownloadStateTracker: ContentDownloadStateTracker,
         coroutineScope: CoroutineScope,
         stringProvider: StringProvider
 ) : BaseAttachmentProvider<TimelineEvent>(
         attachments = attachments,
         imageContentRenderer = imageContentRenderer,
         fileService = fileService,
+        contentDownloadStateTracker = contentDownloadStateTracker,
         coroutineScope = coroutineScope,
         dateFormatter = dateFormatter,
         stringProvider = stringProvider
