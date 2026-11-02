@@ -8,7 +8,7 @@
 
     <ImageView
         android:id="@+id/messageThumbnailView"
-        android:layout_width="375dp"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:contentDescription="@string/a11y_image"
         app:layout_constraintEnd_toEndOf="parent"
