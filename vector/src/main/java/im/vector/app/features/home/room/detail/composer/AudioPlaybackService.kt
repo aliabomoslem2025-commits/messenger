@@ -149,8 +149,12 @@ class AudioPlaybackService : Service() {
                 }
                 override fun onStop() = stopPlaybackAndService()
                 override fun onSeekTo(pos: Long) = seekTo(pos.toInt())
-                override fun onSkipToNext() = playNextQueueTrack()
-                override fun onSkipToPrevious() = playPreviousQueueTrack()
+                override fun onSkipToNext() {
+                    playNextQueueTrack()
+                }
+                override fun onSkipToPrevious() {
+                    playPreviousQueueTrack()
+                }
                 override fun onSetShuffleMode(shuffleMode: Int) {
                     setShuffleModeInternal(shuffleMode == PlaybackStateCompat.SHUFFLE_MODE_ALL ||
                             shuffleMode == PlaybackStateCompat.SHUFFLE_MODE_GROUP)
@@ -596,14 +600,6 @@ class AudioPlaybackService : Service() {
         mediaSession.setPlaybackState(
                 PlaybackStateCompat.Builder()
                         .setActions(actions)
-                        .setRepeatMode(
-                                when (queueRepeatMode) {
-                                    REPEAT_ONE -> PlaybackStateCompat.REPEAT_MODE_ONE
-                                    REPEAT_ALL -> PlaybackStateCompat.REPEAT_MODE_ALL
-                                    else -> PlaybackStateCompat.REPEAT_MODE_NONE
-                                }
-                        )
-                        .setShuffleMode(if (queueShuffleEnabled) PlaybackStateCompat.SHUFFLE_MODE_ALL else PlaybackStateCompat.SHUFFLE_MODE_NONE)
                         .setState(state, positionMs.toLong(), if (state == PlaybackStateCompat.STATE_PLAYING) playbackSpeed else 0f)
                         .setBufferedPosition(durationMs.toLong())
                         .build()
