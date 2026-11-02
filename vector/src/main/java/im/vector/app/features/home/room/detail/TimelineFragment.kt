@@ -308,6 +308,9 @@ class TimelineFragment :
                 val child = toolbar.getChildAt(index)
                 if (!navigationStyled && child is android.widget.ImageButton) {
                     child.background = navigationBackground?.constantState?.newDrawable()?.mutate()
+                    // The central capsule overlaps the action surfaces slightly; keep
+                    // the circular back target visibly above it, as in Telegram.
+                    child.elevation = 2f * toolbar.resources.displayMetrics.density
                     navigationStyled = true
                 }
 
@@ -316,6 +319,7 @@ class TimelineFragment :
                         val menuChild = child.getChildAt(menuIndex)
                         if (menuChild.javaClass.name.contains("OverflowMenuButton", ignoreCase = true)) {
                             menuChild.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                            menuChild.elevation = 2f * toolbar.resources.displayMetrics.density
                         }
                     }
                 }
