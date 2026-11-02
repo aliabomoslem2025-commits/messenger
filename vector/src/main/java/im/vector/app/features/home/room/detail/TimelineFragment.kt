@@ -1040,7 +1040,7 @@ class TimelineFragment :
             views.coordinatorLayout.setBackgroundColor(chatBackgroundColor)
             views.timelineRecyclerView.setBackgroundColor(chatBackgroundColor)
         } else {
-            views.coordinatorLayout.setBackgroundResource(R.drawable.bg_telegram_chat_doodles)
+            views.coordinatorLayout.background = TelegramChatWallpaperDrawable(requireContext())
             views.timelineRecyclerView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
     }

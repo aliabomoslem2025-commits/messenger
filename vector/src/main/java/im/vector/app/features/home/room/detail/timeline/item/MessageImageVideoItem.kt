@@ -106,8 +106,12 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         holder.captionView.text = caption
         holder.captionView.movementMethod = captionMovementMethod
         holder.captionView.setOnLongClickListener(attributes.itemLongClickListener)
-        if (isCircularVideoNote) {
-            holder.imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+        holder.imageView.scaleType = if (isCircularVideoNote) {
+            ImageView.ScaleType.CENTER_CROP
+        } else {
+            // RecyclerView holders are reused; never let a video-note crop leak into
+            // the next landscape/portrait photo or regular video thumbnail.
+            ImageView.ScaleType.FIT_CENTER
         }
         if (!attributes.informationData.sendState.hasFailed()) {
             contentUploadStateTrackerBinder.bind(
