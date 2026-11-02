@@ -160,9 +160,10 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
     }
 
     private fun loadAudio(
-            targetEventId: String = eventId ?: return,
+            targetEventId: String? = eventId,
             initializeQueue: Boolean = false
     ) {
+        val requestedEventId = targetEventId ?: return
         val targetRoomId = roomId ?: return
         setLoading(true, getString(R.string.telegram_audio_player_loading))
 
@@ -173,7 +174,7 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                             ?: throw IllegalStateException("No active Matrix session")
                     val room = session.getRoom(targetRoomId)
                             ?: throw IllegalStateException("The room is no longer available")
-                    val event = room.getTimelineEvent(targetEventId)
+                    val event = room.getTimelineEvent(requestedEventId)
                             ?: throw IllegalStateException("The audio event is no longer available")
                     val content = event.root.getClearContent().toModel<MessageAudioContent>()
                             ?: throw IllegalStateException("The event is not an audio message")
@@ -182,8 +183,8 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                     } else {
                         emptyList()
                     }
-                    val normalizedQueue = if (initializeQueue && targetEventId !in audioQueue) {
-                        audioQueue + targetEventId
+                    val normalizedQueue = if (initializeQueue && requestedEventId !in audioQueue) {
+                        audioQueue + requestedEventId
                     } else {
                         audioQueue
                     }
@@ -215,18 +216,18 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                         durationMs = loaded.duration.coerceAtLeast(0)
                         if (initializeQueue) {
                             queueEventIds = loaded.queueEventIds
-                            queueIndex = queueEventIds.indexOf(targetEventId)
+                            queueIndex = queueEventIds.indexOf(requestedEventId)
                             AudioPlaybackService.setQueue(
                                     this@TelegramAudioPlayerActivity,
                                     targetRoomId,
                                     queueEventIds,
-                                    targetEventId
+                                    requestedEventId
                             )
                             shuffleEnabled = AudioPlaybackService.isShuffleEnabled(this@TelegramAudioPlayerActivity)
                             repeatMode = AudioPlaybackService.repeatMode(this@TelegramAudioPlayerActivity)
                             renderQueueControls()
                         } else if (queueIndex < 0) {
-                            queueIndex = queueEventIds.indexOf(targetEventId)
+                            queueIndex = queueEventIds.indexOf(requestedEventId)
                             renderQueueControls()
                         }
                         views.audioPlayerTitle.text = loaded.title
@@ -247,7 +248,7 @@ class TelegramAudioPlayerActivity : AppCompatActivity() {
                         views.audioPlayerSeekBar.isEnabled = durationMs > 0
                         setLoading(false)
                         updateSpeedLabel()
-                        val activeEventId = eventId ?: targetEventId
+                        val activeEventId = eventId ?: requestedEventId
                         if (!AudioPlaybackService.isActiveFor(this@TelegramAudioPlayerActivity, activeEventId)) {
                             val resumeAt = playbackTracker.getPlaybackTime(activeEventId)
                                     ?: AudioPlaybackService.persistedPosition(this@TelegramAudioPlayerActivity, activeEventId)
