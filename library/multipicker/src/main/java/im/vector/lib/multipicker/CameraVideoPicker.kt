@@ -69,8 +69,12 @@ class CameraVideoPicker {
         fun createVideoCaptureOutput(context: Context, videoNote: Boolean = false): VideoCaptureOutput {
             val temporaryFile = createTemporaryMediaFile(context, MediaType.VIDEO)
             val file = if (videoNote) {
-                val namedFile = File(temporaryFile.parentFile, "video_note_${System.currentTimeMillis()}.mp4")
-                if (temporaryFile.renameTo(namedFile)) namedFile else temporaryFile
+                // Use a unique file created with the marker as its real filename. This keeps
+                // the round-video-note treatment intact after FileProvider URI conversion,
+                // Matrix upload, sync and Timeline rendering.
+                File.createTempFile("video_note_", ".mp4", temporaryFile.parentFile).also {
+                    temporaryFile.delete()
+                }
             } else {
                 temporaryFile
             }

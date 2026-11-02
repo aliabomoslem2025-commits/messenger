@@ -181,7 +181,17 @@ class VoiceMessageViews(
 
     fun showVideoNoteRecordingViews() {
         views.voiceMessageBackgroundView.isVisible = true
+        views.videoNotePreviewView.animate().cancel()
+        views.videoNotePreviewView.alpha = 0f
+        views.videoNotePreviewView.scaleX = 0.88f
+        views.videoNotePreviewView.scaleY = 0.88f
         views.videoNotePreviewView.isVisible = true
+        views.videoNotePreviewView.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(180L)
+                .start()
         views.voiceMessageMicButton.setCaptureMode(video = true, animated = false)
         views.voiceMessageMicButton.setAttributeTintedBackground(R.drawable.circle_with_halo, com.google.android.material.R.attr.colorPrimary)
         views.voiceMessageMicButton.animate().scaleX(1.35f).scaleY(1.35f).setDuration(180L).start()
@@ -196,6 +206,10 @@ class VoiceMessageViews(
     }
 
     fun hideVideoNoteRecordingViews() {
+        views.videoNotePreviewView.animate().cancel()
+        views.videoNotePreviewView.alpha = 1f
+        views.videoNotePreviewView.scaleX = 1f
+        views.videoNotePreviewView.scaleY = 1f
         views.videoNotePreviewView.isVisible = false
         views.voiceMessageTimer.isVisible = false
         views.voiceMessageTimerIndicator.isVisible = false

@@ -221,6 +221,12 @@ class InlineRoundVideoRecorder(
             parameters.supportedFocusModes
                     ?.firstOrNull { it == Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO }
                     ?.let { parameters.focusMode = it }
+            // Read supported recording sizes while the camera still owns its parameters.
+            // MediaRecorder takes ownership after Camera.unlock(); querying parameters
+            // after that point can return an empty parameter set on several camera drivers.
+            val videoSize = (chooseVideoSize(parameters.supportedVideoSizes)
+                    ?: choosePreviewSize(parameters.supportedPreviewSizes))
+                    ?.let { it.width to it.height }
             openedCamera.parameters = parameters
             openedCamera.setDisplayOrientation(previewOrientation)
             openedCamera.setPreviewTexture(surfaceTexture)
@@ -228,7 +234,7 @@ class InlineRoundVideoRecorder(
             camera = openedCamera
             previewSurface?.release()
             previewSurface = Surface(surfaceTexture)
-            startMediaRecorder(openedCamera)
+            startMediaRecorder(openedCamera, videoSize)
             if (stopRequested && isRecording) {
                 pendingStopTimeout?.let(mainHandler::removeCallbacks)
                 pendingStopTimeout = null
@@ -254,7 +260,7 @@ class InlineRoundVideoRecorder(
         }
     }
 
-    private fun startMediaRecorder(activeCamera: Camera) {
+    private fun startMediaRecorder(activeCamera: Camera, videoSize: Pair<Int, Int>?) {
         val file = outputFile ?: throw IllegalStateException("Missing video note output file")
         var candidate: MediaRecorder? = null
         try {
@@ -269,8 +275,8 @@ class InlineRoundVideoRecorder(
                 setVideoEncoder(MediaRecorder.VideoEncoder.H264)
                 setVideoEncodingBitRate(VIDEO_BIT_RATE)
                 setVideoFrameRate(VIDEO_FRAME_RATE)
-                chooseVideoSize(activeCamera.parameters.supportedVideoSizes)?.let { size ->
-                    setVideoSize(size.width, size.height)
+                videoSize?.let { size ->
+                    setVideoSize(size.first, size.second)
                 }
                 setOrientationHint(recordingOrientationHint)
                 previewSurface?.let(::setPreviewDisplay)
