@@ -59,4 +59,7 @@
     <string name="telegram_stories_video">ویدئو</string>
     <string name="telegram_stories_open_viewer">نمایش استوری‌ها</string>
     <string name="telegram_stories_yours">استوری شما</string>
+    <string name="telegram_video_note_switch_camera">تغییر دوربین برای کلیپ بعدی</string>
+    <string name="telegram_video_note_toggle_flash">روشن یا خاموش کردن فلش</string>
+    <string name="telegram_video_note_lock">قفل ضبط کلیپ دایره‌ای</string>
 </resources>

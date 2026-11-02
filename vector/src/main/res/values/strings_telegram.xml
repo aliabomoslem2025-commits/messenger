@@ -132,4 +132,7 @@
     <string name="telegram_audio_repeat_off">Repeat off</string>
     <string name="telegram_audio_repeat_all">Repeat all</string>
     <string name="telegram_audio_repeat_one">Repeat current track</string>
+    <string name="telegram_video_note_switch_camera">Switch camera for next video note</string>
+    <string name="telegram_video_note_toggle_flash">Toggle camera flash</string>
+    <string name="telegram_video_note_lock">Lock video-note recording</string>
 </resources>

@@ -35,12 +35,16 @@ class InlineRoundVideoRecorder(
         private val preview: TextureView,
         private val timer: TextView,
         private val timerIndicator: ImageView,
+        private val progressRing: VideoNoteProgressRingView,
         private val onFailure: (Throwable) -> Unit,
         private val onMaximumDurationReached: () -> Unit,
 ) : TextureView.SurfaceTextureListener {
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var camera: Camera? = null
+    private var cameraParameters: Camera.Parameters? = null
+    private var preferFrontCamera = true
+    private var flashEnabled = false
     private var previewOrientation = 90
     private var recordingOrientationHint = 90
     private var recorder: MediaRecorder? = null
@@ -59,6 +63,7 @@ class InlineRoundVideoRecorder(
             if (!isRecording) return
             val elapsed = (SystemClock.elapsedRealtime() - startedAtMs).coerceAtLeast(0L)
             timer.text = formatTime(elapsed)
+            progressRing.progress = (elapsed.toFloat() / MAX_RECORDING_MS).coerceIn(0f, 1f)
             if (elapsed >= MAX_RECORDING_MS && !maxDurationCallbackSent) {
                 maxDurationCallbackSent = true
                 onMaximumDurationReached()
@@ -79,6 +84,8 @@ class InlineRoundVideoRecorder(
         preview.visibility = View.GONE
         timerIndicator.visibility = View.GONE
         timer.visibility = View.GONE
+        progressRing.visibility = View.GONE
+        progressRing.progress = 0f
     }
 
     /**
@@ -93,6 +100,8 @@ class InlineRoundVideoRecorder(
         timer.text = formatTime(0L)
         timerIndicator.visibility = View.VISIBLE
         timer.visibility = View.VISIBLE
+        progressRing.visibility = View.VISIBLE
+        progressRing.progress = 0f
         preview.visibility = View.VISIBLE
         preview.post {
             if (pendingStart && preview.isAvailable) {
@@ -227,7 +236,12 @@ class InlineRoundVideoRecorder(
             val videoSize = (chooseVideoSize(parameters.supportedVideoSizes)
                     ?: choosePreviewSize(parameters.supportedPreviewSizes))
                     ?.let { it.width to it.height }
+            if (flashEnabled && cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK &&
+                    parameters.supportedFlashModes?.contains(Camera.Parameters.FLASH_MODE_TORCH) == true) {
+                parameters.flashMode = Camera.Parameters.FLASH_MODE_TORCH
+            }
             openedCamera.parameters = parameters
+            cameraParameters = parameters
             openedCamera.setDisplayOrientation(previewOrientation)
             openedCamera.setPreviewTexture(surfaceTexture)
             openedCamera.startPreview()
@@ -294,7 +308,7 @@ class InlineRoundVideoRecorder(
             recorder = candidate
             pendingStart = false
             isRecording = true
-            startedAtMs = SystemClock.elapsedRealtime()
+            if (startedAtMs == 0L) startedAtMs = SystemClock.elapsedRealtime()
             mainHandler.removeCallbacks(timerRunnable)
             mainHandler.post(timerRunnable)
         } catch (failure: Throwable) {
@@ -307,11 +321,41 @@ class InlineRoundVideoRecorder(
         }
     }
 
+    /** Changes the preferred lens for the next video note. */
+    fun switchCameraForNextCapture(): Boolean {
+        val desiredFacing = if (preferFrontCamera) Camera.CameraInfo.CAMERA_FACING_BACK else Camera.CameraInfo.CAMERA_FACING_FRONT
+        val available = (0 until Camera.getNumberOfCameras()).any { id ->
+            val info = Camera.CameraInfo()
+            Camera.getCameraInfo(id, info)
+            info.facing == desiredFacing
+        }
+        if (!available) return false
+        preferFrontCamera = !preferFrontCamera
+        return true
+    }
+
+    /**
+     * Toggle torch using the parameter snapshot captured before Camera.unlock().
+     * Some legacy camera HALs return empty parameters after MediaRecorder takes
+     * ownership; never query camera.parameters again in that state.
+     */
+    fun toggleFlash(): Boolean? {
+        val parameters = cameraParameters ?: return null
+        val modes = parameters.supportedFlashModes.orEmpty()
+        if (Camera.Parameters.FLASH_MODE_TORCH !in modes) return null
+        val desired = !flashEnabled
+        parameters.flashMode = if (desired) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
+        val applied = runCatching { camera?.parameters = parameters }.isSuccess
+        if (applied) flashEnabled = desired
+        return flashEnabled.takeIf { applied }
+    }
+
     private fun preferredCameraId(): Int {
+        val desiredFacing = if (preferFrontCamera) Camera.CameraInfo.CAMERA_FACING_FRONT else Camera.CameraInfo.CAMERA_FACING_BACK
         val info = Camera.CameraInfo()
         for (id in 0 until Camera.getNumberOfCameras()) {
             Camera.getCameraInfo(id, info)
-            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) return id
+            if (info.facing == desiredFacing) return id
         }
         return 0
     }
@@ -362,6 +406,7 @@ class InlineRoundVideoRecorder(
         runCatching { camera?.stopPreview() }
         runCatching { camera?.release() }
         camera = null
+        cameraParameters = null
         runCatching { previewSurface?.release() }
         previewSurface = null
     }

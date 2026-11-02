@@ -17,6 +17,17 @@
         android:background="?android:colorBackground" />
 
     <View
+        android:id="@+id/videoNoteScrim"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#66A8D4F0"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
         android:id="@+id/voiceMessageLockBackground"
         android:layout_width="52dp"
         android:layout_height="180dp"
@@ -31,18 +42,85 @@
 
     <TextureView
         android:id="@+id/videoNotePreviewView"
-        android:layout_width="240dp"
-        android:layout_height="240dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
         android:clipToOutline="true"
         android:contentDescription="@string/telegram_video_note_preview"
         android:outlineProvider="background"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/voiceMessageMicButton"
+        app:layout_constraintBottom_toTopOf="@id/voiceMessageBackgroundView"
+        app:layout_constraintDimensionRatio="1:1"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_max="336dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5"
+        app:layout_constraintVertical_bias="0.47"
+        app:layout_constraintWidth_max="336dp"
         tools:visibility="visible" />
+
+    <im.vector.app.features.home.room.detail.composer.voice.VideoNoteProgressRingView
+        android:id="@+id/videoNoteProgressRing"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:importantForAccessibility="no"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/videoNotePreviewView"
+        app:layout_constraintEnd_toEndOf="@id/videoNotePreviewView"
+        app:layout_constraintStart_toStartOf="@id/videoNotePreviewView"
+        app:layout_constraintTop_toTopOf="@id/videoNotePreviewView" />
+
+    <LinearLayout
+        android:id="@+id/videoNoteCameraControls"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_telegram_video_controls"
+        android:elevation="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/voiceMessageBackgroundView"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/videoNoteSwitchCameraButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_video_note_switch_camera"
+            android:padding="9dp"
+            android:src="@drawable/ic_video_flip"
+            android:tint="#273746" />
+
+        <ImageButton
+            android:id="@+id/videoNoteFlashButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/telegram_video_note_toggle_flash"
+            android:padding="10dp"
+            android:src="@drawable/ic_video_flash"
+            android:tint="#273746" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/videoNoteLockBadge"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/bg_telegram_camera_button"
+        android:contentDescription="@string/telegram_video_note_lock"
+        android:padding="12dp"
+        android:src="@drawable/ic_voice_message_unlocked"
+        android:visibility="gone"
+        app:tint="#273746"
+        app:layout_constraintBottom_toTopOf="@id/voiceMessageMicButton"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <im.vector.app.features.home.room.detail.composer.voice.TelegramVoiceVideoButton
         android:id="@+id/voiceMessageMicButton"

@@ -180,6 +180,10 @@ class VoiceMessageViews(
     }
 
     fun showVideoNoteRecordingViews() {
+        views.videoNoteScrim.isVisible = true
+        views.videoNoteProgressRing.isVisible = true
+        views.videoNoteCameraControls.isVisible = true
+        views.videoNoteLockBadge.isVisible = true
         views.voiceMessageBackgroundView.isVisible = true
         views.videoNotePreviewView.animate().cancel()
         views.videoNotePreviewView.alpha = 0f
@@ -206,6 +210,10 @@ class VoiceMessageViews(
     }
 
     fun hideVideoNoteRecordingViews() {
+        views.videoNoteScrim.isVisible = false
+        views.videoNoteProgressRing.isVisible = false
+        views.videoNoteCameraControls.isVisible = false
+        views.videoNoteLockBadge.isVisible = false
         views.videoNotePreviewView.animate().cancel()
         views.videoNotePreviewView.alpha = 1f
         views.videoNotePreviewView.scaleX = 1f
@@ -227,6 +235,7 @@ class VoiceMessageViews(
         views.voiceMessageTimerIndicator.alpha = 1f
         views.voiceMessageTimer.alpha = 1f
         views.voiceMessageSlideToCancel.alpha = 1f
+        views.videoNoteProgressRing.progress = 0f
     }
 
     fun renderStarted(distanceX: Float) {
