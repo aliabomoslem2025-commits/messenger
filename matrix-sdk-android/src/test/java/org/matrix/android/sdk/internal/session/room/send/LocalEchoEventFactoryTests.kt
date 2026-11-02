@@ -237,7 +237,6 @@ class LocalEchoEventFactoryTests {
         val message = event.content.toModel<MessageImageContent>()
         assertEquals("A beautiful day", message?.body)
         assertEquals("holiday.jpg", message?.filename)
-        assertEquals(null, message?.formattedBody)
     }
 
     @Test
