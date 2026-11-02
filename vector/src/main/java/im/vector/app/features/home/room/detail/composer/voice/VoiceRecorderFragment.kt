@@ -189,6 +189,9 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
     }
 
     private fun finishInlineVideoNote(cancelled: Boolean) {
+        // The timer and MediaRecorder can both report the maximum duration on adjacent
+        // callbacks. Finalize only once so the same MP4 is never sent/deleted twice.
+        if (inlineVideoNoteFinalizing && !cancelled) return
         val recorder = inlineVideoNoteRecorder ?: return
         val pendingFile = inlineVideoNoteOutputFile
         if (cancelled) {
