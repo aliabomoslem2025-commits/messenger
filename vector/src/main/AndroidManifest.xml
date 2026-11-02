@@ -308,7 +308,8 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".features.attachments.preview.AttachmentsPreviewActivity"
-            android:theme="@style/Theme.Vector.Black.AttachmentsPreview" />
+            android:theme="@style/Theme.Vector.Black.AttachmentsPreview"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".features.call.VectorCallActivity"
             android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"

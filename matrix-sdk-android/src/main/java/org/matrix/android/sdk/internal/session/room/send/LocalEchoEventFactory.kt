@@ -431,7 +431,7 @@ internal class LocalEchoEventFactory @Inject constructor(
 
         val content = MessageImageContent(
                 msgType = MessageType.MSGTYPE_IMAGE,
-                body = attachment.name ?: "image",
+                body = attachment.caption?.takeIf { it.isNotBlank() } ?: attachment.name ?: "image",
                 info = ImageInfo(
                         mimeType = attachment.getSafeMimeType(),
                         width = width?.toInt() ?: 0,
@@ -470,7 +470,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         }
         val content = MessageVideoContent(
                 msgType = MessageType.MSGTYPE_VIDEO,
-                body = attachment.name ?: "video",
+                body = attachment.caption?.takeIf { it.isNotBlank() } ?: attachment.name ?: "video",
                 videoInfo = VideoInfo(
                         mimeType = attachment.getSafeMimeType(),
                         width = width,

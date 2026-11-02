@@ -23,6 +23,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.core.view.updatePadding
+import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import com.airbnb.mvrx.args
@@ -79,6 +80,7 @@ class AttachmentsPreviewFragment :
         applyInsets()
         setupRecyclerViews()
         setupToolbar(views.attachmentPreviewerToolbar)
+        setupCaptionInput()
         views.attachmentPreviewerSendButton.debouncedClicks {
             setResultAndFinish()
         }
@@ -137,6 +139,10 @@ class AttachmentsPreviewFragment :
             views.attachmentPreviewerBigList.scrollToPosition(state.currentAttachmentIndex)
             views.attachmentPreviewerMiniatureList.scrollToPosition(state.currentAttachmentIndex)
             views.attachmentPreviewerSendImageOriginalSize.text = getCheckboxText(state)
+            if (views.attachmentPreviewerCaption.text?.toString() != state.caption) {
+                views.attachmentPreviewerCaption.setText(state.caption)
+                views.attachmentPreviewerCaption.setSelection(state.caption.length)
+            }
         }
     }
 
@@ -155,10 +161,23 @@ class AttachmentsPreviewFragment :
     }
 
     private fun setResultAndFinish() = withState(viewModel) {
+        // Telegram-style media captions belong to the selected group, not every item.
+        // Matrix currently sends each attachment as its own event, so apply the shared
+        // caption to the first item only to avoid repeating it on every message.
+        val caption = it.caption.trim().takeIf { value -> value.isNotEmpty() }
+        val attachmentsWithCaption = it.attachments.mapIndexed { index, attachment ->
+            attachment.copy(caption = if (index == 0) caption else null)
+        }
         (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(
-                it.attachments,
+                attachmentsWithCaption,
                 views.attachmentPreviewerSendImageOriginalSize.isChecked
         )
+    }
+
+    private fun setupCaptionInput() {
+        views.attachmentPreviewerCaption.doAfterTextChanged { editable ->
+            viewModel.handle(AttachmentsPreviewAction.UpdateCaption(editable?.toString().orEmpty()))
+        }
     }
 
     private fun applyInsets() {

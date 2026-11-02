@@ -16,6 +16,7 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
         when (action) {
             is AttachmentsPreviewAction.SetCurrentAttachment -> handleSetCurrentAttachment(action)
             is AttachmentsPreviewAction.UpdatePathOfCurrentAttachment -> handleUpdatePathOfCurrentAttachment(action)
+            is AttachmentsPreviewAction.UpdateCaption -> handleUpdateCaption(action.caption)
             AttachmentsPreviewAction.RemoveCurrentAttachment -> handleRemoveCurrentAttachment()
         }
     }
@@ -44,5 +45,11 @@ class AttachmentsPreviewViewModel(initialState: AttachmentsPreviewViewState) :
 
     private fun handleSetCurrentAttachment(action: AttachmentsPreviewAction.SetCurrentAttachment) = setState {
         copy(currentAttachmentIndex = action.index)
+    }
+
+    private fun handleUpdateCaption(caption: String) = withState { state ->
+        if (state.caption != caption) {
+            setState { copy(caption = caption) }
+        }
     }
 }

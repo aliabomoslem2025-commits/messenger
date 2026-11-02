@@ -37,7 +37,12 @@ data class ContentAttachmentData(
         val queryUri: Uri,
         val mimeType: String?,
         val type: Type,
-        val waveform: List<Int>? = null
+        val waveform: List<Int>? = null,
+        /**
+         * Optional user-provided caption for image/video messages.
+         * Kept separate from [name] so the upload filename is not overwritten.
+         */
+        val caption: String? = null
 ) : Parcelable {
 
     @JsonClass(generateAdapter = false)

@@ -13,7 +13,8 @@ import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 data class AttachmentsPreviewViewState(
         val attachments: List<ContentAttachmentData>,
         val currentAttachmentIndex: Int = 0,
-        val sendImagesWithOriginalSize: Boolean = false
+        val sendImagesWithOriginalSize: Boolean = false,
+        val caption: String = ""
 ) : MavericksState {
 
     constructor(args: AttachmentsPreviewArgs) : this(attachments = args.attachments)

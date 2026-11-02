@@ -43,6 +43,28 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/attachmentPreviewerCaption"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:gravity="top|start"
+            android:hint="@string/send_media_add_caption"
+            android:imeOptions="actionDone"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLength="1024"
+            android:maxLines="4"
+            android:minHeight="52dp"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="12dp"
+            android:textColor="@android:color/white"
+            android:textColorHint="#CCFFFFFF"
+            app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerMiniatureList"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/attachmentPreviewerMiniatureList"
             android:layout_width="0dp"
@@ -51,7 +73,7 @@
             app:layout_constraintBottom_toTopOf="@id/attachmentPreviewerSendImageOriginalSize"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/attachmentPreviewerCaption"
             tools:itemCount="1"
             tools:listitem="@layout/item_attachment_miniature_preview" />
 

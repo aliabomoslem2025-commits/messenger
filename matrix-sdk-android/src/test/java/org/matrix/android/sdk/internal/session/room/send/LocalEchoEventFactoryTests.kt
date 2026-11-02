@@ -19,6 +19,8 @@ package org.matrix.android.sdk.internal.session.room.send
 import org.amshove.kluent.internal.assertEquals
 import org.junit.Before
 import org.junit.Test
+import android.net.Uri
+import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.toContent
@@ -214,6 +216,41 @@ class LocalEchoEventFactoryTests {
                 "<blockquote>Quoted</blockquote><br/><b>Text</b>",
                 (quotedContent as? MessageContentWithFormattedBody)?.formattedBody
         )
+    }
+
+    @Test
+    fun `media caption is used as the image message body`() {
+        val event = localEchoEventFactory.createMediaEvent(
+                roomId = A_ROOM_ID,
+                attachment = ContentAttachmentData(
+                        name = "holiday.jpg",
+                        queryUri = Uri.parse("content://test/holiday.jpg"),
+                        mimeType = "image/jpeg",
+                        type = ContentAttachmentData.Type.IMAGE,
+                        caption = "A beautiful day"
+                ),
+                rootThreadEventId = null,
+                relatesTo = null
+        )
+
+        assertEquals("A beautiful day", event.content.toModel<MessageContent>()?.body)
+    }
+
+    @Test
+    fun `image filename remains the fallback when no caption is provided`() {
+        val event = localEchoEventFactory.createMediaEvent(
+                roomId = A_ROOM_ID,
+                attachment = ContentAttachmentData(
+                        name = "holiday.jpg",
+                        queryUri = Uri.parse("content://test/holiday.jpg"),
+                        mimeType = "image/jpeg",
+                        type = ContentAttachmentData.Type.IMAGE
+                ),
+                rootThreadEventId = null,
+                relatesTo = null
+        )
+
+        assertEquals("holiday.jpg", event.content.toModel<MessageContent>()?.body)
     }
 
     private fun createTimelineEvent(quotedText: String?, formattedQuotedText: String?): TimelineEvent {

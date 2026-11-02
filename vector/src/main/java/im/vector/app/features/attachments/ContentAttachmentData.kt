@@ -8,19 +8,12 @@
 package im.vector.app.features.attachments
 
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.util.MimeTypes
-
-private val listOfPreviewableMimeTypes = listOf(
-        MimeTypes.Jpeg,
-        MimeTypes.Png,
-        MimeTypes.Gif
-)
 
 fun ContentAttachmentData.isPreviewable(): Boolean {
-    // Preview supports image and video
-    return (type == ContentAttachmentData.Type.IMAGE &&
-            listOfPreviewableMimeTypes.contains(getSafeMimeType() ?: "")) ||
-            type == ContentAttachmentData.Type.VIDEO
+    // Every image and video selected from the gallery must pass through the preview so
+    // the user can review the selection and add a caption before sending.
+    return type == ContentAttachmentData.Type.VIDEO ||
+            (type == ContentAttachmentData.Type.IMAGE && getSafeMimeType()?.startsWith("image/") != false)
 }
 
 data class GroupedContentAttachmentData(
