@@ -129,6 +129,10 @@ class AudioMessageHelper @Inject constructor(
         }
     }
 
+    fun setPlaybackQueue(roomId: String, eventIds: List<String>, currentEventId: String) {
+        AudioPlaybackService.setQueue(context, roomId, eventIds, currentEventId)
+    }
+
     fun startOrPausePlayback(id: String, file: File, title: String = file.nameWithoutExtension) {
         val playbackState = playbackTracker.getPlaybackState(id)
         stopRecordingAmplitudes()
