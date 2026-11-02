@@ -348,7 +348,7 @@ class InlineRoundVideoRecorder(
         parameters.flashMode = if (desired) Camera.Parameters.FLASH_MODE_TORCH else Camera.Parameters.FLASH_MODE_OFF
         val applied = runCatching { camera?.parameters = parameters }.isSuccess
         if (applied) flashEnabled = desired
-        return flashEnabled.takeIf { applied }
+        return if (applied) flashEnabled else null
     }
 
     private fun preferredCameraId(): Int {
