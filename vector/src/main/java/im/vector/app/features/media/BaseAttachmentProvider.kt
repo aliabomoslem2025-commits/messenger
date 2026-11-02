@@ -85,7 +85,7 @@ abstract class BaseAttachmentProvider<Type>(
                 url = downloadUrl,
                 fileStateProvider = fileStateProvider,
                 cancelDownload = {
-                    downloadUrl?.let(fileService::cancelDownload) ?: false
+                    fileService.cancelDownload(downloadUrl)
                 }
         )
 
