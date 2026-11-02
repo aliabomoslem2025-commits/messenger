@@ -970,6 +970,12 @@ class MessageComposerViewModel @AssistedInject constructor(
     private fun handlePlayOrPauseVoicePlayback(action: MessageComposerAction.PlayOrPauseVoicePlayback) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                // Keep the foreground player queue consistent whether playback starts from
+                // a message bubble or from the expanded music player.
+                room?.let { currentRoom ->
+                    val queueEventIds = currentRoom.timelineService().getAudioMessages().map { it.eventId }
+                    audioMessageHelper.setPlaybackQueue(currentRoom.roomId, queueEventIds, action.eventId)
+                }
                 // Download can fail
                 val audioFile = session.fileService().downloadFile(action.messageAudioContent)
                 // Play can fail
