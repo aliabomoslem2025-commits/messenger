@@ -62,4 +62,7 @@
     <string name="telegram_video_note_switch_camera">تغییر دوربین برای کلیپ بعدی</string>
     <string name="telegram_video_note_toggle_flash">روشن یا خاموش کردن فلش</string>
     <string name="telegram_video_note_lock">قفل ضبط کلیپ دایره‌ای</string>
+    <string name="telegram_video_note_camera_next_take">دوربین برای کلیپ بعدی تغییر کرد</string>
+    <string name="telegram_video_note_camera_unavailable">دوربین انتخاب‌شده در دسترس نیست</string>
+    <string name="telegram_video_note_flash_unavailable">فلش این دوربین هنگام ضبط در دسترس نیست</string>
 </resources>
