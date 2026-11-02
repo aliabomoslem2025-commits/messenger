@@ -135,4 +135,7 @@
     <string name="telegram_video_note_switch_camera">Switch camera for next video note</string>
     <string name="telegram_video_note_toggle_flash">Toggle camera flash</string>
     <string name="telegram_video_note_lock">Lock video-note recording</string>
+    <string name="telegram_video_note_camera_next_take">Camera changed for the next video note</string>
+    <string name="telegram_video_note_camera_unavailable">The selected camera is not available</string>
+    <string name="telegram_video_note_flash_unavailable">Flash is not available on this camera while recording</string>
 </resources>
