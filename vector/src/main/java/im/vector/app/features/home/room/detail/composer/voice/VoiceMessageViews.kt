@@ -114,9 +114,9 @@ class VoiceMessageViews(
                         val pendingHold = Runnable {
                             holdStarted = true
                             if (videoNoteMode) {
-                            videoNoteRequested = true
-                            showVideoNoteRecordingViews()
-                            actions.onVideoNoteRequested()
+                                videoNoteRequested = true
+                                showVideoNoteRecordingViews()
+                                actions.onVideoNoteRequested()
                             } else {
                                 actions.onRequestRecording()
                             }
