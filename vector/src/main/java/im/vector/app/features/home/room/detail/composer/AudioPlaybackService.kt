@@ -32,6 +32,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import im.vector.app.R
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
+import im.vector.app.features.media.TelegramAudioPlayerActivity
 import im.vector.app.features.session.coroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -597,6 +598,17 @@ class AudioPlaybackService : Service() {
             if (nextQueueIndex() != null) actions = actions or PlaybackStateCompat.ACTION_SKIP_TO_NEXT
             actions = actions or PlaybackStateCompat.ACTION_SET_SHUFFLE_MODE or PlaybackStateCompat.ACTION_SET_REPEAT_MODE
         }
+        mediaSession.setRepeatMode(
+                when (queueRepeatMode) {
+                    REPEAT_ONE -> PlaybackStateCompat.REPEAT_MODE_ONE
+                    REPEAT_ALL -> PlaybackStateCompat.REPEAT_MODE_ALL
+                    else -> PlaybackStateCompat.REPEAT_MODE_NONE
+                }
+        )
+        mediaSession.setShuffleMode(
+                if (queueShuffleEnabled) PlaybackStateCompat.SHUFFLE_MODE_ALL
+                else PlaybackStateCompat.SHUFFLE_MODE_NONE
+        )
         mediaSession.setPlaybackState(
                 PlaybackStateCompat.Builder()
                         .setActions(actions)
@@ -607,9 +619,22 @@ class AudioPlaybackService : Service() {
     }
 
     private fun buildNotification(isPlaying: Boolean): Notification {
-        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+        val activeId = playbackId
+        val roomId = queueRoomId
+        val launchIntent = if (
+                activeId != null &&
+                !activeId.startsWith(VIDEO_PLAYBACK_PREFIX) &&
+                !roomId.isNullOrBlank()
+        ) {
+            TelegramAudioPlayerActivity.newIntent(this, roomId, activeId)
+        } else {
+            packageManager.getLaunchIntentForPackage(packageName)
+        }
         val contentIntent = launchIntent?.let {
             PendingIntent.getActivity(this, 10, it, pendingIntentFlags())
+        }
+        if (contentIntent != null && ::mediaSession.isInitialized) {
+            mediaSession.setSessionActivity(contentIntent)
         }
         val toggleAction = if (isPlaying) ACTION_PAUSE else ACTION_PLAY
         val toggleIcon = if (isPlaying) R.drawable.ic_play_pause_pause else R.drawable.ic_play_pause_play
