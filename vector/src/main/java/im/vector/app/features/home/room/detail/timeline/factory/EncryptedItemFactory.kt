@@ -86,7 +86,7 @@ class EncryptedItemFactory @Inject constructor(
                                         +" "
                                     }
                                     span(stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt_final)) {
-                                                    textColor = colorFromAttribute
+                                        textColor = colorFromAttribute
                                     }
                                 }
                             }
@@ -97,7 +97,7 @@ class EncryptedItemFactory @Inject constructor(
                                         +" "
                                     }
                                     span(stringProvider.getString(CommonStrings.notice_crypto_unable_to_decrypt_friendly)) {
-                                                    textColor = colorFromAttribute
+                                        textColor = colorFromAttribute
                                     }
                                 }
                             }
