@@ -95,6 +95,7 @@ class InlineRoundVideoRecorder(
     fun start(file: File) {
         if (isRecording || pendingStart) cancel()
         outputFile = file
+        startedAtMs = 0L
         pendingStart = true
         maxDurationCallbackSent = false
         timer.text = formatTime(0L)

@@ -106,10 +106,14 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         val videoPreview = views.voiceMessageRecorderView.findViewById<android.view.TextureView>(im.vector.app.R.id.videoNotePreviewView)
         val videoTimer = views.voiceMessageRecorderView.findViewById<android.widget.TextView>(im.vector.app.R.id.voiceMessageTimer)
         val videoTimerIndicator = views.voiceMessageRecorderView.findViewById<android.widget.ImageView>(im.vector.app.R.id.voiceMessageTimerIndicator)
+        val videoProgressRing = views.voiceMessageRecorderView.findViewById<VideoNoteProgressRingView>(im.vector.app.R.id.videoNoteProgressRing)
+        val videoSwitchCameraButton = views.voiceMessageRecorderView.findViewById<android.widget.ImageButton>(im.vector.app.R.id.videoNoteSwitchCameraButton)
+        val videoFlashButton = views.voiceMessageRecorderView.findViewById<android.widget.ImageButton>(im.vector.app.R.id.videoNoteFlashButton)
         inlineVideoNoteRecorder = InlineRoundVideoRecorder(
                 preview = videoPreview,
                 timer = videoTimer,
                 timerIndicator = videoTimerIndicator,
+                progressRing = videoProgressRing,
                 onFailure = { failure ->
                     if (isAdded) {
                         requireActivity().runOnUiThread {
@@ -126,6 +130,29 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
                 },
                 onMaximumDurationReached = { finishInlineVideoNote(cancelled = false) }
         )
+
+        videoSwitchCameraButton.setOnClickListener {
+            val switched = inlineVideoNoteRecorder?.switchCameraForNextCapture() == true
+            if (switched) {
+                videoSwitchCameraButton.animate().rotationBy(180f).setDuration(220L).start()
+                Toast.makeText(requireContext(), R.string.telegram_video_note_camera_next_take, Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), R.string.telegram_video_note_camera_unavailable, Toast.LENGTH_SHORT).show()
+            }
+        }
+        videoFlashButton.setOnClickListener {
+            when (inlineVideoNoteRecorder?.toggleFlash()) {
+                true -> {
+                    videoFlashButton.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFC247.toInt())
+                    videoFlashButton.alpha = 1f
+                }
+                false -> {
+                    videoFlashButton.imageTintList = android.content.res.ColorStateList.valueOf(0xFF273746.toInt())
+                    videoFlashButton.alpha = 0.82f
+                }
+                null -> Toast.makeText(requireContext(), R.string.telegram_video_note_flash_unavailable, Toast.LENGTH_SHORT).show()
+            }
+        }
 
         messageComposerViewModel.observeViewEvents {
             when (it) {
@@ -271,6 +298,10 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
 
             override fun onVideoNoteCancelled() {
                 finishInlineVideoNote(cancelled = true)
+            }
+
+            override fun onVideoNoteLocked() {
+                views.voiceMessageRecorderView.renderVideoNoteLocked(true)
             }
 
             override fun onVoicePlaybackButtonClicked() {

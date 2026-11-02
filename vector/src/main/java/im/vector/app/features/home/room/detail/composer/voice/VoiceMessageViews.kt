@@ -88,34 +88,52 @@ class VoiceMessageViews(
         var holdStarted = false
         var videoNoteRequested = false
         var videoNoteCancelled = false
+        var videoNoteLocked = false
         var videoDragState: DraggingState = DraggingState.Ready
         var holdRunnable: Runnable? = null
+        views.videoNoteLockBadge.setOnClickListener {
+            if (videoNoteRequested && !videoNoteCancelled) {
+                videoNoteLocked = true
+                renderVideoNoteLocked(true)
+                actions.onVideoNoteLocked()
+            }
+        }
         views.voiceMessageMicButton.setOnTouchListener { button, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     draggableStateProcessor.initialize(event)
                     holdStarted = false
-                    videoNoteRequested = false
                     videoNoteCancelled = false
                     videoDragState = DraggingState.Ready
-                    val pendingHold = Runnable {
+                    if (videoNoteLocked) {
+                        // In locked mode a quick tap on the capture control stops/sends.
                         holdStarted = true
-                        if (videoNoteMode) {
+                        videoNoteRequested = true
+                    } else {
+                        videoNoteRequested = false
+                        val pendingHold = Runnable {
+                            holdStarted = true
+                            if (videoNoteMode) {
                             videoNoteRequested = true
                             showVideoNoteRecordingViews()
                             actions.onVideoNoteRequested()
-                        } else {
-                            actions.onRequestRecording()
+                            } else {
+                                actions.onRequestRecording()
+                            }
                         }
+                        holdRunnable = pendingHold
+                        button.postDelayed(pendingHold, MIC_HOLD_DELAY_MS)
                     }
-                    holdRunnable = pendingHold
-                    button.postDelayed(pendingHold, MIC_HOLD_DELAY_MS)
                     true
                 }
                 MotionEvent.ACTION_UP -> {
                     holdRunnable?.let(button::removeCallbacks)
                     holdRunnable = null
-                    if (!holdStarted) {
+                    if (videoNoteLocked && holdStarted && videoNoteRequested) {
+                        videoNoteLocked = false
+                        videoNoteRequested = false
+                        actions.onVideoNoteReleased()
+                    } else if (!holdStarted) {
                         // A tap switches capture mode; it must never create a zero-length recording.
                         videoNoteMode = !videoNoteMode
                         views.voiceMessageMicButton.setCaptureMode(videoNoteMode, animated = true)
@@ -147,6 +165,13 @@ class VoiceMessageViews(
                         videoDragState = nextState
                         when (nextState) {
                             is DraggingState.Cancelling -> renderCancelling(nextState.distanceX)
+                            is DraggingState.Locking -> renderLocking(nextState.distanceY)
+                            DraggingState.Lock -> {
+                                videoNoteLocked = true
+                                holdStarted = false
+                                renderVideoNoteLocked(true)
+                                actions.onVideoNoteLocked()
+                            }
                             DraggingState.Ready -> showVideoNoteRecordingViews()
                             DraggingState.Cancel -> {
                                 videoNoteCancelled = true
@@ -214,6 +239,7 @@ class VoiceMessageViews(
         views.videoNoteProgressRing.isVisible = false
         views.videoNoteCameraControls.isVisible = false
         views.videoNoteLockBadge.isVisible = false
+        renderVideoNoteLocked(false)
         views.videoNotePreviewView.animate().cancel()
         views.videoNotePreviewView.alpha = 1f
         views.videoNotePreviewView.scaleX = 1f
@@ -236,6 +262,17 @@ class VoiceMessageViews(
         views.voiceMessageTimer.alpha = 1f
         views.voiceMessageSlideToCancel.alpha = 1f
         views.videoNoteProgressRing.progress = 0f
+    }
+
+    fun renderVideoNoteLocked(locked: Boolean) {
+        views.videoNoteLockBadge.setImageResource(
+                if (locked) R.drawable.ic_voice_message_locked else R.drawable.ic_voice_message_unlocked
+        )
+        views.videoNoteLockBadge.contentDescription = resources.getString(
+                if (locked) R.string.telegram_video_note_lock else R.string.telegram_video_note_lock
+        )
+        views.voiceMessageMicButton.setCaptureMode(video = true, animated = false)
+        views.voiceMessageMicButton.alpha = if (locked) 0.92f else 1f
     }
 
     fun renderStarted(distanceX: Float) {
@@ -500,6 +537,7 @@ class VoiceMessageViews(
         fun onVideoNoteRequested()
         fun onVideoNoteReleased()
         fun onVideoNoteCancelled()
+        fun onVideoNoteLocked()
         fun onMicButtonReleased()
         fun onMicButtonDrag(nextDragStateCreator: (DraggingState) -> DraggingState)
         fun onSendVoiceMessage()

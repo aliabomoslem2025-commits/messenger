@@ -38,6 +38,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
         fun onVideoNoteRequested()
         fun onVideoNoteReleased()
         fun onVideoNoteCancelled()
+        fun onVideoNoteLocked()
         fun onVoiceRecordingEnded()
         fun onVoicePlaybackButtonClicked()
         fun onVoiceRecordingCancelled()
@@ -80,6 +81,7 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
             override fun onVideoNoteRequested() = callback.onVideoNoteRequested()
             override fun onVideoNoteReleased() = callback.onVideoNoteReleased()
             override fun onVideoNoteCancelled() = callback.onVideoNoteCancelled()
+            override fun onVideoNoteLocked() = callback.onVideoNoteLocked()
             override fun onMicButtonReleased() {
                 when (dragState) {
                     DraggingState.Lock -> {
@@ -131,6 +133,8 @@ class VoiceMessageRecorderView @JvmOverloads constructor(
     fun showVideoNoteRecordingViews() = voiceMessageViews.showVideoNoteRecordingViews()
 
     fun hideVideoNoteRecordingViews() = voiceMessageViews.hideVideoNoteRecordingViews()
+
+    fun renderVideoNoteLocked(locked: Boolean) = voiceMessageViews.renderVideoNoteLocked(locked)
 
     fun render(recordingState: RecordingUiState) {
         if (lastKnownState == recordingState) return
