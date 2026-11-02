@@ -70,7 +70,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     var messageContent: MessageWithAttachmentContent? = null
 
     @EpoxyAttribute
-    var isMediaDownloaded: Boolean = false
+    open var isMediaDownloaded: Boolean = false
 
     @EpoxyAttribute
     var caption: CharSequence? = null

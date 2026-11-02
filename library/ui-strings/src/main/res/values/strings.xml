@@ -2789,6 +2789,7 @@
     <string name="power_level_edit_title">Set role</string>
     <string name="power_level_title">Role</string>
     <string name="a11y_open_chat">Open chat</string>
+    <string name="a11y_open_settings">Open settings</string>
     <string name="a11y_mute_microphone">Mute the microphone</string>
     <string name="a11y_unmute_microphone">Unmute the microphone</string>
     <string name="a11y_stop_camera">Stop the camera</string>

@@ -48,7 +48,7 @@ abstract class MessageAudioItem : AbsMessageItem<MessageAudioItem.Holder>() {
     var izLocalFile = false
 
     @EpoxyAttribute
-    var isDownloaded: Boolean = false
+    open var isDownloaded: Boolean = false
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
     var onSeek: ((percentage: Float) -> Unit)? = null
