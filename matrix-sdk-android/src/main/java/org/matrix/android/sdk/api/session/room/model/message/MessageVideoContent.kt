@@ -35,6 +35,21 @@ data class MessageVideoContent(
         @Json(name = "body") override val body: String,
 
         /**
+         * The original filename. When this is set, body may contain a caption.
+         */
+        @Json(name = "filename") override val filename: String? = null,
+
+        /**
+         * The format used in formatted_body.
+         */
+        @Json(name = "format") override val format: String? = null,
+
+        /**
+         * The formatted version of the caption.
+         */
+        @Json(name = "formatted_body") override val formattedBody: String? = null,
+
+        /**
          * Metadata about the video clip referred to in url.
          */
         @Json(name = "info") val videoInfo: VideoInfo? = null,
@@ -51,7 +66,7 @@ data class MessageVideoContent(
          * Required if the file is encrypted. Information on the encrypted file, as specified in End-to-end encryption.
          */
         @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null
-) : MessageWithAttachmentContent {
+) : MessageWithAttachmentContent, MessageContentWithFormattedBody {
     override val mimeType: String?
         get() = videoInfo?.mimeType
 }

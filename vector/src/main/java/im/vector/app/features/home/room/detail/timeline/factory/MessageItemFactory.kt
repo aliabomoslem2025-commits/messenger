@@ -100,6 +100,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.message.MessageVerificationRequestContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.asMessageAudioEvent
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
@@ -528,7 +529,7 @@ class MessageItemFactory @Inject constructor(
         val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
         val data = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
-                filename = messageContent.body,
+                filename = messageContent.filename ?: messageContent.body,
                 mimeType = messageContent.mimeType,
                 url = messageContent.getFileUrl(),
                 elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt(),
@@ -558,6 +559,8 @@ class MessageItemFactory @Inject constructor(
                 .playable(playable)
                 .mxcDownloadUrl(imageUrl?.takeIf { it.startsWith("mxc://") && !imageIsDownloaded })
                 .messageContent(messageContent)
+                .caption(buildMediaCaption(messageContent, callback))
+                .captionMovementMethod(createLinkMovementMethod(callback))
                 .isMediaDownloaded(imageIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(data)
@@ -589,7 +592,7 @@ class MessageItemFactory @Inject constructor(
         val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
         val thumbnailData = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
-                filename = messageContent.body,
+                filename = messageContent.filename ?: messageContent.body,
                 mimeType = messageContent.mimeType,
                 url = messageContent.videoInfo?.getThumbnailUrl(),
                 elementToDecrypt = messageContent.videoInfo?.thumbnailFile?.toElementToDecrypt(),
@@ -608,7 +611,7 @@ class MessageItemFactory @Inject constructor(
         }.getOrDefault(false)
         val videoData = VideoContentRenderer.Data(
                 eventId = informationData.eventId,
-                filename = messageContent.body,
+                filename = messageContent.filename ?: messageContent.body,
                 mimeType = messageContent.mimeType,
                 url = videoUrl,
                 elementToDecrypt = messageContent.encryptedFileInfo?.toElementToDecrypt(),
@@ -624,10 +627,35 @@ class MessageItemFactory @Inject constructor(
                 .playable(true)
                 .mxcDownloadUrl(videoUrl?.takeIf { it.startsWith("mxc://") && !videoIsDownloaded })
                 .messageContent(messageContent)
+                .caption(buildMediaCaption(messageContent, callback))
+                .captionMovementMethod(createLinkMovementMethod(callback))
                 .isMediaDownloaded(videoIsDownloaded)
                 .highlighted(highlight)
                 .mediaData(thumbnailData)
                 .clickListener { view -> callback?.onVideoMessageClicked(messageContent, videoData, view.findViewById(R.id.messageThumbnailView)) }
+    }
+
+    /**
+     * Matrix carries media captions in body/formatted_body and the original upload name
+     * in filename. Older events without filename are treated as caption text for backwards
+     * compatibility with the previous app build.
+     */
+    private fun buildMediaCaption(
+            messageContent: MessageWithAttachmentContent,
+            callback: TimelineEventController.Callback?,
+    ): CharSequence? {
+        val formattedBody = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
+        val plainCaption = messageContent.body.takeIf { body ->
+            body.isNotBlank() && (messageContent.filename?.takeIf { it.isNotBlank() }?.let { it != body } ?: (body != "image" && body != "video"))
+        }
+        if (formattedBody.isNullOrBlank() && plainCaption == null) return null
+
+        val rendered = if (!formattedBody.isNullOrBlank()) {
+            htmlRenderer.get().render(htmlCompressor.compress(formattedBody), pillsPostProcessor)
+        } else {
+            textRenderer.render(plainCaption!!)
+        }
+        return rendered.linkify(callback)
     }
 
     private fun buildItemForTextContent(

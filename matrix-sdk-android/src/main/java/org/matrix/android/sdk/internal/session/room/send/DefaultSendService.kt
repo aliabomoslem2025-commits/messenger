@@ -34,6 +34,7 @@ import org.matrix.android.sdk.api.session.events.model.isTextMessage
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageFileContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
@@ -178,9 +179,11 @@ internal class DefaultSendService @AssistedInject constructor(
                             mimeType = messageContent.mimeType,
                             width = messageContent.info.width.toLong(),
                             height = messageContent.info.height.toLong(),
-                            name = messageContent.body,
+                            name = messageContent.filename ?: messageContent.body,
                             queryUri = Uri.parse(messageContent.url),
-                            type = ContentAttachmentData.Type.IMAGE
+                            type = ContentAttachmentData.Type.IMAGE,
+                            caption = messageContent.body.takeIf { !messageContent.filename.isNullOrBlank() && it != messageContent.filename },
+                            captionFormattedText = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
                     )
                     localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
                     internalSendMedia(listOf(localEcho.root), attachmentData, true)
@@ -192,9 +195,11 @@ internal class DefaultSendService @AssistedInject constructor(
                             width = messageContent.videoInfo?.width?.toLong(),
                             height = messageContent.videoInfo?.height?.toLong(),
                             duration = messageContent.videoInfo?.duration?.toLong(),
-                            name = messageContent.body,
+                            name = messageContent.filename ?: messageContent.body,
                             queryUri = Uri.parse(messageContent.url),
-                            type = ContentAttachmentData.Type.VIDEO
+                            type = ContentAttachmentData.Type.VIDEO,
+                            caption = messageContent.body.takeIf { !messageContent.filename.isNullOrBlank() && it != messageContent.filename },
+                            captionFormattedText = (messageContent as? MessageContentWithFormattedBody)?.matrixFormattedBody
                     )
                     localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
                     internalSendMedia(listOf(localEcho.root), attachmentData, true)

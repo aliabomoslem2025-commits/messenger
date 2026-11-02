@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
+import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.TextContent
@@ -233,7 +234,31 @@ class LocalEchoEventFactoryTests {
                 relatesTo = null
         )
 
-        assertEquals("A beautiful day", event.content.toModel<MessageContent>()?.body)
+        val message = event.content.toModel<MessageImageContent>()
+        assertEquals("A beautiful day", message?.body)
+        assertEquals("holiday.jpg", message?.filename)
+        assertEquals(null, message?.formattedBody)
+    }
+
+    @Test
+    fun `formatted media caption retains HTML formatting and filename`() {
+        val event = localEchoEventFactory.createMediaEvent(
+                roomId = A_ROOM_ID,
+                attachment = ContentAttachmentData(
+                        name = "holiday.jpg",
+                        queryUri = Uri.parse("content://test/holiday.jpg"),
+                        mimeType = "image/jpeg",
+                        type = ContentAttachmentData.Type.IMAGE,
+                        caption = "**A beautiful day**"
+                ),
+                rootThreadEventId = null,
+                relatesTo = null
+        )
+
+        val message = event.content.toModel<MessageImageContent>()
+        assertEquals("holiday.jpg", message?.filename)
+        assertEquals("org.matrix.custom.html", message?.format)
+        assertEquals("<b>A beautiful day</b>", message?.formattedBody)
     }
 
     @Test
@@ -250,7 +275,10 @@ class LocalEchoEventFactoryTests {
                 relatesTo = null
         )
 
-        assertEquals("holiday.jpg", event.content.toModel<MessageContent>()?.body)
+        val message = event.content.toModel<MessageImageContent>()
+        assertEquals("holiday.jpg", message?.body)
+        assertEquals("holiday.jpg", message?.filename)
+        assertEquals(null, message?.formattedBody)
     }
 
     private fun createTimelineEvent(quotedText: String?, formattedQuotedText: String?): TimelineEvent {

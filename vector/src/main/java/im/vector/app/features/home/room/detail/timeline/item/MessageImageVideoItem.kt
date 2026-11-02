@@ -9,10 +9,12 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.content.res.ColorStateList
 import android.graphics.Outline
+import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
@@ -70,6 +72,12 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     @EpoxyAttribute
     var isMediaDownloaded: Boolean = false
 
+    @EpoxyAttribute
+    var caption: CharSequence? = null
+
+    @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
+    var captionMovementMethod: MovementMethod? = null
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         val messageLayout = baseAttributes.informationData.messageLayout
@@ -94,6 +102,10 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         }
         holder.imageView.clipToOutline = false
         imageContentRenderer.render(mediaData, mode, holder.imageView, imageCornerTransformation)
+        holder.captionView.isVisible = !caption.isNullOrBlank()
+        holder.captionView.text = caption
+        holder.captionView.movementMethod = captionMovementMethod
+        holder.captionView.setOnLongClickListener(attributes.itemLongClickListener)
         if (isCircularVideoNote) {
             holder.imageView.scaleType = ImageView.ScaleType.CENTER_CROP
         }
@@ -167,6 +179,9 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         contentDownloadOverlayBinder.unbind(attributes.informationData.eventId)
         holder.imageView.setOnClickListener(null)
         holder.imageView.setOnLongClickListener(null)
+        holder.captionView.text = null
+        holder.captionView.movementMethod = null
+        holder.captionView.setOnLongClickListener(null)
         holder.playContentView.setOnClickListener(null)
         super.unbind(holder)
     }
@@ -179,6 +194,7 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
         val downloadProgress by bind<android.widget.ProgressBar>(R.id.messageMediaDownloadProgress)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
+        val captionView by bind<TextView>(R.id.messageMediaCaptionView)
 
         private var originalMediaWidth: Int? = null
         private var originalMediaHeight: Int? = null

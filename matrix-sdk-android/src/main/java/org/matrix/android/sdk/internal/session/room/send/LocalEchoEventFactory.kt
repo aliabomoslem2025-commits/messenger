@@ -429,9 +429,17 @@ internal class LocalEchoEventFactory @Inject constructor(
             }
         }
 
+        val caption = attachment.caption?.takeIf { it.isNotBlank() }
+        val captionContent = caption?.let { text ->
+            attachment.captionFormattedText?.takeIf { it.isNotBlank() }?.let { TextContent(text, it) }
+                    ?: markdownParser.parse(text, force = true, advanced = true)
+        }
         val content = MessageImageContent(
                 msgType = MessageType.MSGTYPE_IMAGE,
-                body = attachment.caption?.takeIf { it.isNotBlank() } ?: attachment.name ?: "image",
+                body = captionContent?.text ?: attachment.name ?: "image",
+                filename = attachment.name,
+                format = captionContent?.formattedText?.let { MessageFormat.FORMAT_MATRIX_HTML },
+                formattedBody = captionContent?.formattedText,
                 info = ImageInfo(
                         mimeType = attachment.getSafeMimeType(),
                         width = width?.toInt() ?: 0,
@@ -468,9 +476,17 @@ internal class LocalEchoEventFactory @Inject constructor(
                     mimeType = it.mimeType
             )
         }
+        val caption = attachment.caption?.takeIf { it.isNotBlank() }
+        val captionContent = caption?.let { text ->
+            attachment.captionFormattedText?.takeIf { it.isNotBlank() }?.let { TextContent(text, it) }
+                    ?: markdownParser.parse(text, force = true, advanced = true)
+        }
         val content = MessageVideoContent(
                 msgType = MessageType.MSGTYPE_VIDEO,
-                body = attachment.caption?.takeIf { it.isNotBlank() } ?: attachment.name ?: "video",
+                body = captionContent?.text ?: attachment.name ?: "video",
+                filename = attachment.name,
+                format = captionContent?.formattedText?.let { MessageFormat.FORMAT_MATRIX_HTML },
+                formattedBody = captionContent?.formattedText,
                 videoInfo = VideoInfo(
                         mimeType = attachment.getSafeMimeType(),
                         width = width,

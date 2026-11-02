@@ -33,6 +33,12 @@ interface MessageWithAttachmentContent : MessageContent {
     val encryptedFileInfo: EncryptedFileInfo?
 
     val mimeType: String?
+
+    /**
+     * Original uploaded file name. When present, [MessageContent.body] may carry a caption.
+     */
+    val filename: String?
+        get() = null
 }
 
 /**
@@ -40,4 +46,4 @@ interface MessageWithAttachmentContent : MessageContent {
  */
 fun MessageWithAttachmentContent.getFileUrl() = encryptedFileInfo?.url ?: url
 
-fun MessageWithAttachmentContent.getFileName() = (this as? MessageFileContent)?.getFileName() ?: body
+fun MessageWithAttachmentContent.getFileName() = filename ?: body

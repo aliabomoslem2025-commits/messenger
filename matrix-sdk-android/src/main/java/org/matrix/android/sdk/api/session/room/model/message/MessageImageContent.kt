@@ -36,6 +36,21 @@ data class MessageImageContent(
         @Json(name = "body") override val body: String,
 
         /**
+         * The original filename. When this is set, body may contain a caption.
+         */
+        @Json(name = "filename") override val filename: String? = null,
+
+        /**
+         * The format used in formatted_body.
+         */
+        @Json(name = "format") override val format: String? = null,
+
+        /**
+         * The formatted version of the caption.
+         */
+        @Json(name = "formatted_body") override val formattedBody: String? = null,
+
+        /**
          * Metadata about the image referred to in url.
          */
         @Json(name = "info") override val info: ImageInfo? = null,
@@ -52,7 +67,7 @@ data class MessageImageContent(
          * Required if the file is encrypted. Information on the encrypted file, as specified in End-to-end encryption.
          */
         @Json(name = "file") override val encryptedFileInfo: EncryptedFileInfo? = null
-) : MessageImageInfoContent {
+) : MessageImageInfoContent, MessageContentWithFormattedBody {
     override val mimeType: String?
         get() = info?.mimeType
 }

@@ -42,7 +42,11 @@ data class ContentAttachmentData(
          * Optional user-provided caption for image/video messages.
          * Kept separate from [name] so the upload filename is not overwritten.
          */
-        val caption: String? = null
+        val caption: String? = null,
+        /**
+         * Optional Matrix HTML representation of [caption], retained when retrying an upload.
+         */
+        val captionFormattedText: String? = null
 ) : Parcelable {
 
     @JsonClass(generateAdapter = false)

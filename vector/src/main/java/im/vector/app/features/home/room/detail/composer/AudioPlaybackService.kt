@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
  */
 
+@file:Suppress("DEPRECATION")
+
 package im.vector.app.features.home.room.detail.composer
 
 import android.app.Notification
