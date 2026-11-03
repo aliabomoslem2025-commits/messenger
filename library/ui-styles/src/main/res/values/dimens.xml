@@ -58,6 +58,8 @@
     <dimen name="chat_bubble_corner_radius">16dp</dimen>
     <!-- Keep a small soft corner between consecutive messages from the same sender. -->
     <dimen name="chat_bubble_grouped_corner_radius">4dp</dimen>
+    <!-- Small lower sender-side corner creates the Telegram-style bubble tail. -->
+    <dimen name="chat_bubble_tail_corner_radius">3dp</dimen>
 
     <!--  Onboarding   -->
     <item name="ftue_auth_gutter_start_percent" format="float" type="dimen">0.05</item>

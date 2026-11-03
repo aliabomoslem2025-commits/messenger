@@ -7,16 +7,14 @@
 
 package im.vector.app.features.home.room.detail.timeline.style
 
-import im.vector.app.features.settings.VectorPreferences
 import javax.inject.Inject
 
-class TimelineLayoutSettingsProvider @Inject constructor(private val vectorPreferences: VectorPreferences) {
+/**
+ * This messenger uses Telegram-style bubbles as its canonical conversation layout.
+ * Matrix timeline models and event handling remain unchanged; only their presentation
+ * is consistently rendered through the incoming/outgoing bubble layouts.
+ */
+class TimelineLayoutSettingsProvider @Inject constructor() {
 
-    fun getLayoutSettings(): TimelineLayoutSettings {
-        return if (vectorPreferences.useMessageBubblesLayout()) {
-            TimelineLayoutSettings.BUBBLE
-        } else {
-            TimelineLayoutSettings.MODERN
-        }
-    }
+    fun getLayoutSettings(): TimelineLayoutSettings = TimelineLayoutSettings.BUBBLE
 }

@@ -75,6 +75,10 @@ class TimelineMessageLayoutFactory @Inject constructor(
         resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_grouped_corner_radius).toFloat()
     }
 
+    private val tailCornerRadius: Float by lazy {
+        resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_tail_corner_radius).toFloat()
+    }
+
     fun create(params: TimelineItemFactoryParams): TimelineMessageLayout {
         val event = params.event
         val nextDisplayableEvent = params.nextDisplayableEvent
@@ -149,7 +153,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
         return TimelineMessageLayout.Bubble(
                 showAvatar = showInformation && !isSentByMe,
                 showDisplayName = showInformation && !isSentByMe,
-                addTopMargin = isFirstFromThisSender && isSentByMe,
+                addTopMargin = isFirstFromThisSender,
                 isIncoming = !isSentByMe,
                 cornersRadius = buildCornersRadius(
                         isIncoming = !isSentByMe,
@@ -219,7 +223,9 @@ class TimelineMessageLayoutFactory @Inject constructor(
         // Keep grouped-bubble corners on that fixed horizontal axis; paragraph direction
         // is resolved independently by the message TextView..
         val groupedTopRadius = if (isFirstFromThisSender) cornerRadius else groupedCornerRadius
-        val groupedBottomRadius = if (isLastFromThisSender) cornerRadius else groupedCornerRadius
+        // The final bubble in a sender group gets Telegram's compact lower tail corner.
+        // Intermediate bubbles stay softly joined with the smaller grouped radius.
+        val groupedBottomRadius = if (isLastFromThisSender) tailCornerRadius else groupedCornerRadius
 
         return if (isIncoming) {
             TimelineMessageLayout.Bubble.CornersRadius(
