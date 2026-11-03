@@ -301,16 +301,30 @@ class TimelineFragment :
     private fun applyTelegramToolbarActionSurfaces(toolbar: MaterialToolbar) {
         toolbar.post {
             if (!isAdded) return@post
+            val density = toolbar.resources.displayMetrics.density
+            val actionSize = (48f * density).toInt()
+            val actionElevation = 3f * density
             val navigationBackground = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
-            var navigationStyled = false
 
+            // Telegram's header has three independent hit targets: a 48dp back
+            // target, a flexible title capsule, and a 48dp overflow target.
+            // The drawable itself insets the white circle by 4dp, producing a
+            // 40dp visible circle while preserving a comfortable 48dp touch area.
+            var navigationStyled = false
             for (index in 0 until toolbar.childCount) {
                 val child = toolbar.getChildAt(index)
                 if (!navigationStyled && child is android.widget.ImageButton) {
+                    child.layoutParams = child.layoutParams.apply {
+                        width = actionSize
+                        height = actionSize
+                    }
+                    child.minimumWidth = actionSize
+                    child.minimumHeight = actionSize
+                    child.setPadding(0, 0, 0, 0)
+                    child.scaleType = ImageView.ScaleType.CENTER
                     child.background = navigationBackground?.constantState?.newDrawable()?.mutate()
-                    // The central capsule overlaps the action surfaces slightly; keep
-                    // the circular back target visibly above it, as in Telegram.
-                    child.elevation = 2f * toolbar.resources.displayMetrics.density
+                    child.elevation = actionElevation
+                    child.bringToFront()
                     navigationStyled = true
                 }
 
@@ -318,8 +332,16 @@ class TimelineFragment :
                     for (menuIndex in 0 until child.childCount) {
                         val menuChild = child.getChildAt(menuIndex)
                         if (menuChild.javaClass.name.contains("OverflowMenuButton", ignoreCase = true)) {
+                            menuChild.layoutParams = menuChild.layoutParams.apply {
+                                width = actionSize
+                                height = actionSize
+                            }
+                            menuChild.minimumWidth = actionSize
+                            menuChild.minimumHeight = actionSize
+                            menuChild.setPadding(0, 0, 0, 0)
                             menuChild.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
-                            menuChild.elevation = 2f * toolbar.resources.displayMetrics.density
+                            menuChild.elevation = actionElevation
+                            menuChild.bringToFront()
                         }
                     }
                 }
