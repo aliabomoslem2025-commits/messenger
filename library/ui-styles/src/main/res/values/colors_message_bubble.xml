@@ -5,10 +5,10 @@
     <attr name="vctr_message_bubble_inbound" format="color" />
     <color name="vctr_message_bubble_inbound_light">#FFFFFF</color>
     <color name="vctr_message_bubble_inbound_dark">#263442</color>
-    <color name="vctr_message_bubble_inbound_black">#222F3D</color>
+    <color name="vctr_message_bubble_inbound_black">#263442</color>
     <attr name="vctr_message_bubble_outbound" format="color" />
     <attr name="vctr_message_bubble_outbound_text" format="color" />
     <color name="vctr_message_bubble_outbound_light">#3390EC</color>
     <color name="vctr_message_bubble_outbound_dark">#5865E8</color>
-    <color name="vctr_message_bubble_outbound_black">#347FDF</color>
+    <color name="vctr_message_bubble_outbound_black">#5865E8</color>
 </resources>
