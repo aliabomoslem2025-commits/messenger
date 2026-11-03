@@ -285,6 +285,7 @@ class TimelineFragment :
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
     private var modelBuildListener: OnModelBuildFinishedListener? = null
+    private var dustParticleOverlay: DustParticleOverlay? = null
 
     private lateinit var keyboardStateUtils: KeyboardStateUtils
     private lateinit var callActionsHandler: StartCallActionsHandler
@@ -780,6 +781,8 @@ class TimelineFragment :
         currentCallsViewPresenter.unBind()
         modelBuildListener = null
         debouncer.cancelAll()
+        dustParticleOverlay?.dispose()
+        dustParticleOverlay = null
         views.timelineRecyclerView.cleanup()
         super.onDestroyView()
     }
@@ -1245,6 +1248,20 @@ class TimelineFragment :
         timelineEventController.addModelBuildListener(modelBuildListener)
         views.timelineRecyclerView.adapter = timelineEventController.adapter
 
+        // Draw over the timeline without changing any message-specific Epoxy layout.
+        dustParticleOverlay = DustParticleOverlay(requireContext()).also { overlay ->
+            overlay.isVisible = false
+            overlay.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            overlay.elevation = 12f * resources.displayMetrics.density
+            views.rootConstraintLayout.addView(
+                    overlay,
+                    FrameLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+            )
+        }
+
         if (vectorPreferences.swipeToReplyIsEnabled()) {
             val quickReplyHandler = object : RoomMessageTouchHelperCallback.QuickReplayHandler {
                 override fun performQuickReplyOnHolder(model: EpoxyModel<*>) {
@@ -1507,8 +1524,29 @@ class TimelineFragment :
                         reasonHintRes = CommonStrings.delete_event_dialog_reason_hint,
                         titleRes = action.dialogTitleRes
                 ) { reason ->
-                    timelineViewModel.handle(RoomDetailAction.RedactAction(action.eventId, reason))
+                    animateMessageDeletion(action.eventId, reason)
                 }
+    }
+
+    /**
+     * Snapshot the currently rendered row before redacting it in Matrix.
+     * This applies uniformly to text, image, video, audio and file message rows.
+     */
+    private fun animateMessageDeletion(eventId: String, reason: String?) {
+        val position = timelineEventController.searchPositionOfEvent(eventId)
+        val holder = position?.let { views.timelineRecyclerView.findViewHolderForAdapterPosition(it) }
+        val source = holder?.itemView
+        val overlay = dustParticleOverlay
+        if (!requireContext().isAnimationEnabled() || source == null || overlay == null ||
+                !source.isLaidOut || source.width <= 0 || source.height <= 0) {
+            timelineViewModel.handle(RoomDetailAction.RedactAction(eventId, reason))
+            return
+        }
+        overlay.playFrom(source) {
+            if (isAdded) {
+                timelineViewModel.handle(RoomDetailAction.RedactAction(eventId, reason))
+            }
+        }
     }
 
     private fun displayRoomDetailActionFailure(result: RoomDetailViewEvents.ActionFailure) {
