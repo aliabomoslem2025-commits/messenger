@@ -42,6 +42,10 @@ class InlineRoundVideoRecorder(
 ) : TextureView.SurfaceTextureListener {
 
     private val mainHandler = Handler(Looper.getMainLooper())
+    // Build-time override: vector/src/main/res/values/telegram_video_note_config.xml
+    private val maxRecordingDurationMs = preview.resources
+            .getInteger(R.integer.telegram_video_note_max_duration_seconds)
+            .coerceIn(1, 60).toLong() * 1_000L
     private var camera: Camera? = null
     private var cameraParameters: Camera.Parameters? = null
     private var preferFrontCamera = true
@@ -64,7 +68,7 @@ class InlineRoundVideoRecorder(
             if (!isRecording) return
             val elapsed = (SystemClock.elapsedRealtime() - startedAtMs).coerceAtLeast(0L)
             if (timer is AnimatedClockTickerView) timer.setTimeMs(elapsed) else if (timer is TextView) timer.text = formatTime(elapsed)
-            progressRing.progress = (elapsed.toFloat() / MAX_RECORDING_MS).coerceIn(0f, 1f)
+            progressRing.progress = (elapsed.toFloat() / maxRecordingDurationMs).coerceIn(0f, 1f)
             if (elapsed >= MAX_RECORDING_MS && !maxDurationCallbackSent) {
                 maxDurationCallbackSent = true
                 onMaximumDurationReached()
