@@ -18,7 +18,7 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import kotlin.math.ceil
 import kotlin.math.sqrt
-import kotlin.random.Random
+import kotlin.random.Random\nimport timber.log.Timber
 
 /**
  * Renders a short-lived dust disintegration of a real timeline row snapshot.
@@ -50,8 +50,11 @@ internal class DustParticleOverlay(context: Context) : View(context) {
 
     fun playFrom(source: View, onFinished: () -> Unit) {
         dispose()
+        Timber.i("DustDeleteOverlay: playFrom attached=%s overlay=%sx%s sourceAttached=%s source=%sx%s",
+                isAttachedToWindow, width, height, source.isAttachedToWindow, source.width, source.height)
         if (!isAttachedToWindow || width <= 0 || height <= 0 ||
                 !source.isAttachedToWindow || source.width <= 0 || source.height <= 0) {
+            Timber.e("DustDeleteOverlay: rejected invalid view bounds")
             onFinished()
             return
         }
@@ -80,20 +83,35 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         sourceOriginalAlpha = source.alpha
         completion = onFinished
         createParticles(captured)
+        Timber.i("DustDeleteOverlay: captured bitmap=%sx%s particles=%s origin=(%s,%s)",
+                captured.width, captured.height, particles.size, originX, originY)
+        if (particles.isEmpty()) {
+            Timber.e("DustDeleteOverlay: snapshot produced no visible particles")
+            finish(notify = true)
+            return
+        }
         source.alpha = 0f
         visibility = VISIBLE
+        postInvalidateOnAnimation()
+        Timber.i("DustDeleteOverlay: visible=%s attached=%s", visibility == VISIBLE, isAttachedToWindow)
 
         animation = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 760L
             interpolator = DecelerateInterpolator(0.72f)
-            addUpdateListener { invalidate() }
+            addUpdateListener { postInvalidateOnAnimation() }
             addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationStart(animator: Animator) {
+                    Timber.i("DustDeleteOverlay: animator started duration=%s", duration)
+                }
+
                 override fun onAnimationEnd(animator: Animator) {
+                    Timber.i("DustDeleteOverlay: animator ended")
                     finish(notify = true)
                 }
 
                 override fun onAnimationCancel(animator: Animator) {
-                    // A lifecycle cancellation must not discard the user's delete intent.
+                    Timber.w("DustDeleteOverlay: animator cancelled")
+                    // Preserve the delete intent if the animation is interrupted.
                     finish(notify = true)
                 }
             })
