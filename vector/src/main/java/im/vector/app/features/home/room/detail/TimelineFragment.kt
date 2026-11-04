@@ -13,6 +13,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.text.method.LinkMovementMethod
 import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
@@ -1567,8 +1568,7 @@ class TimelineFragment :
             if (!isAdded || view == null) return@post
 
             val position = timelineEventController.searchPositionOfEvent(eventId)
-            Timber.i("DustDelete: request eventId=%s adapterPosition=%s childCount=%s adapterCount=%s",
-                    eventId, position, recyclerView.childCount, recyclerView.adapter?.itemCount)
+            Log.i("DustDelete", "request eventId=$eventId adapterPosition=$position childCount=${recyclerView.childCount} adapterCount=${recyclerView.adapter?.itemCount}")
             val holder = position?.let { adapterPosition ->
                 recyclerView.findViewHolderForAdapterPosition(adapterPosition)
                     ?: (0 until recyclerView.childCount)
@@ -1579,8 +1579,7 @@ class TimelineFragment :
             val source = holder?.itemView
             val overlay = dustParticleOverlay
 
-            Timber.i("DustDelete: resolved holder=%s source=%s overlay=%s",
-                    holder != null, source?.javaClass?.simpleName, overlay != null)
+            Log.i("DustDelete", "resolved holder=${holder != null} source=${source?.javaClass?.simpleName} overlay=${overlay != null}")
             if (source == null || overlay == null || !overlay.isAttachedToWindow ||
                     overlay.width <= 0 || overlay.height <= 0 ||
                     !source.isAttachedToWindow || !source.isLaidOut ||
@@ -1599,10 +1598,9 @@ class TimelineFragment :
             // Do not gate this effect on the global animator scale. ValueAnimator
             // already observes the platform scale; the explicit gate used to bypass
             // the particle effect and immediately redact the message.
-            Timber.i("DustDelete: starting overlay eventId=%s sourceSize=%sx%s overlaySize=%sx%s",
-                    eventId, source.width, source.height, overlay.width, overlay.height)
+            Log.i("DustDelete", "starting overlay eventId=$eventId sourceSize=${source.width}x${source.height} overlaySize=${overlay.width}x${overlay.height}")
             overlay.playFrom(source) {
-                Timber.i("DustDelete: animation callback eventId=%s isAdded=%s", eventId, isAdded)
+                Log.i("DustDelete", "animation callback eventId=$eventId isAdded=$isAdded")
                 if (isAdded) {
                     timelineViewModel.handle(RoomDetailAction.RedactAction(eventId, reason))
                 }
