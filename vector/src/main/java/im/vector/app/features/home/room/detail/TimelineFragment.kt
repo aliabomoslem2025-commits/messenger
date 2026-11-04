@@ -1567,6 +1567,8 @@ class TimelineFragment :
             if (!isAdded || view == null) return@post
 
             val position = timelineEventController.searchPositionOfEvent(eventId)
+            Timber.i("DustDelete: request eventId=%s adapterPosition=%s childCount=%s adapterCount=%s",
+                    eventId, position, recyclerView.childCount, recyclerView.adapter?.itemCount)
             val holder = position?.let { adapterPosition ->
                 recyclerView.findViewHolderForAdapterPosition(adapterPosition)
                     ?: (0 until recyclerView.childCount)
@@ -1577,11 +1579,13 @@ class TimelineFragment :
             val source = holder?.itemView
             val overlay = dustParticleOverlay
 
+            Timber.i("DustDelete: resolved holder=%s source=%s overlay=%s",
+                    holder != null, source?.javaClass?.simpleName, overlay != null)
             if (source == null || overlay == null || !overlay.isAttachedToWindow ||
                     overlay.width <= 0 || overlay.height <= 0 ||
                     !source.isAttachedToWindow || !source.isLaidOut ||
                     source.width <= 0 || source.height <= 0) {
-                Timber.w(
+                Timber.e(
                     "Dust deletion animation unavailable: eventId=%s position=%s holder=%s overlay=%s " +
                             "overlaySize=%sx%s sourceAttached=%s sourceLaidOut=%s sourceSize=%sx%s",
                     eventId, position, holder != null, overlay?.isAttachedToWindow,
@@ -1595,7 +1599,10 @@ class TimelineFragment :
             // Do not gate this effect on the global animator scale. ValueAnimator
             // already observes the platform scale; the explicit gate used to bypass
             // the particle effect and immediately redact the message.
+            Timber.i("DustDelete: starting overlay eventId=%s sourceSize=%sx%s overlaySize=%sx%s",
+                    eventId, source.width, source.height, overlay.width, overlay.height)
             overlay.playFrom(source) {
+                Timber.i("DustDelete: animation callback eventId=%s isAdded=%s", eventId, isAdded)
                 if (isAdded) {
                     timelineViewModel.handle(RoomDetailAction.RedactAction(eventId, reason))
                 }
