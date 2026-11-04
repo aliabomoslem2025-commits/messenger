@@ -9,10 +9,12 @@
 package im.vector.app.features.home.room.detail.composer.voice
 
 import android.content.Context
+import android.graphics.Outline
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.camera.core.Camera
@@ -98,6 +100,14 @@ class InlineRoundVideoRecorder(
         preview.scaleType = PreviewView.ScaleType.FILL_CENTER
         preview.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
         preview.clipToOutline = true
+        preview.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                val diameter = minOf(view.width, view.height)
+                val left = (view.width - diameter) / 2
+                val top = (view.height - diameter) / 2
+                outline.setOval(left, top, left + diameter, top + diameter)
+            }
+        }
         preview.visibility = View.GONE
         timerIndicator.visibility = View.GONE
         timer.visibility = View.GONE
