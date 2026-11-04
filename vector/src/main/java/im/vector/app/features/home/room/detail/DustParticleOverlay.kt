@@ -62,6 +62,10 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         } catch (_: RuntimeException) {
             onFinished()
             return
+        } catch (_: OutOfMemoryError) {
+            // Large media rows must never crash low-memory emulators during snapshot capture.
+            onFinished()
+            return
         }
 
         val sourceLocation = IntArray(2)
@@ -87,7 +91,8 @@ internal class DustParticleOverlay(context: Context) : View(context) {
                 }
 
                 override fun onAnimationCancel(animator: Animator) {
-                    finish(notify = false)
+                    // A lifecycle cancellation must not discard the user's delete intent.
+                    finish(notify = true)
                 }
             })
             start()

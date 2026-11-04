@@ -203,6 +203,11 @@ tasks.named("preBuild").configure {
 
 dependencies {
 
+    implementation libs.androidx.cameraCamera2
+    implementation libs.androidx.cameraLifecycle
+    implementation libs.androidx.cameraVideo
+    implementation libs.androidx.cameraView
+
     implementation project(":vector-config")
     api project(":matrix-sdk-android")
     implementation project(":matrix-sdk-android-flow")

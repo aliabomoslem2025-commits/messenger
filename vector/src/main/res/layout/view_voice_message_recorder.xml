@@ -40,7 +40,7 @@
         tools:translationY="-180dp"
         tools:visibility="visible" />
 
-    <TextureView
+    <androidx.camera.view.PreviewView
         android:id="@+id/videoNotePreviewView"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -49,6 +49,8 @@
         android:clipToOutline="true"
         android:contentDescription="@string/telegram_video_note_preview"
         android:outlineProvider="background"
+        app:implementationMode="compatible"
+        app:scaleType="fillCenter"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/voiceMessageBackgroundView"
         app:layout_constraintDimensionRatio="1:1"

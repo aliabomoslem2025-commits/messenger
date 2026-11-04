@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.composer.voice
 import android.Manifest
 import android.os.Bundle
 import android.widget.Toast
+import androidx.camera.view.PreviewView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -104,13 +105,15 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             }
         }, buildMeta).register()
 
-        val videoPreview = views.voiceMessageRecorderView.findViewById<android.view.TextureView>(im.vector.app.R.id.videoNotePreviewView)
+        val videoPreview = views.voiceMessageRecorderView.findViewById<PreviewView>(im.vector.app.R.id.videoNotePreviewView)
         val videoTimer = views.voiceMessageRecorderView.findViewById<AnimatedClockTickerView>(R.id.voiceMessageTimer)
         val videoTimerIndicator = views.voiceMessageRecorderView.findViewById<android.widget.ImageView>(im.vector.app.R.id.voiceMessageTimerIndicator)
         val videoProgressRing = views.voiceMessageRecorderView.findViewById<VideoNoteProgressRingView>(im.vector.app.R.id.videoNoteProgressRing)
         val videoSwitchCameraButton = views.voiceMessageRecorderView.findViewById<android.widget.ImageButton>(im.vector.app.R.id.videoNoteSwitchCameraButton)
         val videoFlashButton = views.voiceMessageRecorderView.findViewById<android.widget.ImageButton>(im.vector.app.R.id.videoNoteFlashButton)
         inlineVideoNoteRecorder = InlineRoundVideoRecorder(
+                context = requireContext(),
+                lifecycleOwner = viewLifecycleOwner,
                 preview = videoPreview,
                 timer = videoTimer,
                 timerIndicator = videoTimerIndicator,
@@ -136,7 +139,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
             val switched = inlineVideoNoteRecorder?.switchCameraForNextCapture() == true
             if (switched) {
                 videoSwitchCameraButton.animate().rotationBy(180f).setDuration(220L).start()
-                Toast.makeText(requireContext(), R.string.telegram_video_note_camera_next_take, Toast.LENGTH_SHORT).show()
+                // The animated flip button confirms the live camera switch without interrupting recording.
             } else {
                 Toast.makeText(requireContext(), R.string.telegram_video_note_camera_unavailable, Toast.LENGTH_SHORT).show()
             }
