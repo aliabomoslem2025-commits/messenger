@@ -1266,19 +1266,24 @@ class TimelineFragment :
         timelineEventController.addModelBuildListener(modelBuildListener)
         views.timelineRecyclerView.adapter = timelineEventController.adapter
 
-        // Draw over the timeline without changing any message-specific Epoxy layout.
+        // Host the effect at the screen-level chat container. The timeline's inner
+        // ConstraintLayout is below sibling overlays (composer/recorder) and can clip
+        // or cover particles when those layers are visible.
         dustParticleOverlay = DustParticleOverlay(requireContext()).also { overlay ->
-            // Keep it in layout so MATCH_PARENT dimensions are measured before first animation.
+            // INVISIBLE keeps the view measured while preventing it from drawing.
             overlay.visibility = View.INVISIBLE
             overlay.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            overlay.elevation = 12f * resources.displayMetrics.density
-            views.rootConstraintLayout.addView(
+            overlay.isClickable = false
+            overlay.isFocusable = false
+            overlay.elevation = 24f * resources.displayMetrics.density
+            views.coordinatorLayout.addView(
                     overlay,
-                    FrameLayout.LayoutParams(
+                    androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                     )
             )
+            overlay.bringToFront()
         }
 
         if (vectorPreferences.swipeToReplyIsEnabled()) {
