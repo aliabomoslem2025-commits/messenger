@@ -168,20 +168,16 @@
         tools:ignore="MissingPrefix"
         tools:visibility="visible" />
 
-    <TextView
+    <im.vector.app.features.home.room.detail.composer.voice.AnimatedClockTickerView
         android:id="@+id/voiceMessageTimer"
-        style="@style/Widget.Vector.TextView.Body.Medium"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
         android:gravity="center"
-        android:includeFontPadding="false"
-        android:textColor="?vctr_content_secondary"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/voiceMessageMicButton"
         app:layout_constraintStart_toEndOf="@id/voiceMessageTimerIndicator"
         app:layout_constraintTop_toTopOf="@id/voiceMessageMicButton"
-        tools:text="0:03"
         tools:visibility="visible" />
 
     <TextView

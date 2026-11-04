@@ -11,6 +11,7 @@ package im.vector.app.features.home.room.detail.composer.voice
 import android.graphics.Outline
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
+import android.media.CamcorderProfile
 import android.media.MediaRecorder
 import android.os.Handler
 import android.os.Looper
@@ -33,7 +34,7 @@ import kotlin.math.abs
  */
 class InlineRoundVideoRecorder(
         private val preview: TextureView,
-        private val timer: TextView,
+        private val timer: View,
         private val timerIndicator: ImageView,
         private val progressRing: VideoNoteProgressRingView,
         private val onFailure: (Throwable) -> Unit,
@@ -62,7 +63,7 @@ class InlineRoundVideoRecorder(
         override fun run() {
             if (!isRecording) return
             val elapsed = (SystemClock.elapsedRealtime() - startedAtMs).coerceAtLeast(0L)
-            timer.text = formatTime(elapsed)
+            if (timer is AnimatedClockTickerView) timer.setTimeMs(elapsed) else if (timer is TextView) timer.text = formatTime(elapsed)
             progressRing.progress = (elapsed.toFloat() / MAX_RECORDING_MS).coerceIn(0f, 1f)
             if (elapsed >= MAX_RECORDING_MS && !maxDurationCallbackSent) {
                 maxDurationCallbackSent = true
@@ -98,7 +99,7 @@ class InlineRoundVideoRecorder(
         startedAtMs = 0L
         pendingStart = true
         maxDurationCallbackSent = false
-        timer.text = formatTime(0L)
+        if (timer is AnimatedClockTickerView) timer.setTimeMs(0L) else if (timer is TextView) timer.text = formatTime(0L)
         timerIndicator.visibility = View.VISIBLE
         timer.visibility = View.VISIBLE
         progressRing.visibility = View.VISIBLE
@@ -281,17 +282,29 @@ class InlineRoundVideoRecorder(
         try {
             activeCamera.stopPreview()
             activeCamera.unlock()
+            val cameraId = preferredCameraId()
+            val profile = runCatching {
+                when {
+                    CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_480P) ->
+                        CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_480P)
+                    CamcorderProfile.hasProfile(CamcorderProfile.QUALITY_LOW) ->
+                        CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW)
+                    else -> null
+                }
+            }.getOrNull()
             candidate = MediaRecorder().apply {
                 setCamera(activeCamera)
                 setAudioSource(MediaRecorder.AudioSource.MIC)
                 setVideoSource(MediaRecorder.VideoSource.CAMERA)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-                setVideoEncodingBitRate(VIDEO_BIT_RATE)
-                setVideoFrameRate(VIDEO_FRAME_RATE)
-                videoSize?.let { size ->
-                    setVideoSize(size.first, size.second)
+                if (profile != null) {
+                    setProfile(profile)
+                } else {
+                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                    setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+                    setVideoEncodingBitRate(VIDEO_BIT_RATE)
+                    setVideoFrameRate(VIDEO_FRAME_RATE)
+                    videoSize?.let { size -> setVideoSize(size.first, size.second) }
                 }
                 setOrientationHint(recordingOrientationHint)
                 previewSurface?.let(::setPreviewDisplay)

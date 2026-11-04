@@ -514,7 +514,7 @@ class VoiceMessageViews(
             }
         } else {
             views.voiceMessageTimer.post {
-                views.voiceMessageTimer.text = formattedTimerText
+                views.voiceMessageTimer.setTimeFormatted(formattedTimerText)
             }
         }
     }

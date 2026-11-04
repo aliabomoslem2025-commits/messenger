@@ -105,7 +105,7 @@ class VoiceRecorderFragment : VectorBaseFragment<FragmentVoiceRecorderBinding>()
         }, buildMeta).register()
 
         val videoPreview = views.voiceMessageRecorderView.findViewById<android.view.TextureView>(im.vector.app.R.id.videoNotePreviewView)
-        val videoTimer = views.voiceMessageRecorderView.findViewById<android.widget.TextView>(im.vector.app.R.id.voiceMessageTimer)
+        val videoTimer = views.voiceMessageRecorderView.findViewById<AnimatedClockTickerView>(R.id.voiceMessageTimer)
         val videoTimerIndicator = views.voiceMessageRecorderView.findViewById<android.widget.ImageView>(im.vector.app.R.id.voiceMessageTimerIndicator)
         val videoProgressRing = views.voiceMessageRecorderView.findViewById<VideoNoteProgressRingView>(im.vector.app.R.id.videoNoteProgressRing)
         val videoSwitchCameraButton = views.voiceMessageRecorderView.findViewById<android.widget.ImageButton>(im.vector.app.R.id.videoNoteSwitchCameraButton)
