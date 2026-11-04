@@ -1557,18 +1557,48 @@ class TimelineFragment :
      * This applies uniformly to text, image, video, audio and file message rows.
      */
     private fun animateMessageDeletion(eventId: String, reason: String?) {
-        val position = timelineEventController.searchPositionOfEvent(eventId)
-        val holder = position?.let { views.timelineRecyclerView.findViewHolderForAdapterPosition(it) }
-        val source = holder?.itemView
-        val overlay = dustParticleOverlay
-        if (!requireContext().isAnimationEnabled() || source == null || overlay == null ||
-                !source.isLaidOut || source.width <= 0 || source.height <= 0) {
-            timelineViewModel.handle(RoomDetailAction.RedactAction(eventId, reason))
-            return
-        }
-        overlay.playFrom(source) {
-            if (isAdded) {
+        val recyclerView = views.timelineRecyclerView
+
+        // The confirmation dialog can outlive an Epoxy model rebuild. Resolve the
+        // event-to-position mapping only after the dialog has closed and the list
+        // has had a frame to settle; using a position captured before that point can
+        // target a different row or return no holder, silently skipping the effect.
+        recyclerView.post {
+            if (!isAdded || view == null) return@post
+
+            val position = timelineEventController.searchPositionOfEvent(eventId)
+            val holder = position?.let { adapterPosition ->
+                recyclerView.findViewHolderForAdapterPosition(adapterPosition)
+                    ?: (0 until recyclerView.childCount)
+                        .asSequence()
+                        .mapNotNull { recyclerView.getChildViewHolder(recyclerView.getChildAt(it)) }
+                        .firstOrNull { recyclerView.getChildAdapterPosition(it.itemView) == adapterPosition }
+            }
+            val source = holder?.itemView
+            val overlay = dustParticleOverlay
+
+            if (source == null || overlay == null || !overlay.isAttachedToWindow ||
+                    overlay.width <= 0 || overlay.height <= 0 ||
+                    !source.isAttachedToWindow || !source.isLaidOut ||
+                    source.width <= 0 || source.height <= 0) {
+                Timber.w(
+                    "Dust deletion animation unavailable: eventId=%s position=%s holder=%s overlay=%s " +
+                            "overlaySize=%sx%s sourceAttached=%s sourceLaidOut=%s sourceSize=%sx%s",
+                    eventId, position, holder != null, overlay?.isAttachedToWindow,
+                    overlay?.width, overlay?.height, source?.isAttachedToWindow,
+                    source?.isLaidOut, source?.width, source?.height
+                )
                 timelineViewModel.handle(RoomDetailAction.RedactAction(eventId, reason))
+                return@post
+            }
+
+            // Do not gate this effect on the global animator scale. ValueAnimator
+            // already observes the platform scale; the explicit gate used to bypass
+            // the particle effect and immediately redact the message.
+            overlay.playFrom(source) {
+                if (isAdded) {
+                    timelineViewModel.handle(RoomDetailAction.RedactAction(eventId, reason))
+                }
             }
         }
     }
