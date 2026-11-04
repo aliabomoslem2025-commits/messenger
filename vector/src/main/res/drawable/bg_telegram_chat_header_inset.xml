@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:left="44dp"
-        android:top="5dp"
-        android:right="44dp"
-        android:bottom="5dp"
+        android:left="15dp"
+        android:top="3dp"
+        android:right="15dp"
+        android:bottom="3dp"
         android:drawable="@drawable/bg_telegram_chat_header" />
 </layer-list>
