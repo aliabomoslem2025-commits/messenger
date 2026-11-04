@@ -22,6 +22,7 @@ import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.ImageView
 import android.widget.TextView
+import im.vector.app.R
 import java.io.File
 import java.util.Locale
 import kotlin.math.abs
@@ -69,7 +70,7 @@ class InlineRoundVideoRecorder(
             val elapsed = (SystemClock.elapsedRealtime() - startedAtMs).coerceAtLeast(0L)
             if (timer is AnimatedClockTickerView) timer.setTimeMs(elapsed) else if (timer is TextView) timer.text = formatTime(elapsed)
             progressRing.progress = (elapsed.toFloat() / maxRecordingDurationMs).coerceIn(0f, 1f)
-            if (elapsed >= MAX_RECORDING_MS && !maxDurationCallbackSent) {
+            if (elapsed >= maxRecordingDurationMs && !maxDurationCallbackSent) {
                 maxDurationCallbackSent = true
                 onMaximumDurationReached()
             } else if (isRecording) {
@@ -312,7 +313,7 @@ class InlineRoundVideoRecorder(
                 }
                 setOrientationHint(recordingOrientationHint)
                 previewSurface?.let(::setPreviewDisplay)
-                setMaxDuration(MAX_RECORDING_MS.toInt())
+                setMaxDuration(maxRecordingDurationMs.toInt())
                 setOutputFile(file.absolutePath)
                 setOnInfoListener { _, what, _ ->
                     if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED && !maxDurationCallbackSent) {
@@ -447,7 +448,7 @@ class InlineRoundVideoRecorder(
     }
 
     companion object {
-        private const val MAX_RECORDING_MS = 60_000L
+
         private const val CAMERA_START_TIMEOUT_MS = 2_500L
         private const val MIN_DURATION_MS = 700L
         private const val MIN_VALID_FILE_BYTES = 1_024L
