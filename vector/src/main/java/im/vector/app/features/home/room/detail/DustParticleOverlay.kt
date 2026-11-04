@@ -96,35 +96,45 @@ internal class DustParticleOverlay(context: Context) : View(context) {
 
     private fun createParticles(bitmap: Bitmap) {
         particles.clear()
-        val maxParticles = 4_800
-        val stride = maxOf(2, ceil(sqrt(bitmap.width.toDouble() * bitmap.height / maxParticles)).toInt())
+
+        // One particle per sampled cell, not one particle per source pixel.
+        // The old implementation sampled every pixel despite computing a stride,
+        // which could allocate millions of particles for a tall media bubble and
+        // stall or OOM low-memory emulators.
+        val maxParticles = 4_200
+        val stride = maxOf(
+                2,
+                ceil(sqrt(bitmap.width.toDouble() * bitmap.height / maxParticles)).toInt()
+        )
         val random = Random(bitmap.width * 31 + bitmap.height * 17)
         val centerX = bitmap.width / 2f
         val centerY = bitmap.height / 2f
-        val colors = IntArray(stride * stride)
 
         var y = 0
         while (y < bitmap.height) {
             var x = 0
             while (x < bitmap.width) {
-                val sampleWidth = minOf(stride, bitmap.width - x)
-                val sampleHeight = minOf(stride, bitmap.height - y)
-                bitmap.getPixels(colors, 0, stride, x, y, sampleWidth, sampleHeight)
-                for (row in 0 until sampleHeight) {
-                    for (column in 0 until sampleWidth) {
-                        val color = colors[row * stride + column]
-                        if ((color ushr 24) < 36) continue
-                        val px = x + column + random.nextFloat() * 0.8f
-                        val py = y + row + random.nextFloat() * 0.8f
-                        val dx = px - centerX
-                        val dy = py - centerY
-                        val length = sqrt(dx * dx + dy * dy).coerceAtLeast(1f)
-                        val radial = 42f + random.nextFloat() * 92f
-                        val velocityX = (dx / length * radial + (random.nextFloat() - 0.5f) * 74f) * density
-                        val velocityY = (dy / length * radial - random.nextFloat() * 62f) * density
-                        val radius = (0.55f + random.nextFloat() * 1.15f) * density
-                        particles.add(Particle(px, py, color, velocityX, velocityY, radius))
-                    }
+                val sampleX = (x + stride / 2).coerceAtMost(bitmap.width - 1)
+                val sampleY = (y + stride / 2).coerceAtMost(bitmap.height - 1)
+                val color = bitmap.getPixel(sampleX, sampleY)
+                if ((color ushr 24) >= 36) {
+                    val px = sampleX + (random.nextFloat() - 0.5f) * stride * 0.55f
+                    val py = sampleY + (random.nextFloat() - 0.5f) * stride * 0.55f
+                    val dx = px - centerX
+                    val dy = py - centerY
+                    val length = sqrt(dx * dx + dy * dy).coerceAtLeast(1f)
+                    val radial = 48f + random.nextFloat() * 112f
+                    val tangent = (random.nextFloat() - 0.5f) * 86f
+                    val velocityX = (
+                            dx / length * radial - dy / length * tangent +
+                                    (random.nextFloat() - 0.5f) * 36f
+                            ) * density
+                    val velocityY = (
+                            dy / length * radial + dx / length * tangent -
+                                    18f - random.nextFloat() * 54f
+                            ) * density
+                    val radius = (0.65f + random.nextFloat() * 1.35f) * density
+                    particles.add(Particle(px, py, color, velocityX, velocityY, radius))
                 }
                 x += stride
             }
