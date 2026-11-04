@@ -300,54 +300,72 @@ class TimelineFragment :
      * navigation and Matrix room actions are not replaced.
      */
     private fun applyTelegramToolbarActionSurfaces(toolbar: MaterialToolbar) {
-        toolbar.post {
-            if (!isAdded) return@post
-            val density = toolbar.resources.displayMetrics.density
-            val actionSize = (48f * density).toInt()
-            val actionElevation = 3f * density
-            val navigationBackground = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+        toolbar.background = null
+        toolbar.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+        val parentView = toolbar.parent as? View
+        parentView?.background = null
+        parentView?.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
 
-            // Telegram's header has three independent hit targets: a 48dp back
-            // target, a flexible title capsule, and a 48dp overflow target.
-            // The drawable itself insets the white circle by 4dp, producing a
-            // 40dp visible circle while preserving a comfortable 48dp touch area.
-            var navigationStyled = false
-            for (index in 0 until toolbar.childCount) {
-                val child = toolbar.getChildAt(index)
-                if (!navigationStyled && child is android.widget.ImageButton) {
-                    child.layoutParams = child.layoutParams.apply {
-                        width = actionSize
-                        height = actionSize
+        val styleActionButtons = {
+            if (isAdded) {
+                val density = toolbar.resources.displayMetrics.density
+                val actionSize = (58f * density).toInt()
+                val actionElevation = 3f * density
+
+                for (index in 0 until toolbar.childCount) {
+                    val child = toolbar.getChildAt(index)
+                    if (child is android.widget.ImageButton) {
+                        child.layoutParams = child.layoutParams.apply {
+                            width = actionSize
+                            height = actionSize
+                        }
+                        child.minimumWidth = actionSize
+                        child.minimumHeight = actionSize
+                        child.setPadding(0, 0, 0, 0)
+                        child.scaleType = ImageView.ScaleType.CENTER
+                        child.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                        child.elevation = actionElevation
+                        child.bringToFront()
                     }
-                    child.minimumWidth = actionSize
-                    child.minimumHeight = actionSize
-                    child.setPadding(0, 0, 0, 0)
-                    child.scaleType = ImageView.ScaleType.CENTER
-                    child.background = navigationBackground?.constantState?.newDrawable()?.mutate()
-                    child.elevation = actionElevation
-                    child.bringToFront()
-                    navigationStyled = true
-                }
-
-                if (child is ViewGroup && child.javaClass.name.contains("ActionMenuView")) {
-                    for (menuIndex in 0 until child.childCount) {
-                        val menuChild = child.getChildAt(menuIndex)
-                        if (menuChild.javaClass.name.contains("OverflowMenuButton", ignoreCase = true)) {
-                            menuChild.layoutParams = menuChild.layoutParams.apply {
-                                width = actionSize
-                                height = actionSize
+                    if (child is ViewGroup && child.javaClass.name.contains("ActionMenuView")) {
+                        child.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
+                            override fun onChildViewAdded(p0: View?, childView: View?) {
+                                if (childView != null && childView.javaClass.name.contains("OverflowMenuButton", ignoreCase = true)) {
+                                    childView.layoutParams = childView.layoutParams.apply {
+                                        width = actionSize
+                                        height = actionSize
+                                    }
+                                    childView.minimumWidth = actionSize
+                                    childView.minimumHeight = actionSize
+                                    childView.setPadding(0, 0, 0, 0)
+                                    childView.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                                    childView.elevation = actionElevation
+                                    childView.bringToFront()
+                                }
                             }
-                            menuChild.minimumWidth = actionSize
-                            menuChild.minimumHeight = actionSize
-                            menuChild.setPadding(0, 0, 0, 0)
-                            menuChild.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
-                            menuChild.elevation = actionElevation
-                            menuChild.bringToFront()
+                            override fun onChildViewRemoved(p0: View?, childView: View?) {}
+                        })
+                        for (menuIndex in 0 until child.childCount) {
+                            val menuChild = child.getChildAt(menuIndex)
+                            if (menuChild.javaClass.name.contains("OverflowMenuButton", ignoreCase = true)) {
+                                menuChild.layoutParams = menuChild.layoutParams.apply {
+                                    width = actionSize
+                                    height = actionSize
+                                }
+                                menuChild.minimumWidth = actionSize
+                                menuChild.minimumHeight = actionSize
+                                menuChild.setPadding(0, 0, 0, 0)
+                                menuChild.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                                menuChild.elevation = actionElevation
+                                menuChild.bringToFront()
+                            }
                         }
                     }
                 }
             }
         }
+        toolbar.post(styleActionButtons)
+        toolbar.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> styleActionButtons() }
     }
 
     @Suppress("DEPRECATION")
