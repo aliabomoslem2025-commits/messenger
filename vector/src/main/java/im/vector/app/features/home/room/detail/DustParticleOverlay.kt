@@ -44,7 +44,8 @@ internal class DustParticleOverlay(context: Context) : View(context) {
     private var animationProgress = 0f
     private var animationStartedAt = 0L
     private var frameCallback: Runnable? = null
-    private val durationMs = 760L
+    // Slower disintegration gives the dust cloud time to read visually.
+    private val durationMs = 1_250L
     private val interpolator = DecelerateInterpolator(0.72f)
     private var completion: (() -> Unit)? = null
     private var originX = 0f
@@ -101,7 +102,7 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         // the user's global Android animation settings.
         animationProgress = 0f
         animationStartedAt = SystemClock.uptimeMillis()
-        Log.i("DustDeleteOverlay", "frame animation started duration=760 animatorScale=" + android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f))
+        Log.i("DustDeleteOverlay", "frame animation started duration=" + durationMs + " animatorScale=" + android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f))
         val callback = object : Runnable {
             override fun run() {
                 if (frameCallback !== this || !isAttachedToWindow) return
@@ -174,7 +175,7 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         super.onDraw(canvas)
         if (frameCallback == null) return
         val progress = animationProgress
-        val elapsed = progress * 0.76f
+        val elapsed = progress * (durationMs / 1000f)
         val fade = (1f - progress).coerceAtLeast(0f)
         particles.forEach { particle ->
             val alpha = ((particle.color ushr 24) * fade * fade).toInt().coerceIn(0, 255)
