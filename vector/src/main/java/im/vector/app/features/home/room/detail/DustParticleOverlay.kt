@@ -7,14 +7,12 @@
 
 package im.vector.app.features.home.room.detail
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
+import android.os.SystemClock
 import android.view.animation.DecelerateInterpolator
 import kotlin.math.ceil
 import kotlin.math.sqrt
@@ -43,7 +41,11 @@ internal class DustParticleOverlay(context: Context) : View(context) {
     private val particles = ArrayList<Particle>()
     private var sourceView: View? = null
     private var sourceOriginalAlpha = 1f
-    private var animation: ValueAnimator? = null
+    private var animationProgress = 0f
+    private var animationStartedAt = 0L
+    private var frameCallback: Runnable? = null
+    private val durationMs = 760L
+    private val interpolator = DecelerateInterpolator(0.72f)
     private var completion: (() -> Unit)? = null
     private var originX = 0f
     private var originY = 0f
@@ -94,28 +96,30 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         postInvalidateOnAnimation()
         Log.i("DustDeleteOverlay", "visible=${visibility == VISIBLE} attached=$isAttachedToWindow")
 
-        animation = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 760L
-            interpolator = DecelerateInterpolator(0.72f)
-            addUpdateListener { postInvalidateOnAnimation() }
-            addListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationStart(animator: Animator) {
-                    Log.i("DustDeleteOverlay", "animator started duration=$duration")
-                }
-
-                override fun onAnimationEnd(animator: Animator) {
-                    Log.i("DustDeleteOverlay", "animator ended")
+        // ValueAnimator obeys animator_duration_scale; a value of 0 ends it immediately.
+        // Frame callbacks use monotonic uptime and preserve this effect without changing
+        // the user's global Android animation settings.
+        animationProgress = 0f
+        animationStartedAt = SystemClock.uptimeMillis()
+        Log.i("DustDeleteOverlay", "frame animation started duration=760 animatorScale=" + android.provider.Settings.Global.getFloat(context.contentResolver, android.provider.Settings.Global.ANIMATOR_DURATION_SCALE, 1f))
+        val callback = object : Runnable {
+            override fun run() {
+                if (frameCallback !== this || !isAttachedToWindow) return
+                val elapsed = (SystemClock.uptimeMillis() - animationStartedAt).coerceAtLeast(0L)
+                val linearProgress = (elapsed.toFloat() / durationMs).coerceIn(0f, 1f)
+                animationProgress = interpolator.getInterpolation(linearProgress)
+                postInvalidateOnAnimation()
+                if (linearProgress >= 1f) {
+                    Log.i("DustDeleteOverlay", "frame animation ended elapsed=" + elapsed)
+                    frameCallback = null
                     finish(notify = true)
+                } else {
+                    postOnAnimation(this)
                 }
-
-                override fun onAnimationCancel(animator: Animator) {
-                    Log.w("DustDeleteOverlay", "animator cancelled")
-                    // Preserve the delete intent if the animation is interrupted.
-                    finish(notify = true)
-                }
-            })
-            start()
+            }
         }
+        frameCallback = callback
+        postOnAnimation(callback)
     }
 
     private fun createParticles(bitmap: Bitmap) {
@@ -168,7 +172,8 @@ internal class DustParticleOverlay(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val progress = animation?.animatedValue as? Float ?: return
+        if (frameCallback == null) return
+        val progress = animationProgress
         val elapsed = progress * 0.76f
         val fade = (1f - progress).coerceAtLeast(0f)
         particles.forEach { particle ->
@@ -183,9 +188,9 @@ internal class DustParticleOverlay(context: Context) : View(context) {
     }
 
     private fun finish(notify: Boolean) {
-        animation?.removeAllUpdateListeners()
-        animation?.removeAllListeners()
-        animation = null
+        frameCallback?.let { removeCallbacks(it) }
+        frameCallback = null
+        animationProgress = 1f
         sourceView?.alpha = sourceOriginalAlpha
         sourceView = null
         sourceOriginalAlpha = 1f
@@ -200,8 +205,9 @@ internal class DustParticleOverlay(context: Context) : View(context) {
     }
 
     fun dispose() {
-        animation?.cancel()
-        if (animation == null) finish(notify = false)
+        frameCallback?.let { removeCallbacks(it) }
+        frameCallback = null
+        finish(notify = false)
     }
 
     override fun onDetachedFromWindow() {
