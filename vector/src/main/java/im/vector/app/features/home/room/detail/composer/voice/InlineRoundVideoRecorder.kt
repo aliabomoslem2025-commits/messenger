@@ -70,6 +70,7 @@ class InlineRoundVideoRecorder(
     private var preferFrontCamera = true
     private var flashEnabled = false
     private var pendingStart = false
+    private var stopRequestedBeforeStart = false
     private var isRecording = false
     private var isFinalizing = false
     private var isCancelled = false
@@ -119,6 +120,7 @@ class InlineRoundVideoRecorder(
         if (pendingStart || isRecording || isFinalizing) cancel()
         outputFile = file
         pendingStart = true
+        stopRequestedBeforeStart = false
         isCancelled = false
         maxDurationCallbackSent = false
         startedAtMs = 0L
@@ -194,7 +196,15 @@ class InlineRoundVideoRecorder(
                         isFinalizing = false
                         startedAtMs = SystemClock.elapsedRealtime()
                         mainHandler.removeCallbacks(timerRunnable)
-                        mainHandler.post(timerRunnable)
+                        if (stopRequestedBeforeStart) {
+                            // The user released the capture gesture while CameraX was starting.
+                            // Finalize immediately after Start rather than dropping the video note.
+                            stopRequestedBeforeStart = false
+                            isFinalizing = true
+                            recording?.stop()
+                        } else {
+                            mainHandler.post(timerRunnable)
+                        }
                     }
                 }
                 is VideoRecordEvent.Finalize -> {
@@ -234,13 +244,10 @@ class InlineRoundVideoRecorder(
             return
         }
         if (pendingStart && recording == null) {
-            // CameraX provider is still initializing; do not leave the send gesture waiting.
-            pendingStart = false
-            isCancelled = true
-            outputFile?.let { runCatching { it.delete() } }
-            outputFile = null
-            hidePreview()
-            onComplete(null)
+            // CameraX provider / encoder is still initializing. Queue the stop and finalize
+            // as soon as VideoRecordEvent.Start arrives; an ordinary quick release must send.
+            stopCallback = onComplete
+            stopRequestedBeforeStart = true
             return
         }
         if (!isRecording && recording == null) {
@@ -256,6 +263,7 @@ class InlineRoundVideoRecorder(
     fun cancel() {
         isCancelled = true
         pendingStart = false
+        stopRequestedBeforeStart = false
         isFinalizing = false
         isRecording = false
         stopCallback = null
@@ -321,6 +329,7 @@ class InlineRoundVideoRecorder(
 
     private fun failStart(failure: Throwable) {
         pendingStart = false
+        stopRequestedBeforeStart = false
         isRecording = false
         isFinalizing = false
         mainHandler.removeCallbacks(timerRunnable)
