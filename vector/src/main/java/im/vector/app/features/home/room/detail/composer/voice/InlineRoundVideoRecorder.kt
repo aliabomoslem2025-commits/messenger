@@ -4,8 +4,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
  */
 
-@file:OptIn(androidx.camera.video.ExperimentalPersistentRecording::class)
-
 package im.vector.app.features.home.room.detail.composer.voice
 
 import android.content.Context
