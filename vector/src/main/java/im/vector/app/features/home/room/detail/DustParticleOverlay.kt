@@ -172,7 +172,8 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         snapshot?.takeUnless { it.isRecycled }?.recycle()
         snapshot = null
         particles.clear()
-        visibility = GONE
+        // INVISIBLE preserves measured bounds; GONE would collapse the overlay to 0x0.
+        visibility = View.INVISIBLE
         val callback = completion
         completion = null
         if (notify) callback?.invoke()
