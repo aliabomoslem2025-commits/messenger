@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Change this integer before building to adjust automatic video-note duration. -->
+    <integer name="telegram_video_note_max_duration_seconds">10</integer>
+</resources>
