@@ -115,7 +115,7 @@
         android:layout_marginBottom="8dp"
         android:background="@drawable/bg_telegram_camera_button"
         android:contentDescription="@string/telegram_video_note_lock"
-        android:padding="12dp"
+        android:padding="11dp"
         android:src="@drawable/ic_voice_message_unlocked"
         android:visibility="gone"
         app:tint="#273746"
@@ -138,8 +138,10 @@
 
     <ImageButton
         android:id="@+id/voiceMessageSendButton"
-        android:layout_width="56dp"
-        android:layout_height="@dimen/composer_min_height"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="4dp"
         android:background="@drawable/bg_send"
         android:contentDescription="@string/action_send"
         android:scaleType="center"
