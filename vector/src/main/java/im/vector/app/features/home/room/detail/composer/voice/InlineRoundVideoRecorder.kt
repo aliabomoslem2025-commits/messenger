@@ -273,7 +273,7 @@ class InlineRoundVideoRecorder(
      */
     fun switchCameraForNextCapture(): Boolean {
         val provider = cameraProvider ?: return false
-        if (!isRecording || recording == null) {
+        if (recording == null) {
             val desired = !preferFrontCamera
             val selector = if (desired) CameraSelector.DEFAULT_FRONT_CAMERA else CameraSelector.DEFAULT_BACK_CAMERA
             if (!runCatching { provider.hasCamera(selector) }.getOrDefault(false)) return false
