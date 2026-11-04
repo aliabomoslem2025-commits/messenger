@@ -18,7 +18,8 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import kotlin.math.ceil
 import kotlin.math.sqrt
-import kotlin.random.Random\nimport timber.log.Timber
+import kotlin.random.Random
+import android.util.Log
 
 /**
  * Renders a short-lived dust disintegration of a real timeline row snapshot.
@@ -50,11 +51,10 @@ internal class DustParticleOverlay(context: Context) : View(context) {
 
     fun playFrom(source: View, onFinished: () -> Unit) {
         dispose()
-        Timber.i("DustDeleteOverlay: playFrom attached=%s overlay=%sx%s sourceAttached=%s source=%sx%s",
-                isAttachedToWindow, width, height, source.isAttachedToWindow, source.width, source.height)
+        Log.i("DustDeleteOverlay", "playFrom attached=$isAttachedToWindow overlay=${width}x$height sourceAttached=${source.isAttachedToWindow} source=${source.width}x${source.height}")
         if (!isAttachedToWindow || width <= 0 || height <= 0 ||
                 !source.isAttachedToWindow || source.width <= 0 || source.height <= 0) {
-            Timber.e("DustDeleteOverlay: rejected invalid view bounds")
+            Log.e("DustDeleteOverlay", "rejected invalid view bounds")
             onFinished()
             return
         }
@@ -83,17 +83,16 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         sourceOriginalAlpha = source.alpha
         completion = onFinished
         createParticles(captured)
-        Timber.i("DustDeleteOverlay: captured bitmap=%sx%s particles=%s origin=(%s,%s)",
-                captured.width, captured.height, particles.size, originX, originY)
+        Log.i("DustDeleteOverlay", "captured bitmap=${captured.width}x${captured.height} particles=${particles.size} origin=($originX,$originY)")
         if (particles.isEmpty()) {
-            Timber.e("DustDeleteOverlay: snapshot produced no visible particles")
+            Log.e("DustDeleteOverlay", "snapshot produced no visible particles")
             finish(notify = true)
             return
         }
         source.alpha = 0f
         visibility = VISIBLE
         postInvalidateOnAnimation()
-        Timber.i("DustDeleteOverlay: visible=%s attached=%s", visibility == VISIBLE, isAttachedToWindow)
+        Log.i("DustDeleteOverlay", "visible=${visibility == VISIBLE} attached=$isAttachedToWindow")
 
         animation = ValueAnimator.ofFloat(0f, 1f).apply {
             duration = 760L
@@ -101,16 +100,16 @@ internal class DustParticleOverlay(context: Context) : View(context) {
             addUpdateListener { postInvalidateOnAnimation() }
             addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationStart(animator: Animator) {
-                    Timber.i("DustDeleteOverlay: animator started duration=%s", duration)
+                    Log.i("DustDeleteOverlay", "animator started duration=$duration")
                 }
 
                 override fun onAnimationEnd(animator: Animator) {
-                    Timber.i("DustDeleteOverlay: animator ended")
+                    Log.i("DustDeleteOverlay", "animator ended")
                     finish(notify = true)
                 }
 
                 override fun onAnimationCancel(animator: Animator) {
-                    Timber.w("DustDeleteOverlay: animator cancelled")
+                    Log.w("DustDeleteOverlay", "animator cancelled")
                     // Preserve the delete intent if the animation is interrupted.
                     finish(notify = true)
                 }
