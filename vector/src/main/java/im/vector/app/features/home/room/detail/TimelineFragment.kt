@@ -1268,7 +1268,8 @@ class TimelineFragment :
 
         // Draw over the timeline without changing any message-specific Epoxy layout.
         dustParticleOverlay = DustParticleOverlay(requireContext()).also { overlay ->
-            overlay.isVisible = false
+            // Keep it in layout so MATCH_PARENT dimensions are measured before first animation.
+            overlay.visibility = View.INVISIBLE
             overlay.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             overlay.elevation = 12f * resources.displayMetrics.density
             views.rootConstraintLayout.addView(
