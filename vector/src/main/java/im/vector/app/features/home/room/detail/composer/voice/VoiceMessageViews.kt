@@ -19,7 +19,6 @@ import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.core.view.updateLayoutParams
 import im.vector.app.R
-import im.vector.app.core.extensions.setAttributeBackground
 import im.vector.app.core.extensions.setAttributeTintedBackground
 import im.vector.app.core.extensions.setAttributeTintedImageResource
 import im.vector.app.core.utils.DimensionConverter
@@ -432,13 +431,15 @@ class VoiceMessageViews(
     fun resetMicButtonUi() {
         views.voiceMessageMicButton.isVisible = true
         views.voiceMessageMicButton.setCaptureMode(videoNoteMode, animated = false)
-        views.voiceMessageMicButton.setAttributeBackground(android.R.attr.selectableItemBackgroundBorderless)
+        views.voiceMessageMicButton.setBackgroundResource(R.drawable.bg_telegram_record_button)
         views.voiceMessageMicButton.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+            val endMargin = dimensionConverter.dpToPx(8)
+            val bottomMargin = dimensionConverter.dpToPx(4)
             if (rtlXMultiplier == -1) {
                 // RTL
-                setMargins(dimensionConverter.dpToPx(12), 0, 0, dimensionConverter.dpToPx(12))
+                setMargins(endMargin, 0, 0, bottomMargin)
             } else {
-                setMargins(0, 0, dimensionConverter.dpToPx(12), dimensionConverter.dpToPx(12))
+                setMargins(0, 0, endMargin, bottomMargin)
             }
         }
     }
