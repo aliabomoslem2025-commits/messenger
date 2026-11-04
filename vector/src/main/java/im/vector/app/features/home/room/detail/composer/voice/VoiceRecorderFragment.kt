@@ -24,6 +24,7 @@ import im.vector.app.core.utils.checkPermissions
 import im.vector.app.core.utils.onPermissionDeniedSnackbar
 import im.vector.app.core.utils.registerForPermissionsResult
 import im.vector.app.databinding.FragmentVoiceRecorderBinding
+import im.vector.app.R
 import im.vector.app.features.attachments.AttachmentsHelper
 import im.vector.app.features.attachments.ContactAttachment
 import im.vector.app.features.home.room.detail.composer.voice.InlineRoundVideoRecorder
