@@ -41,6 +41,7 @@ internal class DustParticleOverlay(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val particles = ArrayList<Particle>()
     private var sourceView: View? = null
+    private var sourceOriginalAlpha = 1f
     private var animation: ValueAnimator? = null
     private var completion: (() -> Unit)? = null
     private var originX = 0f
@@ -76,6 +77,7 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         originY = (sourceLocation[1] - overlayLocation[1]).toFloat()
         snapshot = captured
         sourceView = source
+        sourceOriginalAlpha = source.alpha
         completion = onFinished
         createParticles(captured)
         source.alpha = 0f
@@ -167,8 +169,9 @@ internal class DustParticleOverlay(context: Context) : View(context) {
         animation?.removeAllUpdateListeners()
         animation?.removeAllListeners()
         animation = null
-        sourceView?.alpha = 1f
+        sourceView?.alpha = sourceOriginalAlpha
         sourceView = null
+        sourceOriginalAlpha = 1f
         snapshot?.takeUnless { it.isRecycled }?.recycle()
         snapshot = null
         particles.clear()
