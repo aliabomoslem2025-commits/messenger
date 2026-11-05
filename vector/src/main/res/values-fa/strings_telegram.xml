@@ -103,10 +103,10 @@
     <string name="telegram_story_everyone">همه</string>
     <string name="telegram_story_contacts">مخاطبان</string>
     <string name="telegram_story_close_friends">دوستان نزدیک</string>
-    <string name="telegram_story_selected_contacts">مخاطبان انتخاب‌شده</string>
+    <string name="telegram_story_selected_contacts">افراد انتخاب‌شده</string>
     <string name="telegram_story_exclude_people">مستثنا کردن افراد</string>
     <string name="telegram_story_edit_close_friends">ویرایش فهرست دوستان نزدیک</string>
-    <string name="telegram_story_edit_selected_contacts">ویرایش مخاطبان انتخاب‌شده</string>
+    <string name="telegram_story_edit_selected_contacts">انتخاب افراد</string>
     <string name="telegram_story_select_people_who_wont_see">افرادی را انتخاب کنید که استوری شما را نبینند.</string>
     <string name="telegram_story_allow_screenshots">اجازه گرفتن اسکرین‌شات</string>
     <string name="telegram_story_keep_on_my_page">نگه‌داشتن در صفحه من</string>
@@ -117,4 +117,8 @@
     <string name="telegram_story_close_friends_empty">فهرست دوستان نزدیک شما خالی است.</string>
     <string name="telegram_story_post_failed">انتشار استوری انجام نشد.</string>
     <string name="telegram_story_no_contacts">مخاطب واجد شرایطی در Matrix پیدا نشد.</string>
+    <string name="telegram_story_selected_rooms">اتاق‌های انتخاب‌شده</string>
+    <string name="telegram_story_select_rooms">انتخاب اتاق‌ها</string>
+    <string name="telegram_story_no_rooms">هیچ اتاق گروهیِ پیوسته‌ای پیدا نشد.</string>
+    <string name="telegram_story_select_at_least_one_room">حداقل یک اتاق برای نمایش استوری به اعضای آن انتخاب کنید.</string>
 </resources>
