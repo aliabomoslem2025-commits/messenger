@@ -11,6 +11,7 @@ package im.vector.app.features.home
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.ClipData
 import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -33,12 +34,18 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import android.webkit.MimeTypeMap
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import im.vector.app.R
 import java.io.File
+import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.abs
 
@@ -82,10 +89,9 @@ class TelegramStoryCameraActivity : AppCompatActivity(), TextureView.SurfaceText
 
     private val galleryPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            runCatching {
-                contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            returnMedia(uri, contentResolver.getType(uri) ?: "application/octet-stream")
+            // Copy the provider-owned item while its picker grant is active. The editor
+            // then reads an app-owned FileProvider URI, independent of cloud/provider grants.
+            importSelectedMedia(uri)
         }
     }
 
@@ -263,6 +269,49 @@ class TelegramStoryCameraActivity : AppCompatActivity(), TextureView.SurfaceText
     private fun openGallery() {
         if (isRecording) return
         galleryPicker.launch(arrayOf("image/*", "video/*"))
+    }
+
+    private fun importSelectedMedia(sourceUri: Uri) {
+        lifecycleScope.launch {
+            val selectedMimeType = runCatching { contentResolver.getType(sourceUri) }
+                    .getOrNull()
+                    ?.takeIf { it.startsWith("image/") || it.startsWith("video/") }
+                    ?: MimeTypeMap.getSingleton()
+                            .getMimeTypeFromExtension(
+                                    MimeTypeMap.getFileExtensionFromUrl(sourceUri.toString()).lowercase(Locale.ROOT)
+                            )
+                            ?.takeIf { it.startsWith("image/") || it.startsWith("video/") }
+
+            if (selectedMimeType == null) {
+                Toast.makeText(this@TelegramStoryCameraActivity, R.string.telegram_story_unsupported_media, Toast.LENGTH_LONG).show()
+                return@launch
+            }
+
+            try {
+                val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(selectedMimeType)
+                        ?: if (selectedMimeType.startsWith("image/")) "jpg" else "mp4"
+                val localFile = withContext(Dispatchers.IO) {
+                    val input = contentResolver.openInputStream(sourceUri)
+                            ?: throw IOException("The selected media provider returned no input stream")
+                    val destination = createOutputFile(".$extension")
+                    try {
+                        input.use { source ->
+                            destination.outputStream().use { output -> source.copyTo(output) }
+                        }
+                        if (!destination.isFile || destination.length() == 0L) {
+                            throw IOException("The selected media file is empty")
+                        }
+                        destination
+                    } catch (failure: Exception) {
+                        destination.delete()
+                        throw failure
+                    }
+                }
+                returnMedia(createFileUri(localFile), selectedMimeType)
+            } catch (_: Exception) {
+                Toast.makeText(this@TelegramStoryCameraActivity, R.string.telegram_story_import_failed, Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun takePhoto() {
@@ -446,10 +495,14 @@ class TelegramStoryCameraActivity : AppCompatActivity(), TextureView.SurfaceText
     }
 
     private fun returnMedia(uri: Uri, mimeType: String) {
-        setResult(Activity.RESULT_OK, Intent()
-                .putExtra(EXTRA_STORY_URI, uri.toString())
-                .putExtra(EXTRA_STORY_MIME, mimeType)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+        val result = Intent().apply {
+            data = uri
+            clipData = ClipData.newUri(contentResolver, "Story media", uri)
+            putExtra(EXTRA_STORY_URI, uri.toString())
+            putExtra(EXTRA_STORY_MIME, mimeType)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        setResult(Activity.RESULT_OK, result)
         finish()
     }
 
