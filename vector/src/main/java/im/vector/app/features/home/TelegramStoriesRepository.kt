@@ -20,6 +20,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.matrix.android.sdk.api.query.QueryStringValue
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
@@ -511,6 +512,7 @@ class TelegramStoriesRepository @Inject constructor(
 
         val memberQuery = RoomMemberQueryParams.Builder().apply {
             memberships = listOf(Membership.JOIN)
+            displayName = QueryStringValue.NoCondition
             excludeSelf = true
         }.build()
         val recipientIds = linkedSetOf<String>()
