@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
+import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
 import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
@@ -62,6 +63,12 @@ data class StoryContact(
         val displayName: String,
 )
 
+data class StoryRoom(
+        val roomId: String,
+        val displayName: String,
+        val joinedMembersCount: Int,
+)
+
 data class StoryDraft(
         val caption: String = "",
         val overlayTexts: List<String> = emptyList(),
@@ -76,6 +83,7 @@ data class StoryDraft(
         val durationHours: Int = 24,
         val audience: String = "everyone",
         val selectedUserIds: Set<String> = emptySet(),
+        val selectedRoomIds: Set<String> = emptySet(),
         val excludedUserIds: Set<String> = emptySet(),
         val albumName: String = "All Stories",
 )
@@ -123,32 +131,28 @@ class TelegramStoriesRepository @Inject constructor(
         }
 
         val room = if (draft.audience == AUDIENCE_EVERYONE) {
-            check(draft.excludedUserIds.isEmpty()) {
-                "A public story cannot hide from individual viewers. Clear the excluded-people list first."
-            }
             getOrCreatePublicStoriesRoom(session)
         } else {
-            val contacts = getEligibleContacts()
-            val allContactIds = contacts.map { it.userId }.toSet()
-            val closeFriendIds = getCloseFriends()
-            val audienceIds = when (draft.audience) {
-                AUDIENCE_CLOSE_FRIENDS -> closeFriendIds
-                AUDIENCE_SELECTED -> draft.selectedUserIds
-                AUDIENCE_CONTACTS -> allContactIds
+            val recipients = when (draft.audience) {
+                AUDIENCE_SELECTED -> {
+                    val knownContacts = getEligibleContacts().map { it.userId }.toSet()
+                    draft.selectedUserIds
+                            .intersect(knownContacts)
+                            .minus(draft.excludedUserIds)
+                            .minus(session.myUserId)
+                            .also {
+                                if (it.isEmpty()) error("Select at least one person who can view this story")
+                            }
+                }
+                AUDIENCE_SELECTED_ROOMS -> {
+                    getSelectedRoomMemberIds(session, draft.selectedRoomIds)
+                            .minus(draft.excludedUserIds)
+                            .minus(session.myUserId)
+                            .also {
+                                if (it.isEmpty()) error("The selected rooms have no other joined members")
+                            }
+                }
                 else -> error("Unsupported story audience")
-            }
-            val recipients = audienceIds
-                    .intersect(allContactIds)
-                    .minus(draft.excludedUserIds)
-                    .minus(session.myUserId)
-            if (draft.audience == AUDIENCE_SELECTED && recipients.isEmpty()) {
-                error("Select at least one contact who can view this story")
-            }
-            if (draft.audience == AUDIENCE_CLOSE_FRIENDS && recipients.isEmpty()) {
-                error("Your Close Friends list is empty")
-            }
-            if (recipients.isEmpty()) {
-                error("No eligible Matrix contacts are available for this story")
             }
 
             val roomName = "${STORY_ROOM_NAME_PREFIX}|${session.myUserId}|$now"
@@ -471,6 +475,60 @@ class TelegramStoriesRepository @Inject constructor(
         }
     }
 
+    suspend fun getEligibleRooms(): List<StoryRoom> = withContext(Dispatchers.IO) {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return@withContext emptyList()
+        val query = RoomSummaryQueryParams.Builder().also {
+            it.memberships = listOf(Membership.JOIN)
+            it.roomCategoryFilter = RoomCategoryFilter.ONLY_ROOMS
+            it.excludeType = listOf(STORY_ROOM_TYPE, "m.space")
+        }.build()
+        session.roomService().getRoomSummaries(query)
+                .filter { !it.isDirect && it.roomType != STORY_ROOM_TYPE }
+                .map { summary ->
+                    StoryRoom(
+                            roomId = summary.roomId,
+                            displayName = summary.displayName.takeIf { it.isNotBlank() }
+                                    ?: summary.name.takeIf { it.isNotBlank() }
+                                    ?: summary.roomId,
+                            joinedMembersCount = summary.joinedMembersCount ?: 0,
+                    )
+                }
+                .sortedBy { it.displayName.lowercase() }
+    }
+
+    private suspend fun getSelectedRoomMemberIds(
+            session: Session,
+            selectedRoomIds: Set<String>,
+    ): Set<String> {
+        if (selectedRoomIds.isEmpty()) {
+            error("Select at least one room whose members can view this story")
+        }
+        val validRooms = getEligibleRooms().associateBy { it.roomId }
+        val unknownRoomIds = selectedRoomIds - validRooms.keys
+        if (unknownRoomIds.isNotEmpty()) {
+            error("One or more selected rooms are no longer available. Reopen the room picker and try again.")
+        }
+
+        val memberQuery = RoomMemberQueryParams.Builder().apply {
+            memberships = listOf(Membership.JOIN)
+            excludeSelf = true
+        }.build()
+        val recipientIds = linkedSetOf<String>()
+        selectedRoomIds.forEach { roomId ->
+            val room = session.roomService().getRoom(roomId)
+                    ?: error("A selected room is no longer available")
+            room.membershipService().loadRoomMembersIfNeeded()
+            room.membershipService().getRoomMembers(memberQuery)
+                    .asSequence()
+                    .filter { it.membership == Membership.JOIN && it.userId != session.myUserId }
+                    .mapTo(recipientIds) { it.userId }
+        }
+        if (recipientIds.isEmpty()) {
+            error("The selected rooms have no other joined members")
+        }
+        return recipientIds
+    }
+
     suspend fun getEligibleContacts(): List<StoryContact> = withContext(Dispatchers.IO) {
         val session = activeSessionHolder.getSafeActiveSession() ?: return@withContext emptyList()
         val query = RoomSummaryQueryParams.Builder().also {
@@ -559,6 +617,7 @@ class TelegramStoriesRepository @Inject constructor(
         const val AUDIENCE_CONTACTS = "contacts"
         const val AUDIENCE_CLOSE_FRIENDS = "close_friends"
         const val AUDIENCE_SELECTED = "selected"
+        const val AUDIENCE_SELECTED_ROOMS = "selected_rooms"
         private const val MAX_SEEN_EVENT_IDS = 500
         private const val STORY_FORMAT_VERSION = 2
         private const val MSGTYPE_IMAGE = "m.image"
