@@ -15,7 +15,6 @@ import android.content.pm.PackageManager
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Color
-import android.graphics.Outline
 import android.graphics.SurfaceTexture
 import android.hardware.Camera
 import android.media.MediaRecorder
@@ -30,7 +29,6 @@ import android.view.Surface
 import android.view.TextureView
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
