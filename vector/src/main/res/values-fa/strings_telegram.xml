@@ -76,6 +76,7 @@
     <string name="telegram_story_photo">عکس</string>
     <string name="telegram_story_video">ویدئو</string>
     <string name="telegram_story_unsupported_media">استوری فقط از عکس و ویدئو پشتیبانی می‌کند.</string>
+    <string name="telegram_story_import_failed">وارد کردن تصویر یا ویدئوی انتخاب‌شده ممکن نیست. فایل دیگری انتخاب کنید.</string>
     <string name="telegram_story_preview">پیش‌نمایش استوری</string>
     <string name="telegram_story_new">استوری جدید</string>
     <string name="telegram_story_caption_hint">افزودن کپشن…</string>
