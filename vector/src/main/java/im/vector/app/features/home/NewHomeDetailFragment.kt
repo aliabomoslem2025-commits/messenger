@@ -22,7 +22,6 @@ import android.view.View
 import android.view.Gravity
 import android.view.ViewGroup
 import android.view.ViewOutlineProvider
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -592,7 +591,8 @@ class NewHomeDetailFragment :
 
             container.removeAllViews()
             addStoryCard(getString(R.string.telegram_stories_yours), null, true)
-            val ownUserId = withState(viewModel) { it.myMatrixItem?.id }
+            var ownUserId: String? = null
+            withState(viewModel) { ownUserId = it.myMatrixItem?.id }
             recentStories.groupBy { it.ownerUserId }
                     .mapNotNull { (_, ownerStories) -> ownerStories.maxByOrNull { it.createdAt } }
                     .filter { it.ownerUserId != ownUserId }
