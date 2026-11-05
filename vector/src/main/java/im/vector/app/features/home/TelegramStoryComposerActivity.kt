@@ -99,12 +99,11 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val uriValue = intent.getStringExtra(EXTRA_STORY_URI)
-        if (uriValue.isNullOrBlank()) {
+        mediaUri = intent.data ?: uriValue?.let(Uri::parse) ?: run {
             setResult(Activity.RESULT_CANCELED)
             finish()
             return
         }
-        mediaUri = Uri.parse(uriValue)
         mimeType = intent.getStringExtra(EXTRA_STORY_MIME)
                 ?: contentResolver.getType(mediaUri).orEmpty()
         if (!mimeType.startsWith("image/") && !mimeType.startsWith("video/")) {
