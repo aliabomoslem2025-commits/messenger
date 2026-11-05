@@ -696,8 +696,14 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
         val stickerPositionSnapshot = stickerPositions.map { PointF(it.x, it.y) }
         return withContext(Dispatchers.IO) {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            contentResolver.openInputStream(mediaUri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-                    ?: error("Could not read the selected photo")
+            val boundsStream = contentResolver.openInputStream(mediaUri)
+                    ?: error("Could not open the selected photo URI")
+            boundsStream.use { BitmapFactory.decodeStream(it, null, bounds) }
+            // BitmapFactory.decodeStream intentionally returns null when inJustDecodeBounds
+            // is enabled. The dimensions, not the returned Bitmap, indicate success.
+            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+                error("The selected photo format could not be decoded")
+            }
             val sample = max(
                     1,
                     max(bounds.outWidth / STORY_WIDTH, bounds.outHeight / STORY_HEIGHT)
