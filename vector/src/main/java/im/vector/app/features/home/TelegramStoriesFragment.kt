@@ -66,6 +66,7 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
     private var didOpenRequestedInitialStory = false
     private var viewerImage: ImageView? = null
     private var viewerTitle: TextView? = null
+    private var viewerCaption: TextView? = null
     private var viewerProgress: ProgressBar? = null
     private var viewerPreviousButton: Button? = null
     private var viewerNextButton: Button? = null
@@ -279,6 +280,19 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
         }
         viewerTitle?.text = story.ownerUserId.substringBefore(':').removePrefix("@")
                 .ifBlank { getString(R.string.telegram_stories_title) }
+        viewerCaption?.let { caption ->
+            caption.text = story.caption
+            caption.isVisible = story.caption.isNotBlank()
+        }
+        storyViewerDialog?.window?.let { window ->
+            if (story.allowScreenshots) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            } else {
+                // Protect the story from screenshots/recording inside this client.
+                // Other Matrix clients cannot be forced to enforce this metadata.
+                window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
+        }
         viewerPreviousButton?.isEnabled = storyViewerIndex > 0
         viewerNextButton?.isEnabled = storyViewerIndex < stories.lastIndex
         viewerOpenVideoButton?.isVisible = story.isVideo
@@ -377,6 +391,29 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
                 Gravity.TOP
         ))
 
+        val caption = TextView(context).apply {
+            textSize = 15f
+            setTextColor(Color.WHITE)
+            setShadowLayer(dp(3).toFloat(), 0f, dp(1).toFloat(), Color.BLACK)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(16), dp(8), dp(16), dp(8))
+            maxLines = 4
+            ellipsize = android.text.TextUtils.TruncateAt.END
+            background = GradientDrawable().apply {
+                colors = intArrayOf(0x00000000, 0x66000000)
+                orientation = GradientDrawable.Orientation.TOP_BOTTOM
+            }
+            isVisible = false
+        }
+        viewerCaption = caption
+        root.addView(caption, FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.BOTTOM
+        ).apply {
+            bottomMargin = dp(84)
+        })
+
         val bottomBar = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER
@@ -433,6 +470,7 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
                 storyViewerDialog = null
                 viewerImage = null
                 viewerTitle = null
+                viewerCaption = null
                 viewerProgress = null
                 viewerPreviousButton = null
                 viewerNextButton = null
