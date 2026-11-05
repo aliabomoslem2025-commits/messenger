@@ -88,10 +88,10 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
     private val stickerPositions = mutableListOf<PointF>()
 
     private var availableContacts: List<StoryContact> = emptyList()
+    private var availableRooms: List<StoryRoom> = emptyList()
     private var selectedAudience = TelegramStoriesRepository.AUDIENCE_EVERYONE
     private val selectedUserIds = linkedSetOf<String>()
-    private val excludedUserIds = linkedSetOf<String>()
-    private val closeFriendIds = linkedSetOf<String>()
+    private val selectedRoomIds = linkedSetOf<String>()
     private var allowScreenshots = true
     private var keepOnProfile = false
     private var posting = false
@@ -468,8 +468,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 availableContacts = storiesRepository.getEligibleContacts()
-                closeFriendIds.clear()
-                closeFriendIds.addAll(storiesRepository.getCloseFriends())
+                availableRooms = storiesRepository.getEligibleRooms()
                 showShareStorySheet()
             } catch (_: Exception) {
                 Toast.makeText(this@TelegramStoryComposerActivity, R.string.telegram_story_contacts_failed, Toast.LENGTH_LONG).show()
@@ -499,9 +498,8 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
         val audienceGroup = RadioGroup(this).apply { orientation = RadioGroup.VERTICAL }
         val audienceRows = listOf(
                 TelegramStoriesRepository.AUDIENCE_EVERYONE to getString(R.string.telegram_story_everyone),
-                TelegramStoriesRepository.AUDIENCE_CONTACTS to getString(R.string.telegram_story_contacts),
-                TelegramStoriesRepository.AUDIENCE_CLOSE_FRIENDS to getString(R.string.telegram_story_close_friends),
-                TelegramStoriesRepository.AUDIENCE_SELECTED to getString(R.string.telegram_story_selected_contacts)
+                TelegramStoriesRepository.AUDIENCE_SELECTED to getString(R.string.telegram_story_selected_contacts),
+                TelegramStoriesRepository.AUDIENCE_SELECTED_ROOMS to getString(R.string.telegram_story_selected_rooms)
         )
         audienceRows.forEach { (value, label) ->
             val row = RadioButton(this).apply {
@@ -516,49 +514,8 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
             }
             audienceGroup.addView(row)
         }
-        val excludePeopleRow = linkRow(getString(R.string.telegram_story_exclude_people)) {
-            showContactPicker(
-                    getString(R.string.telegram_story_exclude_people),
-                    excludedUserIds
-            ) { selected ->
-                excludedUserIds.clear()
-                excludedUserIds.addAll(selected)
-            }
-        }
-        val excludePeopleNote = TextView(this).apply {
-            text = getString(R.string.telegram_story_select_people_who_wont_see)
-            textSize = 12f
-            setTextColor(0xFF229ED9.toInt())
-            setPadding(0, dp(8), 0, dp(12))
-        }
-        fun updateExcludePeopleVisibility() {
-            val showExclusions = selectedAudience != TelegramStoriesRepository.AUDIENCE_EVERYONE
-            excludePeopleRow.visibility = if (showExclusions) View.VISIBLE else View.GONE
-            excludePeopleNote.visibility = if (showExclusions) View.VISIBLE else View.GONE
-        }
-        audienceGroup.setOnCheckedChangeListener { group, checkedId ->
-            val selected = group.findViewById<RadioButton>(checkedId)
-            selectedAudience = selected?.tag as? String ?: TelegramStoriesRepository.AUDIENCE_EVERYONE
-            if (selectedAudience == TelegramStoriesRepository.AUDIENCE_EVERYONE) {
-                // Public directory stories cannot hide from individual Matrix users.
-                excludedUserIds.clear()
-            }
-            updateExcludePeopleVisibility()
-        }
-        content.addView(audienceGroup)
-        updateExcludePeopleVisibility()
-        content.addView(excludePeopleRow)
-        content.addView(linkRow(getString(R.string.telegram_story_edit_close_friends)) {
-            showContactPicker(
-                    getString(R.string.telegram_story_close_friends),
-                    closeFriendIds
-            ) { selected ->
-                closeFriendIds.clear()
-                closeFriendIds.addAll(selected)
-                lifecycleScope.launch { storiesRepository.saveCloseFriends(closeFriendIds) }
-            }
-        })
-        content.addView(linkRow(getString(R.string.telegram_story_edit_selected_contacts)) {
+
+        val selectPeopleRow = linkRow(getString(R.string.telegram_story_edit_selected_contacts)) {
             showContactPicker(
                     getString(R.string.telegram_story_selected_contacts),
                     selectedUserIds
@@ -566,8 +523,31 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                 selectedUserIds.clear()
                 selectedUserIds.addAll(selected)
             }
-        })
-        content.addView(excludePeopleNote)
+        }
+        val selectRoomsRow = linkRow(getString(R.string.telegram_story_select_rooms)) {
+            showRoomPicker()
+        }
+        fun updateAudiencePickerVisibility() {
+            selectPeopleRow.visibility = if (selectedAudience == TelegramStoriesRepository.AUDIENCE_SELECTED) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+            selectRoomsRow.visibility = if (selectedAudience == TelegramStoriesRepository.AUDIENCE_SELECTED_ROOMS) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+        }
+        audienceGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selected = group.findViewById<RadioButton>(checkedId)
+            selectedAudience = selected?.tag as? String ?: TelegramStoriesRepository.AUDIENCE_EVERYONE
+            updateAudiencePickerVisibility()
+        }
+        content.addView(audienceGroup)
+        updateAudiencePickerVisibility()
+        content.addView(selectPeopleRow)
+        content.addView(selectRoomsRow)
 
         val allowSwitch = SwitchMaterial(this).apply {
             text = getString(R.string.telegram_story_allow_screenshots)
@@ -650,22 +630,45 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                 .show()
     }
 
+    private fun showRoomPicker() {
+        if (availableRooms.isEmpty()) {
+            Toast.makeText(this, R.string.telegram_story_no_rooms, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val labels = availableRooms.map { room ->
+            "${room.displayName} · ${room.joinedMembersCount}"
+        }.toTypedArray()
+        val checked = BooleanArray(availableRooms.size) { index ->
+            availableRooms[index].roomId in selectedRoomIds
+        }
+        val selected = selectedRoomIds.toMutableSet()
+        AlertDialog.Builder(this)
+                .setTitle(R.string.telegram_story_select_rooms)
+                .setMultiChoiceItems(labels, checked) { _, which, isChecked ->
+                    val roomId = availableRooms[which].roomId
+                    if (isChecked) selected.add(roomId) else selected.remove(roomId)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    selectedRoomIds.clear()
+                    selectedRoomIds.addAll(selected)
+                }
+                .show()
+    }
+
     private fun postStory() {
         if (posting) return
         if (selectedAudience == TelegramStoriesRepository.AUDIENCE_SELECTED && selectedUserIds.isEmpty()) {
             Toast.makeText(this, R.string.telegram_story_select_at_least_one, Toast.LENGTH_LONG).show()
             return
         }
-        if (selectedAudience == TelegramStoriesRepository.AUDIENCE_CLOSE_FRIENDS && closeFriendIds.isEmpty()) {
-            Toast.makeText(this, R.string.telegram_story_close_friends_empty, Toast.LENGTH_LONG).show()
+        if (selectedAudience == TelegramStoriesRepository.AUDIENCE_SELECTED_ROOMS && selectedRoomIds.isEmpty()) {
+            Toast.makeText(this, R.string.telegram_story_select_at_least_one_room, Toast.LENGTH_LONG).show()
             return
         }
         posting = true
         lifecycleScope.launch {
             try {
-                if (selectedAudience == TelegramStoriesRepository.AUDIENCE_CLOSE_FRIENDS) {
-                    storiesRepository.saveCloseFriends(closeFriendIds)
-                }
                 val uploadUri = prepareMediaForUpload()
                 val draft = StoryDraft(
                         caption = captionInput.text?.toString().orEmpty().trim(),
@@ -681,7 +684,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                         durationHours = durationHours,
                         audience = selectedAudience,
                         selectedUserIds = selectedUserIds.toSet(),
-                        excludedUserIds = excludedUserIds.toSet(),
+                        selectedRoomIds = selectedRoomIds.toSet(),
                         albumName = "All Stories",
                 )
                 storiesRepository.publishStory(uploadUri, draft)
