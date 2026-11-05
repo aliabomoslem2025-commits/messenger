@@ -516,13 +516,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
             }
             audienceGroup.addView(row)
         }
-        audienceGroup.setOnCheckedChangeListener { group, checkedId ->
-            val selected = group.findViewById<RadioButton>(checkedId)
-            selectedAudience = selected?.tag as? String ?: TelegramStoriesRepository.AUDIENCE_EVERYONE
-        }
-        content.addView(audienceGroup)
-
-        content.addView(linkRow(getString(R.string.telegram_story_exclude_people)) {
+        val excludePeopleRow = linkRow(getString(R.string.telegram_story_exclude_people)) {
             showContactPicker(
                     getString(R.string.telegram_story_exclude_people),
                     excludedUserIds
@@ -530,7 +524,30 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                 excludedUserIds.clear()
                 excludedUserIds.addAll(selected)
             }
-        })
+        }
+        val excludePeopleNote = TextView(this).apply {
+            text = getString(R.string.telegram_story_select_people_who_wont_see)
+            textSize = 12f
+            setTextColor(0xFF229ED9.toInt())
+            setPadding(0, dp(8), 0, dp(12))
+        }
+        fun updateExcludePeopleVisibility() {
+            val showExclusions = selectedAudience != TelegramStoriesRepository.AUDIENCE_EVERYONE
+            excludePeopleRow.visibility = if (showExclusions) View.VISIBLE else View.GONE
+            excludePeopleNote.visibility = if (showExclusions) View.VISIBLE else View.GONE
+        }
+        audienceGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selected = group.findViewById<RadioButton>(checkedId)
+            selectedAudience = selected?.tag as? String ?: TelegramStoriesRepository.AUDIENCE_EVERYONE
+            if (selectedAudience == TelegramStoriesRepository.AUDIENCE_EVERYONE) {
+                // Public directory stories cannot hide from individual Matrix users.
+                excludedUserIds.clear()
+            }
+            updateExcludePeopleVisibility()
+        }
+        content.addView(audienceGroup)
+        updateExcludePeopleVisibility()
+        content.addView(excludePeopleRow)
         content.addView(linkRow(getString(R.string.telegram_story_edit_close_friends)) {
             showContactPicker(
                     getString(R.string.telegram_story_close_friends),
@@ -550,12 +567,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                 selectedUserIds.addAll(selected)
             }
         })
-        content.addView(TextView(this).apply {
-            text = getString(R.string.telegram_story_select_people_who_wont_see)
-            textSize = 12f
-            setTextColor(0xFF229ED9.toInt())
-            setPadding(0, dp(8), 0, dp(12))
-        })
+        content.addView(excludePeopleNote)
 
         val allowSwitch = SwitchMaterial(this).apply {
             text = getString(R.string.telegram_story_allow_screenshots)
