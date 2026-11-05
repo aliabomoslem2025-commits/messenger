@@ -108,7 +108,7 @@
     <string name="telegram_stories_add_video">Add video</string>
     <string name="telegram_stories_loading">Loading stories…</string>
     <string name="telegram_stories_empty">No active stories yet.</string>
-    <string name="telegram_stories_upload_started">Story upload was queued in Matrix.</string>
+    <string name="telegram_stories_upload_started">Story published successfully.</string>
     <string name="telegram_stories_upload_failed">Could not publish the story.</string>
     <string name="telegram_stories_choose_story">Choose a story</string>
     <string name="telegram_stories_open_video">Open video</string>
