@@ -9,6 +9,8 @@ package im.vector.app.features.home
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
+import android.content.ClipData
+import android.net.Uri
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.drawable.ColorDrawable
@@ -82,13 +84,17 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
 
     private val storyCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val uri = result.data?.getStringExtra(TelegramStoryCameraActivity.EXTRA_STORY_URI)
+            val selectedUri = result.data?.data
+                    ?: result.data?.getStringExtra(TelegramStoryCameraActivity.EXTRA_STORY_URI)?.let(Uri::parse)
             val mimeType = result.data?.getStringExtra(TelegramStoryCameraActivity.EXTRA_STORY_MIME)
-            if (!uri.isNullOrBlank()) {
-                val composerIntent = Intent(requireContext(), TelegramStoryComposerActivity::class.java)
-                        .putExtra(TelegramStoryComposerActivity.EXTRA_STORY_URI, uri)
-                        .putExtra(TelegramStoryComposerActivity.EXTRA_STORY_MIME, mimeType)
-                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            if (selectedUri != null) {
+                val composerIntent = Intent(requireContext(), TelegramStoryComposerActivity::class.java).apply {
+                    data = selectedUri
+                    clipData = ClipData.newUri(requireContext().contentResolver, "Story media", selectedUri)
+                    putExtra(TelegramStoryComposerActivity.EXTRA_STORY_URI, selectedUri.toString())
+                    putExtra(TelegramStoryComposerActivity.EXTRA_STORY_MIME, mimeType)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
                 storyComposerLauncher.launch(composerIntent)
             }
         }
