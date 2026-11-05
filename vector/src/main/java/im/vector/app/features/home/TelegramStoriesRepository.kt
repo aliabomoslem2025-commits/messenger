@@ -328,7 +328,8 @@ class TelegramStoriesRepository @Inject constructor(
                         }
                 val next = response.nextBatch
                 if (next.isNullOrBlank() || next == nextBatch ||
-                        discoveredRoomIds.size >= MAX_PUBLIC_STORY_ROOMS_TO_JOIN) {
+                        discoveredRoomIds.size >= MAX_PUBLIC_STORY_ROOMS_TO_JOIN ||
+                        page == MAX_PUBLIC_DIRECTORY_PAGES - 1) {
                     break
                 }
                 nextBatch = next
