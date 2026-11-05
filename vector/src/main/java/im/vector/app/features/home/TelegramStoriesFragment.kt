@@ -49,11 +49,12 @@ private const val ARG_INITIAL_STORY_EVENT_ID = "initial_story_event_id"
 private const val ARG_OPEN_STORY_COMPOSER = "open_story_composer"
 
 /**
- * Story hub for Messenger's app-specific encrypted Matrix Stories format.
+ * Story hub for Messenger's app-specific Matrix Stories format.
  *
- * Images and videos are uploaded as regular Matrix media events in private,
- * encrypted, custom-type story rooms. Story expiration is client-enforced; the
- * Matrix homeserver may retain historical events according to its retention policy.
+ * Everyone stories use the author's single public, world-readable story room.
+ * Selected-people and selected-room stories use one encrypted room per story,
+ * shared by the selected audience rather than one room per recipient.
+ * Expiration is client-enforced; the homeserver may retain historical events.
  */
 @AndroidEntryPoint
 class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBinding>() {
