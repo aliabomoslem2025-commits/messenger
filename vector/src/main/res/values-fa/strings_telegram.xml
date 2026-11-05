@@ -103,7 +103,7 @@
     <string name="telegram_story_everyone">همه</string>
     <string name="telegram_story_contacts">مخاطبان</string>
     <string name="telegram_story_close_friends">دوستان نزدیک</string>
-    <string name="telegram_story_selected_contacts">افراد انتخاب‌شده</string>
+    <string name="telegram_story_selected_contacts">افرادی که انتخاب می‌کنم</string>
     <string name="telegram_story_exclude_people">مستثنا کردن افراد</string>
     <string name="telegram_story_edit_close_friends">ویرایش فهرست دوستان نزدیک</string>
     <string name="telegram_story_edit_selected_contacts">انتخاب افراد</string>
@@ -117,8 +117,11 @@
     <string name="telegram_story_close_friends_empty">فهرست دوستان نزدیک شما خالی است.</string>
     <string name="telegram_story_post_failed">انتشار استوری انجام نشد.</string>
     <string name="telegram_story_no_contacts">مخاطب واجد شرایطی در Matrix پیدا نشد.</string>
-    <string name="telegram_story_selected_rooms">اتاق‌های انتخاب‌شده</string>
+    <string name="telegram_story_selected_rooms">اعضای اتاق‌های انتخاب‌شده</string>
     <string name="telegram_story_select_rooms">انتخاب اتاق‌ها</string>
     <string name="telegram_story_no_rooms">هیچ اتاق گروهیِ پیوسته‌ای پیدا نشد.</string>
     <string name="telegram_story_select_at_least_one_room">حداقل یک اتاق برای نمایش استوری به اعضای آن انتخاب کنید.</string>
+    <string name="telegram_story_audience_everyone_hint">استوری در اتاق عمومی حساب شما منتشر می‌شود و کاربران دارای دسترسی به آن اتاق می‌توانند آن را ببینند.</string>
+    <string name="telegram_story_audience_people_hint">فقط افرادی که انتخاب می‌کنید، به یک اتاق خصوصی مشترک برای همین استوری دعوت می‌شوند.</string>
+    <string name="telegram_story_audience_rooms_hint">تمام اعضای پیوستهٔ اتاق‌های انتخاب‌شده به یک اتاق خصوصی مشترک دعوت می‌شوند؛ اعضای تکراری فقط یک‌بار حساب می‌شوند.</string>
 </resources>
