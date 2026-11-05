@@ -20,6 +20,8 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import org.matrix.android.sdk.api.query.RoomCategoryFilter
+import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.toModel
@@ -31,9 +33,6 @@ import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
-import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsFilter
-import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsParams
-import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
@@ -41,8 +40,10 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachme
 import org.matrix.android.sdk.api.session.room.model.message.VideoInfo
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
+import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsFilter
+import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsParams
+import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
-import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -211,7 +212,7 @@ class TelegramStoriesRepository @Inject constructor(
         room.roomId
     }
 
-    private suspend fun getOrCreatePublicStoriesRoom(session: org.matrix.android.sdk.api.session.Session): Room {
+    private suspend fun getOrCreatePublicStoriesRoom(session: Session): Room {
         val roomService = session.roomService()
         val roomName = publicStoryRoomName(session.myUserId)
         val query = RoomSummaryQueryParams.Builder().also {
@@ -511,11 +512,18 @@ class TelegramStoriesRepository @Inject constructor(
     }
 
     private fun parseOwner(roomName: String): String? {
+        if (roomName.startsWith(PUBLIC_STORY_ROOM_NAME_PREFIX)) {
+            return roomName.removePrefix(PUBLIC_STORY_ROOM_NAME_PREFIX)
+                    .takeIf { it.startsWith("@") && it.contains(':') }
+        }
         if (!roomName.startsWith(STORY_ROOM_NAME_PREFIX + "|")) return null
         return roomName.removePrefix(STORY_ROOM_NAME_PREFIX + "|")
                 .substringBefore('|')
                 .takeIf { it.startsWith("@") && it.contains(':') }
     }
+
+    private fun publicStoryRoomName(userId: String): String =
+            "$PUBLIC_STORY_ROOM_NAME_PREFIX$userId"
 
     private fun queryMetadata(resolver: ContentResolver, uri: Uri): Pair<String?, Long> {
         var name: String? = null
