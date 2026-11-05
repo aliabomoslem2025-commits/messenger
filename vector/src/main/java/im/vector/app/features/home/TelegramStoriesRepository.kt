@@ -156,6 +156,9 @@ class TelegramStoriesRepository @Inject constructor(
                 else -> error("Unsupported story audience")
             }
 
+            // Build the union of the selected audience first, then create exactly one
+            // encrypted story room for this story. People shared by several selected
+            // rooms are deduplicated by recipientIds before they are invited.
             val roomName = "${STORY_ROOM_NAME_PREFIX}|${session.myUserId}|$now"
             val params = CreateRoomParams().apply {
                 name = roomName
