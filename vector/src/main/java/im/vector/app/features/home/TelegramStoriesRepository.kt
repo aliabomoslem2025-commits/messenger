@@ -14,11 +14,16 @@ import android.provider.OpenableColumns
 import dagger.hilt.android.qualifiers.ApplicationContext
 import im.vector.app.core.di.ActiveSessionHolder
 import im.vector.app.features.media.ImageContentRenderer
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.session.crypto.attachments.toElementToDecrypt
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.PowerLevelsContent
@@ -26,6 +31,9 @@ import org.matrix.android.sdk.api.session.room.model.RoomDirectoryVisibility
 import org.matrix.android.sdk.api.session.room.model.RoomHistoryVisibility
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomPreset
+import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsFilter
+import org.matrix.android.sdk.api.session.room.model.roomdirectory.PublicRoomsParams
+import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageImageInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
@@ -35,21 +43,18 @@ import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
 import org.matrix.android.sdk.api.session.room.model.message.getThumbnailUrl
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.query.RoomCategoryFilter
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Stories are implemented as private, encrypted, app-specific Matrix rooms.
+ * Stories use standard Matrix media events with app-specific expiry metadata.
  *
- * Matrix does not currently provide a stable, universally-supported built-in Stories
- * event type, so this app uses standard m.image/m.video events plus a namespaced
- * expiry payload. Each story is a separate room; it is not public, is encrypted, and
- * only invites members from the author's existing joined DM rooms. Story rooms are
- * hidden from the chat-folder queries by STORY_ROOM_TYPE.
- *
- * Expiry is enforced by clients when listing/viewing stories. Homeservers may retain
- * historical events according to their server retention policy; this does not claim
- * a network-wide hard-delete guarantee.
+ * "Everyone" stories are posted to a public, world-readable room owned by the author.
+ * The author's public room is listed in the homeserver room directory and federates
+ * normally; private audiences continue to use one encrypted room per story.
+ * Homeservers may retain historical events according to their retention policy, so
+ * expiry is enforced by this client rather than being a network-wide hard-delete.
  */
 data class StoryContact(
         val userId: String,
@@ -116,48 +121,51 @@ class TelegramStoriesRepository @Inject constructor(
             now + durationHours * 60L * 60L * 1000L
         }
 
-        // Matrix has no public, global Stories audience. "Everyone" therefore means
-        // every known direct-message contact on this account; the other audiences
-        // are enforced by inviting only their selected Matrix user IDs to this room.
-        val contacts = getEligibleContacts()
-        val allContactIds = contacts.map { it.userId }.toSet()
-        val closeFriendIds = getCloseFriends()
-        val audienceIds = when (draft.audience) {
-            AUDIENCE_CLOSE_FRIENDS -> closeFriendIds
-            AUDIENCE_SELECTED -> draft.selectedUserIds
-            AUDIENCE_CONTACTS,
-            AUDIENCE_EVERYONE -> allContactIds
-            else -> allContactIds
-        }
-        val recipients = audienceIds
-                .intersect(allContactIds)
-                .minus(draft.excludedUserIds)
-                .minus(session.myUserId)
-        if (draft.audience == AUDIENCE_SELECTED && recipients.isEmpty()) {
-            error("Select at least one contact who can view this story")
-        }
-        if (draft.audience == AUDIENCE_CLOSE_FRIENDS && recipients.isEmpty()) {
-            error("Your Close Friends list is empty")
-        }
-        if (recipients.isEmpty()) {
-            error("No eligible Matrix contacts are available for this story")
-        }
+        val room = if (draft.audience == AUDIENCE_EVERYONE) {
+            check(draft.excludedUserIds.isEmpty()) {
+                "A public story cannot hide from individual viewers. Clear the excluded-people list first."
+            }
+            getOrCreatePublicStoriesRoom(session)
+        } else {
+            val contacts = getEligibleContacts()
+            val allContactIds = contacts.map { it.userId }.toSet()
+            val closeFriendIds = getCloseFriends()
+            val audienceIds = when (draft.audience) {
+                AUDIENCE_CLOSE_FRIENDS -> closeFriendIds
+                AUDIENCE_SELECTED -> draft.selectedUserIds
+                AUDIENCE_CONTACTS -> allContactIds
+                else -> error("Unsupported story audience")
+            }
+            val recipients = audienceIds
+                    .intersect(allContactIds)
+                    .minus(draft.excludedUserIds)
+                    .minus(session.myUserId)
+            if (draft.audience == AUDIENCE_SELECTED && recipients.isEmpty()) {
+                error("Select at least one contact who can view this story")
+            }
+            if (draft.audience == AUDIENCE_CLOSE_FRIENDS && recipients.isEmpty()) {
+                error("Your Close Friends list is empty")
+            }
+            if (recipients.isEmpty()) {
+                error("No eligible Matrix contacts are available for this story")
+            }
 
-        val roomName = "${STORY_ROOM_NAME_PREFIX}|${session.myUserId}|$now"
-        val params = CreateRoomParams().apply {
-            this.name = roomName
-            roomType = STORY_ROOM_TYPE
-            visibility = RoomDirectoryVisibility.PRIVATE
-            preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
-            historyVisibility = RoomHistoryVisibility.SHARED
-            invitedUserIds.addAll(recipients)
-            enableEncryption()
-            // Invited viewers may read the story, but only its author can post.
-            powerLevelContentOverride = PowerLevelsContent(eventsDefault = 100)
+            val roomName = "${STORY_ROOM_NAME_PREFIX}|${session.myUserId}|$now"
+            val params = CreateRoomParams().apply {
+                name = roomName
+                roomType = STORY_ROOM_TYPE
+                visibility = RoomDirectoryVisibility.PRIVATE
+                preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
+                historyVisibility = RoomHistoryVisibility.SHARED
+                invitedUserIds.addAll(recipients)
+                enableEncryption()
+                // Invited viewers may read the story, but only its author can post.
+                powerLevelContentOverride = PowerLevelsContent(eventsDefault = 100)
+            }
+            val privateRoomId = session.roomService().createRoom(params)
+            session.roomService().getRoom(privateRoomId)
+                    ?: error("Matrix created the private story room but it is not available locally")
         }
-        val roomId = session.roomService().createRoom(params)
-        val room = session.roomService().getRoom(roomId)
-                ?: error("Matrix created the story room but it is not available locally")
 
         val attachment = ContentAttachmentData(
                 size = size,
@@ -167,13 +175,15 @@ class TelegramStoriesRepository @Inject constructor(
                 type = mediaType,
                 date = now,
         )
-        room.sendService().sendMedia(
+        val storyId = UUID.randomUUID().toString()
+        val sendOperation = room.sendService().sendMedia(
                 attachment = attachment,
                 compressBeforeSending = mediaType == ContentAttachmentData.Type.IMAGE,
-                roomIds = setOf(roomId),
+                roomIds = setOf(room.roomId),
                 additionalContent = mapOf(
                         STORY_METADATA_KEY to mapOf(
                                 "version" to STORY_FORMAT_VERSION,
+                                "story_id" to storyId,
                                 "created_at" to now,
                                 "expires_at" to expiresAt,
                                 "caption" to draft.caption.take(2048),
@@ -192,7 +202,150 @@ class TelegramStoriesRepository @Inject constructor(
                         )
                 ),
         )
-        roomId
+        try {
+            awaitStoryUpload(room, storyId, session.myUserId)
+        } catch (failure: Throwable) {
+            runCatching { sendOperation.cancel() }
+            throw failure
+        }
+        room.roomId
+    }
+
+    private suspend fun getOrCreatePublicStoriesRoom(session: org.matrix.android.sdk.api.session.Session): Room {
+        val roomService = session.roomService()
+        val roomName = publicStoryRoomName(session.myUserId)
+        val query = RoomSummaryQueryParams.Builder().also {
+            it.memberships = listOf(Membership.JOIN)
+            it.includeType = listOf(STORY_ROOM_TYPE)
+            it.excludeType = null
+        }.build()
+        val existing = roomService.getRoomSummaries(query).firstOrNull { summary ->
+            summary.name == roomName || summary.displayName == roomName
+        }
+        val roomId = existing?.roomId ?: roomService.createRoom(
+                CreateRoomParams().apply {
+                    name = roomName
+                    topic = "Public stories from ${session.myUserId}"
+                    roomType = STORY_ROOM_TYPE
+                    visibility = RoomDirectoryVisibility.PUBLIC
+                    preset = CreateRoomPreset.PRESET_PUBLIC_CHAT
+                    historyVisibility = RoomHistoryVisibility.WORLD_READABLE
+                    // The room owner is the only user allowed to publish events.
+                    powerLevelContentOverride = PowerLevelsContent(eventsDefault = 100)
+                }
+        )
+
+        val directory = session.roomDirectoryService()
+        if (directory.getRoomDirectoryVisibility(roomId) != RoomDirectoryVisibility.PUBLIC) {
+            directory.setRoomDirectoryVisibility(roomId, RoomDirectoryVisibility.PUBLIC)
+        }
+        check(directory.getRoomDirectoryVisibility(roomId) == RoomDirectoryVisibility.PUBLIC) {
+            "The homeserver did not make the story room public"
+        }
+        return roomService.getRoom(roomId)
+                ?: error("The public story room is not available locally")
+    }
+
+    private suspend fun awaitStoryUpload(room: Room, storyId: String, senderId: String) {
+        try {
+            withTimeout(STORY_UPLOAD_TIMEOUT_MS) {
+                while (true) {
+                    val matchingEvent = room.timelineService().getAttachmentMessages().firstOrNull { event ->
+                        if (event.root.senderId != senderId) {
+                            false
+                        } else {
+                            val metadata = event.root.getClearContent()
+                                    ?.get(STORY_METADATA_KEY) as? Map<*, *>
+                            metadata?.get("story_id") == storyId
+                        }
+                    }
+                    if (matchingEvent != null) {
+                        when (matchingEvent.root.sendState) {
+                            SendState.SENT,
+                            SendState.SYNCED -> return@withTimeout
+                            SendState.UNDELIVERED,
+                            SendState.FAILED_UNKNOWN_DEVICES -> error(
+                                    matchingEvent.root.sendStateDetails
+                                            ?: "Matrix could not send the story media"
+                            )
+                            else -> Unit
+                        }
+                    }
+                    delay(STORY_UPLOAD_POLL_INTERVAL_MS)
+                }
+            }
+        } catch (timeout: TimeoutCancellationException) {
+            throw IllegalStateException(
+                    "Matrix did not confirm the story upload. Check your connection and try again.",
+                    timeout
+            )
+        }
+    }
+
+    private suspend fun discoverPublicStoryRooms(session: org.matrix.android.sdk.api.session.Session) {
+        val remoteServers = try {
+            getEligibleContacts()
+                    .map { it.userId.substringAfter(':', "") }
+                    .filter { it.isNotBlank() && it != session.myUserId.substringAfter(':', "") }
+                    .distinct()
+                    .take(MAX_PUBLIC_DIRECTORY_SERVERS)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (_: Exception) {
+            emptyList()
+        }
+        val servers: List<String?> = listOf(null) + remoteServers
+        val discoveredRoomIds = linkedSetOf<String>()
+
+        for (server in servers) {
+            var nextBatch: String? = null
+            for (page in 0 until MAX_PUBLIC_DIRECTORY_PAGES) {
+                val response = try {
+                    session.roomDirectoryService().getPublicRooms(
+                            server = server,
+                            publicRoomsParams = PublicRoomsParams(
+                                    limit = PUBLIC_DIRECTORY_PAGE_SIZE,
+                                    since = nextBatch,
+                                    filter = PublicRoomsFilter(PUBLIC_STORY_ROOM_SEARCH_TERM),
+                            ),
+                    )
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    break
+                }
+                response.chunk.orEmpty()
+                        .asSequence()
+                        .filter { publicRoom ->
+                            publicRoom.worldReadable &&
+                                    publicRoom.name.orEmpty().startsWith(PUBLIC_STORY_ROOM_NAME_PREFIX)
+                        }
+                        .forEach { publicRoom ->
+                            if (discoveredRoomIds.size < MAX_PUBLIC_STORY_ROOMS_TO_JOIN) {
+                                discoveredRoomIds.add(publicRoom.roomId)
+                            }
+                        }
+                val next = response.nextBatch
+                if (next.isNullOrBlank() || next == nextBatch ||
+                        discoveredRoomIds.size >= MAX_PUBLIC_STORY_ROOMS_TO_JOIN) {
+                    break
+                }
+                nextBatch = next
+            }
+            if (discoveredRoomIds.size >= MAX_PUBLIC_STORY_ROOMS_TO_JOIN) break
+        }
+
+        discoveredRoomIds.forEach { roomId ->
+            if (session.roomService().getRoomSummary(roomId)?.membership != Membership.JOIN) {
+                try {
+                    session.roomService().joinRoom(roomId)
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    // A room can disappear or reject federation between directory lookup and join.
+                }
+            }
+        }
     }
 
     suspend fun loadStories(joinInvitations: Boolean = true): List<Story> = withContext(Dispatchers.IO) {
@@ -203,8 +356,13 @@ class TelegramStoriesRepository @Inject constructor(
             it.excludeType = null
         }.build()
 
-        // Invitations are joined only after the user opens Stories, so the home
-        // screen itself does not silently join newly invited rooms.
+        // Public stories are discovered through Matrix room directories. We only join
+        // rooms using this app's public-story name prefix and world-readable history.
+        if (joinInvitations) {
+            discoverPublicStoryRooms(session)
+        }
+
+        // Private story invitations are joined only after the user opens Stories.
         val initialSummaries = session.roomService().getRoomSummaries(query)
         if (joinInvitations) {
             initialSummaries.filter { it.membership == Membership.INVITE }.forEach { summary ->
@@ -255,7 +413,7 @@ class TelegramStoriesRepository @Inject constructor(
             }
         }
 
-        result.sortedByDescending { it.createdAt }
+        result.distinctBy { it.event.eventId }.sortedByDescending { it.createdAt }
     }
 
     suspend fun markSeen(eventId: String) = withContext(Dispatchers.IO) {
@@ -378,6 +536,14 @@ class TelegramStoriesRepository @Inject constructor(
         const val STORY_ROOM_TYPE = "org.messenger.stories"
         const val STORY_ROOM_NAME_PREFIX = "org.messenger.story"
         const val STORY_METADATA_KEY = "org.messenger.story"
+        private const val PUBLIC_STORY_ROOM_NAME_PREFIX = "Messenger Stories | "
+        private const val PUBLIC_STORY_ROOM_SEARCH_TERM = "Messenger Stories"
+        private const val STORY_UPLOAD_TIMEOUT_MS = 180_000L
+        private const val STORY_UPLOAD_POLL_INTERVAL_MS = 300L
+        private const val PUBLIC_DIRECTORY_PAGE_SIZE = 100
+        private const val MAX_PUBLIC_DIRECTORY_PAGES = 2
+        private const val MAX_PUBLIC_DIRECTORY_SERVERS = 4
+        private const val MAX_PUBLIC_STORY_ROOMS_TO_JOIN = 60
         private const val STORY_SEEN_ACCOUNT_DATA = "org.messenger.story.seen"
         private const val STORY_CLOSE_FRIENDS = "org.messenger.story.close_friends"
         const val AUDIENCE_EVERYONE = "everyone"
