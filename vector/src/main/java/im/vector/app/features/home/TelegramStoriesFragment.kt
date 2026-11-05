@@ -6,6 +6,7 @@
 
 package im.vector.app.features.home
 
+import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
@@ -78,12 +79,22 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
         }
     }
 
-    private val photoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) publishStory(uri)
+    private val storyCameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.getStringExtra(TelegramStoryCameraActivity.EXTRA_STORY_URI)
+            val mimeType = result.data?.getStringExtra(TelegramStoryCameraActivity.EXTRA_STORY_MIME)
+            if (!uri.isNullOrBlank()) {
+                val composerIntent = Intent(requireContext(), TelegramStoryComposerActivity::class.java)
+                        .putExtra(TelegramStoryComposerActivity.EXTRA_STORY_URI, uri)
+                        .putExtra(TelegramStoryComposerActivity.EXTRA_STORY_MIME, mimeType)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                storyComposerLauncher.launch(composerIntent)
+            }
+        }
     }
 
-    private val videoPicker = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) publishStory(uri)
+    private val storyComposerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK && view != null) reloadStories()
     }
 
     override fun getBinding(inflater: LayoutInflater, container: ViewGroup?): FragmentTelegramStoriesBinding {
@@ -92,8 +103,9 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        views.telegramStoriesAddPhoto.setOnClickListener { photoPicker.launch(arrayOf("image/*")) }
-        views.telegramStoriesAddVideo.setOnClickListener { videoPicker.launch(arrayOf("video/*")) }
+        views.telegramStoriesAddPhoto.setText(R.string.telegram_story_create)
+        views.telegramStoriesAddPhoto.setOnClickListener { openStoryCamera() }
+        views.telegramStoriesAddVideo.isVisible = false
         reloadStories()
     }
 
@@ -153,20 +165,11 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
     }
 
     private fun showAddStoryChooser() {
-        val options = arrayOf(
-                getString(R.string.telegram_stories_add_photo),
-                getString(R.string.telegram_stories_add_video),
-        )
-        android.app.AlertDialog.Builder(requireContext())
-                .setTitle(R.string.telegram_stories_title)
-                .setItems(options) { _, which ->
-                    when (which) {
-                        0 -> photoPicker.launch(arrayOf("image/*"))
-                        1 -> videoPicker.launch(arrayOf("video/*"))
-                    }
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
+        openStoryCamera()
+    }
+
+    private fun openStoryCamera() {
+        storyCameraLauncher.launch(Intent(requireContext(), TelegramStoryCameraActivity::class.java))
     }
 
     private fun renderStories() {
