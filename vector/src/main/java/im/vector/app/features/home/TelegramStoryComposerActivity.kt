@@ -8,7 +8,6 @@ package im.vector.app.features.home
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -646,6 +645,9 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
         posting = true
         lifecycleScope.launch {
             try {
+                if (selectedAudience == TelegramStoriesRepository.AUDIENCE_CLOSE_FRIENDS) {
+                    storiesRepository.saveCloseFriends(closeFriendIds)
+                }
                 val uploadUri = prepareMediaForUpload()
                 val draft = StoryDraft(
                         caption = captionInput.text?.toString().orEmpty().trim(),
