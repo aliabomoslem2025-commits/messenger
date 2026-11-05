@@ -51,7 +51,7 @@
     <string name="telegram_stories_add_video">افزودن ویدئو</string>
     <string name="telegram_stories_loading">در حال بارگذاری استوری‌ها…</string>
     <string name="telegram_stories_empty">هنوز استوری فعالی وجود ندارد.</string>
-    <string name="telegram_stories_upload_started">ارسال استوری از طریق Matrix در صف قرار گرفت.</string>
+    <string name="telegram_stories_upload_started">استوری با موفقیت منتشر شد.</string>
     <string name="telegram_stories_upload_failed">انتشار استوری انجام نشد.</string>
     <string name="telegram_stories_choose_story">انتخاب استوری</string>
     <string name="telegram_stories_open_video">باز کردن ویدئو</string>
