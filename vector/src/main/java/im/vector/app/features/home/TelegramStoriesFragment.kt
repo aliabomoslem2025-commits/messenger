@@ -44,6 +44,7 @@ import kotlin.math.roundToInt
 
 private const val STORY_PHOTO_DURATION_MS = 5_000L
 private const val ARG_INITIAL_STORY_EVENT_ID = "initial_story_event_id"
+private const val ARG_OPEN_STORY_COMPOSER = "open_story_composer"
 
 /**
  * Story hub for Messenger's app-specific encrypted Matrix Stories format.
@@ -139,10 +140,33 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
     private fun openRequestedInitialStoryIfPresent() {
         if (didOpenRequestedInitialStory) return
         didOpenRequestedInitialStory = true
+
+        if (arguments?.getBoolean(ARG_OPEN_STORY_COMPOSER) == true) {
+            showAddStoryChooser()
+            return
+        }
+
         val eventId = arguments?.getString(ARG_INITIAL_STORY_EVENT_ID).orEmpty()
         if (eventId.isBlank()) return
         val initialIndex = stories.indexOfFirst { it.event.eventId == eventId }
         if (initialIndex >= 0) showStory(initialIndex)
+    }
+
+    private fun showAddStoryChooser() {
+        val options = arrayOf(
+                getString(R.string.telegram_stories_add_photo),
+                getString(R.string.telegram_stories_add_video),
+        )
+        android.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.telegram_stories_title)
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> photoPicker.launch(arrayOf("image/*"))
+                        1 -> videoPicker.launch(arrayOf("video/*"))
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
     }
 
     private fun renderStories() {
@@ -439,12 +463,16 @@ class TelegramStoriesFragment : VectorBaseFragment<FragmentTelegramStoriesBindin
     }
 
     companion object {
-        fun newInstance(initialStoryEventId: String? = null): TelegramStoriesFragment {
+        fun newInstance(
+                initialStoryEventId: String? = null,
+                openStoryComposer: Boolean = false,
+        ): TelegramStoriesFragment {
             return TelegramStoriesFragment().apply {
                 arguments = Bundle().apply {
                     if (!initialStoryEventId.isNullOrBlank()) {
                         putString(ARG_INITIAL_STORY_EVENT_ID, initialStoryEventId)
                     }
+                    putBoolean(ARG_OPEN_STORY_COMPOSER, openStoryComposer)
                 }
             }
         }
