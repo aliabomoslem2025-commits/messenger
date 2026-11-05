@@ -7,12 +7,10 @@
 
 package im.vector.app.features.home
 
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -727,22 +725,13 @@ class NewHomeDetailFragment :
         }
 
         views.telegramCameraButton.debouncedClicks {
-            openSystemCamera()
+            // The chat-list camera opens the story camera, not the external system camera.
+            pendingStoryShouldCreate = true
+            views.telegramStoriesStrip.performClick()
         }
 
     }
 
-    private fun openSystemCamera() {
-        try {
-            startActivity(Intent(MediaStore.ACTION_IMAGE_CAPTURE))
-        } catch (_: ActivityNotFoundException) {
-            Toast.makeText(
-                    requireContext(),
-                    R.string.telegram_camera_unavailable,
-                    Toast.LENGTH_SHORT
-            ).show()
-        }
-    }
 
     private fun showFABs() {
         // One primary compose action, as in Telegram. Spaces stays available in the toolbar menu.
