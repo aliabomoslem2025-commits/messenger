@@ -42,23 +42,15 @@ import im.vector.app.core.platform.OnBackPressed
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorBaseFragment
 import im.vector.app.core.platform.VectorMenuProvider
-import im.vector.app.core.resources.BuildMeta
 import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.ui.views.CurrentCallsView
 import im.vector.app.core.ui.views.CurrentCallsViewPresenter
-import im.vector.app.core.ui.views.KeysBackupBanner
-import im.vector.app.core.ui.views.VerifyDeviceBanner
-import im.vector.app.core.utils.openApplicationStore
-import im.vector.app.core.utils.openUrlInChromeCustomTab
 import im.vector.app.databinding.FragmentNewHomeDetailBinding
 import im.vector.app.features.call.SharedKnownCallsViewModel
 import im.vector.app.features.call.VectorCallActivity
 import im.vector.app.features.call.dialpad.PstnDialActivity
 import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
-import im.vector.app.features.elementx.MigrationBannerAction
-import im.vector.app.features.elementx.MigrationBannerState
-import im.vector.app.features.elementx.MigrationBannerViewModel
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.home.room.list.actions.RoomListSharedAction
 import im.vector.app.features.home.room.list.actions.RoomListSharedActionViewModel
@@ -69,6 +61,7 @@ import im.vector.app.features.home.room.list.home.HomeRoomListViewState
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.app.features.home.room.list.home.NewChatBottomSheet
 import im.vector.app.features.media.ImageContentRenderer
+import im.vector.app.features.popup.DefaultVectorAlert
 import im.vector.app.features.popup.PopupAlertManager
 import im.vector.app.features.popup.VerificationVectorAlert
 import im.vector.app.features.qrcode.QrCodeScannerActivity
@@ -89,11 +82,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class NewHomeDetailFragment :
         VectorBaseFragment<FragmentNewHomeDetailBinding>(),
-        KeysBackupBanner.Delegate,
         CurrentCallsView.Callback,
         OnBackPressed,
-        VectorMenuProvider,
-        VerifyDeviceBanner.Delegate {
+        VectorMenuProvider {
 
     @Inject lateinit var avatarRenderer: AvatarRenderer
     @Inject lateinit var colorProvider: ColorProvider
@@ -101,7 +92,6 @@ class NewHomeDetailFragment :
     @Inject lateinit var callManager: WebRtcCallManager
     @Inject lateinit var vectorPreferences: VectorPreferences
     @Inject lateinit var spaceStateHandler: SpaceStateHandler
-    @Inject lateinit var buildMeta: BuildMeta
     @Inject lateinit var chatFoldersStore: ChatFoldersStore
     @Inject lateinit var telegramStoriesRepository: TelegramStoriesRepository
     @Inject lateinit var imageContentRenderer: ImageContentRenderer
@@ -113,10 +103,12 @@ class NewHomeDetailFragment :
     private var isSyncingTelegramHomeTabs = false
     private var activeHomeRoomFilter: HomeRoomFilter = HomeRoomFilter.ALL
     private var pendingStoryEventId: String? = null
+    private var pendingStoryShouldCreate = false
+    private var isVerifyDeviceAlertPosted = false
+    private var isKeysBackupAlertPosted = false
     private var homeSearchTextWatcher: TextWatcher? = null
     private val unknownDeviceDetectorSharedViewModel: UnknownDeviceDetectorSharedViewModel by activityViewModel()
     private val serverBackupStatusViewModel: ServerBackupStatusViewModel by activityViewModel()
-    private val migrationBannerViewModel: MigrationBannerViewModel by activityViewModel()
 
     private lateinit var sharedActionViewModel: HomeSharedActionViewModel
     private lateinit var sharedRoomListActionViewModel: RoomListSharedActionViewModel
@@ -186,9 +178,7 @@ class NewHomeDetailFragment :
         sharedActionViewModel = activityViewModelProvider.get(HomeSharedActionViewModel::class.java)
         sharedCallActionViewModel = activityViewModelProvider.get(SharedKnownCallsViewModel::class.java)
         setupToolbar()
-        setupMigrationBanner()
-        setupKeysBackupBanner()
-        setupVerificationBanner()
+        setupKeysBackupAlerts()
         setupActiveCallView()
         setupDebugButton()
         setupFabs()
@@ -368,9 +358,11 @@ class NewHomeDetailFragment :
                 }
                 showStoriesTab()
                 val initialStoryEventId = pendingStoryEventId
+                val openStoryComposer = pendingStoryShouldCreate
                 pendingStoryEventId = null
+                pendingStoryShouldCreate = false
                 childFragmentManager.commitTransaction {
-                    replace(R.id.roomListContainer, TelegramStoriesFragment.newInstance(initialStoryEventId))
+                    replace(R.id.roomListContainer, TelegramStoriesFragment.newInstance(initialStoryEventId, openStoryComposer))
                     addToBackStack("telegram_stories")
                 }
             } else {
@@ -474,35 +466,41 @@ class NewHomeDetailFragment :
 
     private fun setupTelegramStoriesPreview() {
         val container = views.telegramHomeStoriesPeople
-        val itemSize = (66 * resources.displayMetrics.density).toInt()
-        val itemWidth = (82 * resources.displayMetrics.density).toInt()
+        val density = resources.displayMetrics.density
+        fun dp(value: Int) = (value * density).toInt().coerceAtLeast(1)
+        val itemSize = dp(70)
+        val itemWidth = dp(80)
 
         fun addStoryCard(label: String, story: TelegramStoriesRepository.Story?, isAdd: Boolean) {
             val card = LinearLayout(requireContext()).apply {
                 orientation = LinearLayout.VERTICAL
                 gravity = Gravity.CENTER_HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(itemWidth, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    marginEnd = (6 * resources.displayMetrics.density).toInt()
+                    marginEnd = dp(8)
                 }
                 isClickable = true
                 isFocusable = true
                 contentDescription = label
                 setOnClickListener {
                     pendingStoryEventId = story?.event?.eventId
+                    pendingStoryShouldCreate = isAdd
                     views.telegramStoriesStrip.performClick()
                 }
             }
+
+            val ringColors = when {
+                isAdd -> intArrayOf(0xFF229ED9.toInt(), 0xFF55BDEB.toInt())
+                story?.isSeen == false -> intArrayOf(0xFFFFB44A.toInt(), 0xFF229ED9.toInt())
+                else -> intArrayOf(0xFF9AA3AD.toInt(), 0xFFBCC3CB.toInt())
+            }
             val frame = android.widget.FrameLayout(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(itemSize, itemSize)
-                background = GradientDrawable().apply {
+                background = GradientDrawable(GradientDrawable.Orientation.TL_BR, ringColors).apply {
                     shape = GradientDrawable.OVAL
-                    setColor(if (isAdd) 0xFF229ED9.toInt() else 0xFF3C5367.toInt())
-                    setStroke((2 * resources.displayMetrics.density).toInt().coerceAtLeast(1),
-                            if (story?.isSeen == false) 0xFF229ED9.toInt() else 0xFF9299A2.toInt())
                 }
-                setPadding((3 * resources.displayMetrics.density).toInt(), (3 * resources.displayMetrics.density).toInt(),
-                        (3 * resources.displayMetrics.density).toInt(), (3 * resources.displayMetrics.density).toInt())
+                setPadding(dp(3), dp(3), dp(3), dp(3))
             }
+
             val image = ImageView(requireContext()).apply {
                 layoutParams = android.widget.FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
@@ -520,30 +518,62 @@ class NewHomeDetailFragment :
                     setColor(0xFF3C5367.toInt())
                 }
             }
+
             if (isAdd) {
-                image.setImageResource(android.R.drawable.ic_input_add)
-                image.setColorFilter(android.graphics.Color.WHITE)
+                withState(viewModel) { state ->
+                    state.myMatrixItem?.let { avatarRenderer.render(it, image) }
+                }
+                if (image.drawable == null) {
+                    image.setImageResource(R.drawable.ic_user_round)
+                }
             } else if (story != null) {
                 val data = telegramStoriesRepository.buildThumbnailData(story)
                 if (data != null) {
-                    imageContentRenderer.render(data, image, itemSize - (6 * resources.displayMetrics.density).toInt())
+                    imageContentRenderer.render(data, image, itemSize - dp(6))
                 } else {
                     image.setImageResource(android.R.drawable.ic_menu_gallery)
                 }
             }
             frame.addView(image)
-            card.addView(frame)
 
+            if (isAdd) {
+                val plusBadge = TextView(requireContext()).apply {
+                    text = "+"
+                    textSize = 18f
+                    gravity = Gravity.CENTER
+                    setTextColor(android.graphics.Color.WHITE)
+                    background = GradientDrawable().apply {
+                        shape = GradientDrawable.OVAL
+                        setColor(0xFF229ED9.toInt())
+                        setStroke(dp(2), android.graphics.Color.WHITE)
+                    }
+                    elevation = dp(2).toFloat()
+                    contentDescription = getString(R.string.telegram_stories_add_photo)
+                }
+                frame.addView(plusBadge, android.widget.FrameLayout.LayoutParams(
+                        dp(23),
+                        dp(23),
+                        Gravity.BOTTOM or Gravity.END
+                ))
+            }
+
+            card.addView(frame)
             val title = TextView(requireContext()).apply {
-                layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
-                    topMargin = (4 * resources.displayMetrics.density).toInt()
+                layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = dp(5)
                 }
                 text = label
                 gravity = Gravity.CENTER
                 maxLines = 1
                 ellipsize = android.text.TextUtils.TruncateAt.END
-                textSize = 11f
-                setTextColor(if (isAdd) 0xFF229ED9.toInt() else 0xFF8A929A.toInt())
+                textSize = 11.5f
+                setTextColor(
+                        if (isAdd) colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorPrimary)
+                        else colorProvider.getColorFromAttribute(im.vector.lib.ui.styles.R.attr.vctr_content_primary)
+                )
             }
             card.addView(title)
             container.addView(card)
@@ -553,14 +583,19 @@ class NewHomeDetailFragment :
         addStoryCard(getString(R.string.telegram_stories_yours), null, true)
 
         lifecycleScope.launch {
+            // Only dedicated encrypted Matrix story rooms are joined; ordinary rooms and DMs
+            // are never touched. Joining these invites is necessary to read the story feed.
             val recentStories = runCatching {
-                telegramStoriesRepository.loadStories(joinInvitations = false)
+                telegramStoriesRepository.loadStories(joinInvitations = true)
             }.getOrDefault(emptyList())
             if (!isAdded || view == null) return@launch
+
             container.removeAllViews()
             addStoryCard(getString(R.string.telegram_stories_yours), null, true)
-            recentStories.groupBy { it.ownerUserId }.values
-                    .mapNotNull { ownerStories -> ownerStories.maxByOrNull { it.createdAt } }
+            val ownUserId = withState(viewModel) { it.myMatrixItem?.id }
+            recentStories.groupBy { it.ownerUserId }
+                    .mapNotNull { (_, ownerStories) -> ownerStories.maxByOrNull { it.createdAt } }
+                    .filter { it.ownerUserId != ownUserId }
                     .sortedByDescending { it.createdAt }
                     .forEach { story ->
                         val ownerName = story.ownerUserId.substringBefore(':').removePrefix("@").take(10)
@@ -730,7 +765,6 @@ class NewHomeDetailFragment :
         super.onResume()
         callManager.checkForProtocolsSupportIfNeeded()
         refreshSpaceState()
-        migrationBannerViewModel.handle(MigrationBannerAction.OnResume)
     }
 
     private fun refreshSpaceState() {
@@ -809,23 +843,50 @@ class NewHomeDetailFragment :
         views.toolbar.title = title
     }
 
-    private fun setupKeysBackupBanner() {
+    /**
+     * Security and backup prompts use the same transient alert surface as "New Login",
+     * rather than reserving space in the chat list for a permanent banner.
+     */
+    private fun setupKeysBackupAlerts() {
         serverBackupStatusViewModel.handle(ServerBackupStatusAction.OnBannerDisplayed)
-        serverBackupStatusViewModel
-                .onEach {
-                    when (val banState = it.bannerState.invoke()) {
-                        is BannerState.Setup,
-                        BannerState.BackingUp,
-                        BannerState.Hidden -> views.homeKeysBackupBanner.render(banState, false)
-                        null -> views.homeKeysBackupBanner.render(BannerState.Hidden, false)
-                        else -> Unit /* No op? */
+        serverBackupStatusViewModel.onEach { viewState ->
+            when (val bannerState = viewState.bannerState.invoke()) {
+                is BannerState.Setup -> {
+                    if (bannerState.numberOfKeys > 0 && !bannerState.doNotShowAgain) {
+                        showKeysBackupAlert()
+                    } else {
+                        isKeysBackupAlertPosted = false
+                        alertManager.cancelAlert(KEYS_BACKUP_ALERT_UID)
                     }
                 }
-        views.homeKeysBackupBanner.delegate = this
+                BannerState.BackingUp,
+                BannerState.Hidden -> {
+                    isKeysBackupAlertPosted = false
+                    alertManager.cancelAlert(KEYS_BACKUP_ALERT_UID)
+                }
+                else -> Unit
+            }
+        }
     }
 
-    private fun setupVerificationBanner() {
-        views.homeVerifyDevice.delegate = this
+    private fun showKeysBackupAlert() {
+        if (isKeysBackupAlertPosted) return
+        isKeysBackupAlertPosted = true
+        val alert = DefaultVectorAlert(
+                uid = KEYS_BACKUP_ALERT_UID,
+                title = getString(CommonStrings.secure_backup_banner_setup_line1),
+                description = getString(CommonStrings.secure_backup_banner_setup_line2),
+                iconId = R.drawable.ic_shield_warning,
+        ).apply {
+            colorInt = colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorPrimary)
+            addButton(getString(CommonStrings.action_enable), Runnable {
+                navigator.openKeysBackupSetup(requireActivity(), false)
+            })
+            dismissedAction = Runnable {
+                serverBackupStatusViewModel.handle(ServerBackupStatusAction.OnBannerClosed)
+            }
+        }
+        alertManager.postVectorAlert(alert)
     }
 
     private fun setupActiveCallView() {
@@ -842,41 +903,6 @@ class NewHomeDetailFragment :
         views.toolbar.setNavigationOnClickListener(null)
     }
 
-    private fun setupMigrationBanner() {
-        val bannerContainer = views.viewDownloadReplacementAppRoomListContainer
-        val icon = bannerContainer.findViewById<ImageView>(R.id.view_download_replacement_app_room_list_icon)
-        val title = bannerContainer.findViewById<TextView>(R.id.view_download_replacement_app_room_list_title)
-        val body = bannerContainer.findViewById<TextView>(R.id.view_download_replacement_app_room_list_body)
-        val button = bannerContainer.findViewById<Button>(R.id.view_download_replacement_app_room_list_button)
-        bannerContainer.findViewById<View>(
-                R.id.view_download_replacement_app_room_list_button_close
-        ).debouncedClicks {
-            migrationBannerViewModel.handle(MigrationBannerAction.Close)
-        }
-        migrationBannerViewModel
-                .onEach {
-                    when (val bannerState = it.bannerState) {
-                        MigrationBannerState.Hide -> bannerContainer.isGone = true
-                        is MigrationBannerState.Show -> {
-                            bannerContainer.isVisible = true
-                            // Only advertise the Element X logo when the target really is Element X.
-                            icon.isVisible = bannerState.isElementX
-                            title.text = bannerState.title
-                            body.text = bannerState.body
-                            button.isVisible = bannerState.showButton
-                            button.text = bannerState.buttonText
-                            button.setOnClickListener {
-                                openApplicationStore(
-                                        activity = requireActivity(),
-                                        buildMeta = buildMeta,
-                                        appId = bannerState.targetAppId,
-                                )
-                            }
-                        }
-                    }
-                }
-    }
-
     private fun openSpaceSettings() = withState(viewModel) { viewState ->
         viewState.selectedSpace?.let {
             sharedActionViewModel.post(HomeActivitySharedAction.ShowSpaceSettings(it.roomId))
@@ -888,20 +914,30 @@ class NewHomeDetailFragment :
         views.debugButton.isGone = true
     }
 
-    /* ==========================================================================================
-     * KeysBackupBanner Listener
-     * ========================================================================================== */
+    private fun updateVerifyDeviceAlert(showPrompt: Boolean, matrixItem: org.matrix.android.sdk.api.util.MatrixItem?) {
+        if (!showPrompt) {
+            isVerifyDeviceAlertPosted = false
+            alertManager.cancelAlert(VERIFY_DEVICE_ALERT_UID)
+            return
+        }
+        if (isVerifyDeviceAlertPosted || matrixItem == null) return
 
-    override fun onCloseClicked() {
-        serverBackupStatusViewModel.handle(ServerBackupStatusAction.OnBannerClosed)
-    }
-
-    override fun setupKeysBackup() {
-        navigator.openKeysBackupSetup(requireActivity(), false)
-    }
-
-    override fun recoverKeysBackup() {
-        navigator.openKeysBackupManager(requireActivity())
+        isVerifyDeviceAlertPosted = true
+        val alert = VerificationVectorAlert(
+                uid = VERIFY_DEVICE_ALERT_UID,
+                title = getString(R.string.crosssigning_verify_this_session),
+                description = getString(R.string.verify_this_session_content),
+                iconId = R.drawable.ic_shield_warning,
+        ).apply {
+            viewBinder = VerificationVectorAlert.ViewBinder(matrixItem, avatarRenderer)
+            colorInt = colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorPrimary)
+            addButton(getString(R.string.verify_now), Runnable {
+                (weakCurrentActivity?.get() as? VectorBaseActivity<*>)?.let { activity ->
+                    activity.navigator.requestSelfSessionVerification(activity)
+                }
+            })
+        }
+        alertManager.postVectorAlert(alert)
     }
 
     override fun invalidate() = withState(viewModel) {
@@ -911,7 +947,7 @@ class NewHomeDetailFragment :
                 it.pushCounter,
                 vectorPreferences.developerShowDebugInfo()
         )
-        views.homeVerifyDevice.isVisible = it.showVerifyDeviceBanner
+        updateVerifyDeviceAlert(it.showVerifyDeviceBanner, it.myMatrixItem)
         hasUnreadRooms = it.hasUnreadMessages
     }
 
@@ -941,22 +977,9 @@ class NewHomeDetailFragment :
 
     private fun SpaceStateHandler.isRoot() = getSpaceBackstack().isEmpty()
 
-    override fun onVerificationLearnMoreClicked() {
-        openUrlInChromeCustomTab(
-                context = requireContext(),
-                session = null,
-                url = "https://docs.element.io/latest/element-support/device-verification/how-to-verify-devices",
-        )
-    }
-
-    override fun onVerifySession() {
-        (activity as? VectorBaseActivity<*>)?.let { vectorBaseActivity ->
-            vectorBaseActivity.navigator
-                    .requestSelfSessionVerification(vectorBaseActivity)
-        }
-    }
-
     companion object {
         private const val HOME_ROOM_LIST_FRAGMENT_TAG = "TAG_HOME_ROOM_LIST"
+        private const val VERIFY_DEVICE_ALERT_UID = "messenger_verify_device"
+        private const val KEYS_BACKUP_ALERT_UID = "messenger_keys_backup"
     }
 }
