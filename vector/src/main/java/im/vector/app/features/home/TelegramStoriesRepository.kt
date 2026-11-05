@@ -51,6 +51,27 @@ import javax.inject.Singleton
  * historical events according to their server retention policy; this does not claim
  * a network-wide hard-delete guarantee.
  */
+data class StoryContact(
+        val userId: String,
+        val displayName: String,
+)
+
+data class StoryDraft(
+        val caption: String = "",
+        val overlayTexts: List<String> = emptyList(),
+        val stickers: List<String> = emptyList(),
+        val drawingPaths: List<String> = emptyList(),
+        val brightnessPercent: Int = 100,
+        val cropToFill: Boolean = true,
+        val allowScreenshots: Boolean = true,
+        val keepOnProfile: Boolean = false,
+        val durationHours: Int = 24,
+        val audience: String = "everyone",
+        val selectedUserIds: Set<String> = emptySet(),
+        val excludedUserIds: Set<String> = emptySet(),
+        val albumName: String = "All Stories",
+)
+
 @Singleton
 class TelegramStoriesRepository @Inject constructor(
         @ApplicationContext private val context: Context,
@@ -65,12 +86,15 @@ class TelegramStoriesRepository @Inject constructor(
             val expiresAt: Long,
             val content: MessageContent,
             val isSeen: Boolean,
+            val caption: String = "",
+            val keepOnProfile: Boolean = false,
+            val allowScreenshots: Boolean = true,
     ) {
         val isVideo: Boolean
             get() = content.msgType == MSGTYPE_VIDEO
     }
 
-    suspend fun publishStory(uri: Uri): String = withContext(Dispatchers.IO) {
+    suspend fun publishStory(uri: Uri, draft: StoryDraft = StoryDraft()): String = withContext(Dispatchers.IO) {
         val session = activeSessionHolder.getSafeActiveSession()
                 ?: error("No active Matrix session")
         val resolver = context.contentResolver
@@ -83,20 +107,39 @@ class TelegramStoriesRepository @Inject constructor(
         }
         val (name, size) = queryMetadata(resolver, uri)
         val now = System.currentTimeMillis()
-        val expiresAt = now + STORY_LIFETIME_MS
+        val durationHours = draft.durationHours.coerceIn(6, 48)
+        val expiresAt = if (draft.keepOnProfile) {
+            Long.MAX_VALUE
+        } else {
+            now + durationHours * 60L * 60L * 1000L
+        }
 
-        // A contacts-only audience: users from joined one-to-one Matrix rooms.
-        // The room remains private and encrypted; no arbitrary/public audience exists.
-        val dmQuery = RoomSummaryQueryParams.Builder().also {
-            it.memberships = listOf(Membership.JOIN)
-            it.roomCategoryFilter = RoomCategoryFilter.ONLY_DM
-            it.excludeType = listOf(STORY_ROOM_TYPE, "m.space")
-        }.build()
-        val recipients = session.roomService()
-                .getRoomSummaries(dmQuery)
-                .flatMap { it.otherMemberIds + listOfNotNull(it.directUserId) }
-                .filter { it.isNotBlank() && it != session.myUserId }
-                .distinct()
+        // Matrix has no public, global Stories audience. "Everyone" therefore means
+        // every known direct-message contact on this account; the other audiences
+        // are enforced by inviting only their selected Matrix user IDs to this room.
+        val contacts = getEligibleContacts()
+        val allContactIds = contacts.map { it.userId }.toSet()
+        val closeFriendIds = getCloseFriends()
+        val audienceIds = when (draft.audience) {
+            AUDIENCE_CLOSE_FRIENDS -> closeFriendIds
+            AUDIENCE_SELECTED -> draft.selectedUserIds
+            AUDIENCE_CONTACTS,
+            AUDIENCE_EVERYONE -> allContactIds
+            else -> allContactIds
+        }
+        val recipients = audienceIds
+                .intersect(allContactIds)
+                .minus(draft.excludedUserIds)
+                .minus(session.myUserId)
+        if (draft.audience == AUDIENCE_SELECTED && recipients.isEmpty()) {
+            error("Select at least one contact who can view this story")
+        }
+        if (draft.audience == AUDIENCE_CLOSE_FRIENDS && recipients.isEmpty()) {
+            error("Your Close Friends list is empty")
+        }
+        if (recipients.isEmpty()) {
+            error("No eligible Matrix contacts are available for this story")
+        }
 
         val roomName = "${STORY_ROOM_NAME_PREFIX}|${session.myUserId}|$now"
         val params = CreateRoomParams().apply {
@@ -131,6 +174,17 @@ class TelegramStoriesRepository @Inject constructor(
                                 "version" to STORY_FORMAT_VERSION,
                                 "created_at" to now,
                                 "expires_at" to expiresAt,
+                                "caption" to draft.caption.take(2048),
+                                "overlay_texts" to draft.overlayTexts.take(20),
+                                "stickers" to draft.stickers.take(50),
+                                "drawing_paths" to draft.drawingPaths.take(100),
+                                "brightness_percent" to draft.brightnessPercent.coerceIn(0, 200),
+                                "crop_to_fill" to draft.cropToFill,
+                                "allow_screenshots" to draft.allowScreenshots,
+                                "keep_on_profile" to draft.keepOnProfile,
+                                "duration_hours" to durationHours,
+                                "album" to draft.albumName.take(64),
+                                "audience" to draft.audience,
                         )
                 ),
         )
@@ -174,7 +228,8 @@ class TelegramStoriesRepository @Inject constructor(
                 val clearContent = event.root.getClearContent() ?: return@eventLoop
                 val metadata = clearContent[STORY_METADATA_KEY] as? Map<*, *> ?: return@eventLoop
                 val expiresAt = (metadata["expires_at"] as? Number)?.toLong() ?: return@eventLoop
-                if (expiresAt <= now) return@eventLoop
+                val keepOnProfile = metadata["keep_on_profile"] as? Boolean ?: false
+                if (expiresAt <= now && !keepOnProfile) return@eventLoop
                 val message = clearContent.toModel<MessageContent>() ?: return@eventLoop
                 if (message.msgType != MSGTYPE_IMAGE && message.msgType != MSGTYPE_VIDEO) return@eventLoop
                 val createdAt = (metadata["created_at"] as? Number)?.toLong()
@@ -189,6 +244,9 @@ class TelegramStoriesRepository @Inject constructor(
                         expiresAt = expiresAt,
                         content = message,
                         isSeen = event.eventId in seenIds,
+                        caption = metadata["caption"] as? String ?: "",
+                        keepOnProfile = keepOnProfile,
+                        allowScreenshots = metadata["allow_screenshots"] as? Boolean ?: true,
                 )
             }
         }
@@ -249,6 +307,47 @@ class TelegramStoriesRepository @Inject constructor(
         }
     }
 
+    suspend fun getEligibleContacts(): List<StoryContact> = withContext(Dispatchers.IO) {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return@withContext emptyList()
+        val query = RoomSummaryQueryParams.Builder().also {
+            it.memberships = listOf(Membership.JOIN)
+            it.roomCategoryFilter = RoomCategoryFilter.ONLY_DM
+            it.excludeType = listOf(STORY_ROOM_TYPE, "m.space")
+        }.build()
+        val labels = linkedMapOf<String, String>()
+        session.roomService().getRoomSummaries(query).forEach { summary ->
+            (summary.otherMemberIds + listOfNotNull(summary.directUserId))
+                    .filter { it.isNotBlank() && it != session.myUserId }
+                    .forEach { userId ->
+                        labels.putIfAbsent(
+                                userId,
+                                summary.displayName.takeIf { it.isNotBlank() }
+                                        ?: userId.substringBefore(':').removePrefix("@")
+                        )
+                    }
+        }
+        labels.map { StoryContact(it.key, it.value) }
+                .sortedBy { it.displayName.lowercase() }
+    }
+
+    suspend fun getCloseFriends(): Set<String> = withContext(Dispatchers.IO) {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return@withContext emptySet()
+        val current = session.accountDataService()
+                .getUserAccountDataEvent(STORY_CLOSE_FRIENDS)
+                ?.content
+                ?.get("user_ids")
+        (current as? List<*>)?.filterIsInstance<String>()?.toSet().orEmpty()
+    }
+
+    suspend fun saveCloseFriends(userIds: Set<String>) = withContext(Dispatchers.IO) {
+        val session = activeSessionHolder.getSafeActiveSession() ?: return@withContext
+        val validIds = userIds.filter { it.startsWith("@") && it.contains(':') }.distinct().take(500)
+        session.accountDataService().updateUserAccountData(
+                STORY_CLOSE_FRIENDS,
+                mapOf("user_ids" to validIds),
+        )
+    }
+
     private fun parseOwner(roomName: String): String? {
         if (!roomName.startsWith(STORY_ROOM_NAME_PREFIX + "|")) return null
         return roomName.removePrefix(STORY_ROOM_NAME_PREFIX + "|")
@@ -276,9 +375,13 @@ class TelegramStoriesRepository @Inject constructor(
         const val STORY_ROOM_NAME_PREFIX = "org.messenger.story"
         const val STORY_METADATA_KEY = "org.messenger.story"
         private const val STORY_SEEN_ACCOUNT_DATA = "org.messenger.story.seen"
-        private const val STORY_LIFETIME_MS = 24L * 60L * 60L * 1000L
+        private const val STORY_CLOSE_FRIENDS = "org.messenger.story.close_friends"
+        const val AUDIENCE_EVERYONE = "everyone"
+        const val AUDIENCE_CONTACTS = "contacts"
+        const val AUDIENCE_CLOSE_FRIENDS = "close_friends"
+        const val AUDIENCE_SELECTED = "selected"
         private const val MAX_SEEN_EVENT_IDS = 500
-        private const val STORY_FORMAT_VERSION = 1
+        private const val STORY_FORMAT_VERSION = 2
         private const val MSGTYPE_IMAGE = "m.image"
         private const val MSGTYPE_VIDEO = "m.video"
     }
