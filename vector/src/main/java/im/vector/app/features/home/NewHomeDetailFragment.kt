@@ -925,13 +925,13 @@ class NewHomeDetailFragment :
         isVerifyDeviceAlertPosted = true
         val alert = VerificationVectorAlert(
                 uid = VERIFY_DEVICE_ALERT_UID,
-                title = getString(R.string.crosssigning_verify_this_session),
-                description = getString(R.string.verify_this_session_content),
+                title = getString(CommonStrings.crosssigning_verify_this_session),
+                description = getString(CommonStrings.verify_this_session_content),
                 iconId = R.drawable.ic_shield_warning,
         ).apply {
             viewBinder = VerificationVectorAlert.ViewBinder(matrixItem, avatarRenderer)
             colorInt = colorProvider.getColorFromAttribute(com.google.android.material.R.attr.colorPrimary)
-            addButton(getString(R.string.verify_now), Runnable {
+            addButton(getString(CommonStrings.verify_now), Runnable {
                 (weakCurrentActivity?.get() as? VectorBaseActivity<*>)?.let { activity ->
                     activity.navigator.requestSelfSessionVerification(activity)
                 }
