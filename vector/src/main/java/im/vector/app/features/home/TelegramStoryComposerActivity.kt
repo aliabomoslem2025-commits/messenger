@@ -527,6 +527,11 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
         val selectRoomsRow = linkRow(getString(R.string.telegram_story_select_rooms)) {
             showRoomPicker()
         }
+        val audienceHint = TextView(this).apply {
+            textSize = 12f
+            setTextColor(0xFFAAAAAA.toInt())
+            setPadding(0, dp(2), 0, dp(8))
+        }
         fun updateAudiencePickerVisibility() {
             selectPeopleRow.visibility = if (selectedAudience == TelegramStoriesRepository.AUDIENCE_SELECTED) {
                 View.VISIBLE
@@ -538,6 +543,15 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
             } else {
                 View.GONE
             }
+            audienceHint.setText(
+                    when (selectedAudience) {
+                        TelegramStoriesRepository.AUDIENCE_SELECTED ->
+                            R.string.telegram_story_audience_people_hint
+                        TelegramStoriesRepository.AUDIENCE_SELECTED_ROOMS ->
+                            R.string.telegram_story_audience_rooms_hint
+                        else -> R.string.telegram_story_audience_everyone_hint
+                    }
+            )
         }
         audienceGroup.setOnCheckedChangeListener { group, checkedId ->
             val selected = group.findViewById<RadioButton>(checkedId)
@@ -545,6 +559,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
             updateAudiencePickerVisibility()
         }
         content.addView(audienceGroup)
+        content.addView(audienceHint)
         updateAudiencePickerVisibility()
         content.addView(selectPeopleRow)
         content.addView(selectRoomsRow)
