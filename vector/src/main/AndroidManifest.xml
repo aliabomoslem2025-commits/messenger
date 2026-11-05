@@ -105,6 +105,19 @@
             android:name=".features.MainActivity"
             android:theme="@style/Theme.Vector.Launcher" />
 
+        <activity
+            android:name=".features.home.TelegramStoryCameraActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Vector.Black.Transparent" />
+
+        <activity
+            android:name=".features.home.TelegramStoryComposerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Vector.Black.Transparent"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity android:name=".features.home.HomeActivity" />
 
         <activity
