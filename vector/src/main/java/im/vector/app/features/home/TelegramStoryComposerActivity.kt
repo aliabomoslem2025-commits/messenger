@@ -617,6 +617,9 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
 
     private suspend fun prepareMediaForUpload(): Uri {
         if (!mimeType.startsWith("image/")) return mediaUri
+        // Snapshot view-owned drawing coordinates on the main thread before
+        // bitmap processing switches to Dispatchers.IO.
+        val drawingSnapshot = drawingOverlay.serializedPaths()
         return withContext(Dispatchers.IO) {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             contentResolver.openInputStream(mediaUri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
@@ -707,7 +710,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                 strokeJoin = Paint.Join.ROUND
                 strokeWidth = STORY_WIDTH * 0.008f
             }
-            drawingOverlay.serializedPaths().forEach { serialized ->
+            drawingSnapshot.forEach { serialized ->
                 val points = serialized.split("|").mapNotNull { pair ->
                     val xy = pair.split(",")
                     if (xy.size != 2) null else {
