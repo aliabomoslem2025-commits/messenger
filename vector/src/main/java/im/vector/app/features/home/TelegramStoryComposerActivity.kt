@@ -82,6 +82,8 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
     private var durationHours = 24
     private val overlayTexts = mutableListOf<String>()
     private val stickers = mutableListOf<String>()
+    private val overlayTextPositions = mutableListOf<PointF>()
+    private val stickerPositions = mutableListOf<PointF>()
 
     private var availableContacts: List<StoryContact> = emptyList()
     private var selectedAudience = TelegramStoriesRepository.AUDIENCE_EVERYONE
@@ -289,6 +291,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
     }
 
     private fun addPreviewText(value: String) {
+        val index = overlayTexts.lastIndex
         val text = TextView(this).apply {
             text = value
             textSize = 25f
@@ -302,14 +305,11 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
             }
         }
         previewFrame.addView(text, FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.CENTER
-        ).apply {
-            topMargin = dp(overlayTexts.size * 42)
-            leftMargin = dp(20)
-            rightMargin = dp(20)
-        })
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                Gravity.TOP or Gravity.START
+        ))
+        attachMovableOverlay(text, overlayTextPositions, index, 0.42f + index * 0.085f)
     }
 
     private fun showStickerPicker() {
@@ -318,6 +318,7 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                 .setTitle(R.string.telegram_story_stickers)
                 .setItems(values) { _, index ->
                     stickers += values[index]
+                    val stickerIndex = stickers.lastIndex
                     val sticker = TextView(this).apply {
                         text = values[index]
                         textSize = 48f
@@ -325,12 +326,73 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                         setShadowLayer(dp(4).toFloat(), 0f, dp(2).toFloat(), Color.BLACK)
                     }
                     previewFrame.addView(sticker, FrameLayout.LayoutParams(
-                            dp(88), dp(88), Gravity.CENTER
-                    ).apply {
-                        topMargin = dp((stickers.size - 1) * 46)
-                    })
+                            dp(88), dp(88), Gravity.TOP or Gravity.START
+                    ))
+                    attachMovableOverlay(sticker, stickerPositions, stickerIndex, 0.56f + stickerIndex * 0.11f)
                 }
                 .show()
+    }
+
+    /**
+     * Text and emoji overlays can be repositioned by dragging, matching the
+     * free-placement behavior of the Telegram story editor. Positions are stored
+     * as normalized centers so the same composition can be applied to the upload.
+     */
+    private fun attachMovableOverlay(
+            overlay: View,
+            positions: MutableList<PointF>,
+            index: Int,
+            defaultCenterY: Float,
+    ) {
+        var downRawX = 0f
+        var downRawY = 0f
+        var startX = 0f
+        var startY = 0f
+
+        fun savePosition() {
+            val width = previewFrame.width.coerceAtLeast(1)
+            val height = previewFrame.height.coerceAtLeast(1)
+            val centerX = (overlay.x + overlay.width / 2f) / width
+            val centerY = (overlay.y + overlay.height / 2f) / height
+            val point = PointF(centerX.coerceIn(0f, 1f), centerY.coerceIn(0f, 1f))
+            while (positions.size <= index) positions.add(PointF(0.5f, defaultCenterY))
+            positions[index] = point
+        }
+
+        previewFrame.post {
+            val x = (previewFrame.width - overlay.width) / 2f
+            val y = previewFrame.height * defaultCenterY - overlay.height / 2f
+            overlay.x = x.coerceAtLeast(0f)
+            overlay.y = y.coerceAtLeast(0f)
+            savePosition()
+        }
+
+        overlay.setOnTouchListener { view, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downRawX = event.rawX
+                    downRawY = event.rawY
+                    startX = view.x
+                    startY = view.y
+                    view.parent?.requestDisallowInterceptTouchEvent(true)
+                    true
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    val maxX = (previewFrame.width - view.width).coerceAtLeast(0)
+                    val maxY = (previewFrame.height - view.height).coerceAtLeast(0)
+                    view.x = (startX + event.rawX - downRawX).coerceIn(0f, maxX.toFloat())
+                    view.y = (startY + event.rawY - downRawY).coerceIn(0f, maxY.toFloat())
+                    savePosition()
+                    true
+                }
+                MotionEvent.ACTION_UP,
+                MotionEvent.ACTION_CANCEL -> {
+                    savePosition()
+                    true
+                }
+                else -> true
+            }
+        }
     }
 
     private fun toggleCrop() {
@@ -589,6 +651,8 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                         caption = captionInput.text?.toString().orEmpty().trim(),
                         overlayTexts = overlayTexts.toList(),
                         stickers = stickers.toList(),
+                        overlayTextPositions = overlayTextPositions.map { "${it.x},${it.y}" },
+                        stickerPositions = stickerPositions.map { "${it.x},${it.y}" },
                         drawingPaths = drawingOverlay.serializedPaths(),
                         brightnessPercent = brightnessPercent,
                         cropToFill = cropToFill,
@@ -620,6 +684,8 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
         // Snapshot view-owned drawing coordinates on the main thread before
         // bitmap processing switches to Dispatchers.IO.
         val drawingSnapshot = drawingOverlay.serializedPaths()
+        val textPositionSnapshot = overlayTextPositions.map { PointF(it.x, it.y) }
+        val stickerPositionSnapshot = stickerPositions.map { PointF(it.x, it.y) }
         return withContext(Dispatchers.IO) {
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
             contentResolver.openInputStream(mediaUri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
@@ -687,19 +753,23 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
                 setShadowLayer(STORY_WIDTH * 0.006f, 0f, STORY_WIDTH * 0.003f, Color.BLACK)
             }
             overlayTexts.forEachIndexed { index, text ->
+                val position = textPositionSnapshot.getOrNull(index)
+                        ?: PointF(0.5f, 0.42f + index * 0.085f)
                 canvas.drawText(
                         text,
-                        STORY_WIDTH / 2f,
-                        STORY_HEIGHT * (0.42f + index * 0.085f),
+                        position.x * STORY_WIDTH,
+                        position.y * STORY_HEIGHT,
                         decorationPaint
                 )
             }
             stickers.forEachIndexed { index, sticker ->
+                val position = stickerPositionSnapshot.getOrNull(index)
+                        ?: PointF(0.25f + (index % 3) * 0.25f, 0.58f + (index / 3) * 0.11f)
                 decorationPaint.textSize = STORY_WIDTH * 0.105f
                 canvas.drawText(
                         sticker,
-                        STORY_WIDTH * (0.25f + (index % 3) * 0.25f),
-                        STORY_HEIGHT * (0.58f + (index / 3) * 0.11f),
+                        position.x * STORY_WIDTH,
+                        position.y * STORY_HEIGHT,
                         decorationPaint
                 )
             }
