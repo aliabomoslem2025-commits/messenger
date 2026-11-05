@@ -176,10 +176,10 @@
     <string name="telegram_story_everyone">Everyone</string>
     <string name="telegram_story_contacts">Contacts</string>
     <string name="telegram_story_close_friends">Close Friends</string>
-    <string name="telegram_story_selected_contacts">Selected Contacts</string>
+    <string name="telegram_story_selected_contacts">Selected People</string>
     <string name="telegram_story_exclude_people">Exclude people</string>
     <string name="telegram_story_edit_close_friends">Edit Close Friends list</string>
-    <string name="telegram_story_edit_selected_contacts">Edit selected contacts</string>
+    <string name="telegram_story_edit_selected_contacts">Choose people</string>
     <string name="telegram_story_select_people_who_wont_see">Select people who won\'t see your stories.</string>
     <string name="telegram_story_allow_screenshots">Allow Screenshots</string>
     <string name="telegram_story_keep_on_my_page">Keep on My Page</string>
@@ -190,4 +190,8 @@
     <string name="telegram_story_close_friends_empty">Your Close Friends list is empty.</string>
     <string name="telegram_story_post_failed">Could not publish the story.</string>
     <string name="telegram_story_no_contacts">No eligible Matrix contacts were found.</string>
+    <string name="telegram_story_selected_rooms">Selected rooms</string>
+    <string name="telegram_story_select_rooms">Choose rooms</string>
+    <string name="telegram_story_no_rooms">No joined group rooms were found.</string>
+    <string name="telegram_story_select_at_least_one_room">Select at least one room whose members can view this story.</string>
 </resources>
