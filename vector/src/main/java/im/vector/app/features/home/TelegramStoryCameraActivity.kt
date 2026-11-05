@@ -249,6 +249,7 @@ class TelegramStoryCameraActivity : AppCompatActivity(), TextureView.SurfaceText
                 if (mode == CaptureMode.PHOTO) R.string.telegram_story_take_photo else R.string.telegram_story_record_video
         )
         (shutter as? ShutterButton)?.recordMode = mode == CaptureMode.VIDEO
+        shutter.invalidate()
     }
 
     private fun textButton(label: String, size: Float, action: () -> Unit) = TextView(this).apply {
@@ -493,6 +494,15 @@ class TelegramStoryCameraActivity : AppCompatActivity(), TextureView.SurfaceText
     }
 
     override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = Unit
+
+    override fun onResume() {
+        super.onResume()
+        // OpenDocument backgrounds this activity. Recreate the preview when the
+        // user returns from the picker or grants camera access in Settings.
+        if (!isFinishing && camera == null && hasPermission(Manifest.permission.CAMERA) && preview.isAvailable) {
+            preview.surfaceTexture?.let(::openCameraPreview)
+        }
+    }
 
     override fun onPause() {
         super.onPause()
