@@ -38,6 +38,7 @@ import android.widget.Toast
 import android.widget.VideoView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
@@ -112,8 +113,12 @@ class TelegramStoryComposerActivity : AppCompatActivity() {
             finish()
             return
         }
-        window.statusBarColor = Color.BLACK
-        window.navigationBarColor = Color.BLACK
+        // System bar surfaces are provided by Theme.Vector.Black.Transparent.
+        // Set icon appearance through AndroidX instead of deprecated color setters.
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
         buildEditor()
     }
 
