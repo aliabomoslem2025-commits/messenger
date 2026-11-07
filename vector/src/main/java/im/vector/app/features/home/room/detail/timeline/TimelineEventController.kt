@@ -382,7 +382,15 @@ class TimelineEventController @Inject constructor(
         }
         Timber.v("Time for building cache items: $timeForBuilding ms")
         return modelCache
-                .map { cacheItemData ->
+                .mapIndexed { position, cacheItemData ->
+                    val timelineEvent = currentSnapshot.getOrNull(position)
+                    val mediaGroup = timelineEvent?.let { timelineEventsGroups.getOrNull(it) }
+                    val isHiddenAlbumMember = mediaGroup?.isMediaAlbum() == true &&
+                            mediaGroup.events.size > 1 &&
+                            timelineEvent?.eventId != mediaGroup.mediaAlbumAnchorEventId()
+                    if (isHiddenAlbumMember) {
+                        return@mapIndexed emptyList<EpoxyModel<*>>()
+                    }
                     val eventModel = if (cacheItemData == null || mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)) {
                         null
                     } else {
