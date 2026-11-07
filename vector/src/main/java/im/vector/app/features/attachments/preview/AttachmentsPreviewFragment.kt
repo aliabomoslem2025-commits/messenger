@@ -117,6 +117,14 @@ class AttachmentsPreviewFragment :
             val editMenuItem = menu.findItem(R.id.attachmentsPreviewEditAction)
             val showEditMenuItem = state.attachments.getOrNull(state.currentAttachmentIndex)?.isEditable().orFalse()
             editMenuItem.setVisible(showEditMenuItem)
+
+            val removeItem = menu.findItem(R.id.attachmentsPreviewRemoveAction)
+            val selectedCount = state.selectedAttachmentUris.size
+            removeItem.title = if (selectedCount > 0) {
+                resources.getQuantityString(R.plurals.telegram_media_remove_selected, selectedCount, selectedCount)
+            } else {
+                getString(CommonStrings.action_delete)
+            }
         }
     }
 
