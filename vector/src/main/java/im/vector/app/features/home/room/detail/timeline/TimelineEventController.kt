@@ -391,9 +391,13 @@ class TimelineEventController @Inject constructor(
                             albumAnchorEventId != null &&
                             timelineEvent?.eventId != albumAnchorEventId
                     if (isHiddenAlbumMember) {
-                        // Keep a date divider at its original (oldest-event) position, but do
-                        // not leave an extra empty row, author header or per-event receipt.
-                        return@mapIndexed listOfNotNull(cacheItemData?.formattedDayModel)
+                        // Keep only the divider belonging to the oldest surviving album tile;
+                        // per-event date transitions must not split a single Telegram album.
+                        return@mapIndexed if (timelineEvent?.eventId == mediaGroup?.mediaAlbumOldestEventId()) {
+                            listOfNotNull(cacheItemData?.formattedDayModel)
+                        } else {
+                            emptyList()
+                        }
                     }
                     val eventModel = if (cacheItemData == null || mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)) {
                         null
