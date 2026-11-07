@@ -18,6 +18,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.ProgressBar
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.isVisible
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.R
@@ -83,6 +84,7 @@ class MediaAlbumGridView @JvmOverloads constructor(
                 scaleType = ImageView.ScaleType.CENTER_CROP
                 contentDescription = tile.imageData.filename
                 layoutParams = FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+                ViewCompat.setTransitionName(this, "imagePreview_${tile.eventId}")
             }
             frame.addView(image)
 
