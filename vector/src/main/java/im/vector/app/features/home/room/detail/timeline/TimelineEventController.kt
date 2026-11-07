@@ -389,7 +389,9 @@ class TimelineEventController @Inject constructor(
                             mediaGroup.events.size > 1 &&
                             timelineEvent?.eventId != mediaGroup.mediaAlbumAnchorEventId()
                     if (isHiddenAlbumMember) {
-                        return@mapIndexed emptyList<EpoxyModel<*>>()
+                        // Keep a date divider at its original (oldest-event) position, but do
+                        // not leave an extra empty row, author header or per-event receipt.
+                        return@mapIndexed listOfNotNull(cacheItemData?.formattedDayModel)
                     }
                     val eventModel = if (cacheItemData == null || mergedHeaderItemFactory.isCollapsed(cacheItemData.localId)) {
                         null
