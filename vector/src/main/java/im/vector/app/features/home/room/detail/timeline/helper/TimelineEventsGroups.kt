@@ -40,10 +40,13 @@ class TimelineEventsGroup(val groupId: String) {
 
     fun mediaAlbumAnchorEventId(): String? {
         if (!isMediaAlbum()) return null
-        return _events.maxByOrNull { event ->
-            (event.root.getClearContent()?.get("org.aliabomoslem.messenger.media_album_index") as? Number)?.toInt()
-                    ?: Int.MIN_VALUE
-        }?.eventId
+        // A redacted/deleted album tile must not remain the synthetic row's anchor.
+        return _events.asSequence()
+                .filterNot { it.root.isRedacted() }
+                .maxByOrNull { event ->
+                    (event.root.getClearContent()?.get("org.aliabomoslem.messenger.media_album_index") as? Number)?.toInt()
+                            ?: Int.MIN_VALUE
+                }?.eventId
     }
 }
 
