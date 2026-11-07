@@ -9,7 +9,10 @@ package im.vector.app.features.home.room.detail.timeline.view
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.util.AttributeSet
@@ -46,6 +49,13 @@ class MessageBubbleView @JvmOverloads constructor(
     private lateinit var views: ViewMessageBubbleBinding
     private lateinit var bubbleDrawable: MaterialShapeDrawable
     private lateinit var rippleMaskDrawable: MaterialShapeDrawable
+    private var drawDirectTail: Boolean = false
+    private var directTailIsIncoming: Boolean = true
+    private val directTailPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+    }
+    private val directTailPath = Path()
+    private val directTailSize = DimensionConverter(resources).dpToPx(9).toFloat()
 
     init {
         inflate(context, R.layout.view_message_bubble, this)
@@ -83,7 +93,11 @@ class MessageBubbleView @JvmOverloads constructor(
     }
 
     override fun renderMessageLayout(messageLayout: TimelineMessageLayout) {
-        (messageLayout as? TimelineMessageLayout.Bubble)
+        val bubbleLayout = messageLayout as? TimelineMessageLayout.Bubble
+        drawDirectTail = bubbleLayout?.hasDirectTail == true
+        directTailIsIncoming = bubbleLayout?.isIncoming ?: true
+        invalidate()
+        bubbleLayout
                 ?.updateDrawables()
                 ?.setConstraints()
                 ?.toggleMessageOverlay()
@@ -93,6 +107,53 @@ class MessageBubbleView @JvmOverloads constructor(
                 ?.setAdditionalTopSpace()
                 ?.setMessageTextColor()
                 ?: Timber.v("Can't render messageLayout $messageLayout")
+    }
+
+    override fun dispatchDraw(canvas: Canvas) {
+        super.dispatchDraw(canvas)
+        if (!drawDirectTail || !::views.isInitialized || !::bubbleDrawable.isInitialized) return
+
+        val bubble = views.bubbleView
+        val wrapper = views.bubbleWrapper
+        if (bubble.width <= 0 || bubble.height <= 0) return
+
+        val left = (wrapper.left + bubble.left).toFloat()
+        val top = (wrapper.top + bubble.top).toFloat()
+        val right = left + bubble.width
+        val bottom = top + bubble.height
+        val tail = directTailSize
+        val fillColor = bubbleDrawable.fillColor?.defaultColor ?: Color.TRANSPARENT
+        if (fillColor == Color.TRANSPARENT) return
+
+        directTailPaint.color = fillColor
+        directTailPath.reset()
+        if (directTailIsIncoming) {
+            directTailPath.moveTo(left + tail * 1.15f, bottom - tail * 0.9f)
+            directTailPath.cubicTo(
+                    left + tail * 0.78f, bottom - tail * 0.22f,
+                    left + tail * 0.12f, bottom + tail * 0.48f,
+                    left - tail * 0.72f, bottom + tail * 0.24f
+            )
+            directTailPath.cubicTo(
+                    left - tail * 0.48f, bottom - tail * 0.28f,
+                    left - tail * 0.02f, bottom - tail * 0.72f,
+                    left + tail * 0.58f, bottom - tail * 1.05f
+            )
+        } else {
+            directTailPath.moveTo(right - tail * 1.15f, bottom - tail * 0.9f)
+            directTailPath.cubicTo(
+                    right - tail * 0.78f, bottom - tail * 0.22f,
+                    right - tail * 0.12f, bottom + tail * 0.48f,
+                    right + tail * 0.72f, bottom + tail * 0.24f
+            )
+            directTailPath.cubicTo(
+                    right + tail * 0.48f, bottom - tail * 0.28f,
+                    right + tail * 0.02f, bottom - tail * 0.72f,
+                    right - tail * 0.58f, bottom - tail * 1.05f
+            )
+        }
+        directTailPath.close()
+        canvas.drawPath(directTailPath, directTailPaint)
     }
 
     private fun TimelineMessageLayout.Bubble.updateDrawables() = apply {

@@ -117,7 +117,7 @@ class TimelineMessageLayoutFactory @Inject constructor(
 
         // Standalone emoji messages must use transparent Telegram-style geometry even
         // when the user's regular timeline preference is Element's modern layout.
-        val messageLayout = if (shouldBuildBubble && (useBubbleLayout || isStandaloneEmoji || isTelegramChannel)) {
+        val messageLayout = if (shouldBuildBubble && (useBubbleLayout || isStandaloneEmoji || isTelegramChannel || isDirectRoom)) {
             buildBubbleLayout(
                     event = event,
                     nextDisplayableEvent = nextDisplayableEvent,
@@ -161,9 +161,9 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 showAvatar = showInformation && !isSentByMe && !isTelegramChannel,
                 showDisplayName = showInformation && !isSentByMe && !isTelegramChannel,
                 addTopMargin = isFirstFromThisSender,
-                isIncoming = isTelegramChannel || !isSentByMe,
+                isIncoming = isTelegramChannel || !isSentByMeForLayout,
                 cornersRadius = buildCornersRadius(
-                        isIncoming = !isSentByMe,
+                        isIncoming = isTelegramChannel || !isSentByMeForLayout,
                         isFirstFromThisSender = isFirstFromThisSender,
                         isLastFromThisSender = isLastFromThisSender
                 ),
@@ -171,7 +171,9 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 timestampInsideMessage = messageContent.timestampInsideMessage() || isStandaloneEmoji,
                 // Channel post time sits on the post surface, not over the video thumbnail.
                 addMessageOverlay = if (isStandaloneEmoji || isTelegramChannel) false else messageContent.shouldAddMessageOverlay(),
-                isDirect = isDirectRoom,
+                isDirect = isDirectRoom || isTelegramChannel,
+                hasDirectTail = isDirectRoom && !isTelegramChannel && isLastFromThisSender &&
+                        !messageContent.isPseudoBubble() && !isStandaloneEmoji,
                 isTelegramChannel = isTelegramChannel
         )
     }

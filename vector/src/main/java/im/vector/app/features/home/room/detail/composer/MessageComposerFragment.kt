@@ -11,6 +11,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -143,6 +144,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     private lateinit var attachmentsHelper: AttachmentsHelper
     private lateinit var attachmentTypeSelector: AttachmentTypeSelectorView
     private var bottomSheetBehavior: ExpandingBottomSheetBehavior<View>? = null
+    private var composerUsesDirectSurface: Boolean? = null
 
     private val timelineViewModel: TimelineViewModel by parentFragmentViewModel()
     private val messageComposerViewModel: MessageComposerViewModel by parentFragmentViewModel()
@@ -258,6 +260,7 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
     }
 
     override fun onDestroyView() {
+        composerUsesDirectSurface = null
         super.onDestroyView()
 
         autoCompleters.values.forEach(AutoCompleter::clear)
@@ -272,12 +275,45 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
         (composer as? View)?.isVisible = messageComposerState.isComposerVisible
         composer.sendButton.isInvisible = !messageComposerState.isSendButtonVisible
+        val isDirectRoom = mainState.isDm()
+        if (composerUsesDirectSurface != isDirectRoom) {
+            applyTelegramDirectComposerSurface(isDirectRoom)
+            composerUsesDirectSurface = isDirectRoom
+        }
         (composer as? RichTextComposerLayout)?.also {
             val isTextFormattingEnabled = attachmentState.isTextFormattingEnabled
             it.isTextFormattingEnabled = isTextFormattingEnabled
             autoCompleters[it.richTextEditText]?.setEnabled(isTextFormattingEnabled)
             autoCompleters[it.plainTextEditText]?.setEnabled(!isTextFormattingEnabled)
         }
+    }
+
+    private fun applyTelegramDirectComposerSurface(isDirectRoom: Boolean) {
+        val context = requireContext()
+        if (!isDirectRoom) {
+            views.composerLayout.composerEditTextOuterBorder.setBackgroundResource(R.drawable.bg_composer_edit_text)
+            views.richTextComposerLayout.composerEditTextOuterBorder.setBackgroundResource(R.drawable.bg_composer_edit_text)
+            composer.emojiButton?.isVisible = vectorPreferences.showEmojiKeyboard()
+            return
+        }
+
+        val density = resources.displayMetrics.density
+        val baseSurface = im.vector.app.features.themes.ThemeUtils.getColor(
+                context,
+                im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound
+        )
+        val fillColor = (baseSurface and 0x00FFFFFF) or (0xD0 shl 24)
+        val strokeColor = (baseSurface and 0x00FFFFFF) or (0x78 shl 24)
+        fun createComposerPill(): GradientDrawable = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            setColor(fillColor)
+            setStroke((1f * density).toInt().coerceAtLeast(1), strokeColor)
+            cornerRadius = 28f * density
+        }
+
+        views.composerLayout.composerEditTextOuterBorder.background = createComposerPill()
+        views.richTextComposerLayout.composerEditTextOuterBorder.background = createComposerPill()
+        composer.emojiButton?.isVisible = true
     }
 
     private fun setupBottomSheet() {
@@ -379,7 +415,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             }
 
             override fun onExpandOrCompactChange() {
-                composer.emojiButton?.isVisible = isEmojiKeyboardVisible
+                val isDirectRoom = withState(timelineViewModel) { it.isDm() }
+                composer.emojiButton?.isVisible = isEmojiKeyboardVisible || isDirectRoom
             }
 
             override fun onSendMessage(text: CharSequence) = withState(messageComposerViewModel) { state ->

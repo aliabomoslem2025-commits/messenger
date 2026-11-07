@@ -309,6 +309,15 @@ class TimelineFragment :
         parentView?.background = null
         parentView?.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
 
+        fun actionBackground(): android.graphics.drawable.Drawable {
+            val surface = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound)
+            val translucentSurface = (surface and 0x00FFFFFF) or (0xC8 shl 24)
+            return android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.OVAL
+                setColor(translucentSurface)
+            }
+        }
+
         val styleActionButtons = {
             if (isAdded) {
                 val density = toolbar.resources.displayMetrics.density
@@ -326,7 +335,7 @@ class TimelineFragment :
                         child.minimumHeight = actionSize
                         child.setPadding(0, 0, 0, 0)
                         child.scaleType = ImageView.ScaleType.CENTER
-                        child.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                        child.background = actionBackground()
                         child.elevation = actionElevation
                         child.bringToFront()
                     }
@@ -341,7 +350,7 @@ class TimelineFragment :
                                     childView.minimumWidth = actionSize
                                     childView.minimumHeight = actionSize
                                     childView.setPadding(0, 0, 0, 0)
-                                    childView.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                                    childView.background = actionBackground()
                                     childView.elevation = actionElevation
                                     childView.bringToFront()
                                 }
@@ -358,7 +367,7 @@ class TimelineFragment :
                                 menuChild.minimumWidth = actionSize
                                 menuChild.minimumHeight = actionSize
                                 menuChild.setPadding(0, 0, 0, 0)
-                                menuChild.background = ContextCompat.getDrawable(requireContext(), R.drawable.bg_telegram_header_action)
+                                menuChild.background = actionBackground()
                                 menuChild.elevation = actionElevation
                                 menuChild.bringToFront()
                             }
@@ -1508,6 +1517,52 @@ class TimelineFragment :
         voiceMessageRecorderContainer.isVisible = false
     }
 
+    private fun applyDirectChatHeaderSurface(isDirect: Boolean) {
+        val header = views.includeRoomToolbar.roomToolbarContentView
+        if (!isDirect) {
+            header.setBackgroundResource(R.drawable.bg_telegram_chat_header_inset)
+            return
+        }
+
+        val density = resources.displayMetrics.density
+        val surface = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound)
+        val translucentSurface = (surface and 0x00FFFFFF) or (0xC4 shl 24)
+        val background = android.graphics.drawable.GradientDrawable().apply {
+            shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+            setColor(translucentSurface)
+            cornerRadius = 28f * density
+        }
+        header.background = android.graphics.drawable.InsetDrawable(
+                background,
+                (15f * density).toInt(),
+                (3f * density).toInt(),
+                (15f * density).toInt(),
+                (3f * density).toInt()
+        )
+
+        // Keep the back/call/menu action surfaces translucent over the chat wallpaper.
+        val actionColor = (surface and 0x00FFFFFF) or (0xC8 shl 24)
+        fun styleAction(view: View) {
+            val isOverflow = view.javaClass.name.contains("OverflowMenuButton", ignoreCase = true)
+            if (view is android.widget.ImageButton || isOverflow) {
+                view.background = android.graphics.drawable.GradientDrawable().apply {
+                    shape = android.graphics.drawable.GradientDrawable.OVAL
+                    setColor(actionColor)
+                }
+            }
+        }
+        val toolbar = views.roomToolbar
+        for (index in 0 until toolbar.childCount) {
+            val child = toolbar.getChildAt(index)
+            styleAction(child)
+            if (child is ViewGroup) {
+                for (childIndex in 0 until child.childCount) {
+                    styleAction(child.getChildAt(childIndex))
+                }
+            }
+        }
+    }
+
     private fun renderToolbar(roomSummary: RoomSummary?) {
         when {
             isLocalRoom() -> {
@@ -1531,6 +1586,7 @@ class TimelineFragment :
             else -> {
                 views.includeRoomToolbar.roomToolbarContentView.isVisible = true
                 views.includeThreadToolbar.roomToolbarThreadConstraintLayout.isVisible = false
+                applyDirectChatHeaderSurface(roomSummary?.isDirect == true)
                 val presenceSubtitle = views.includeRoomToolbar.roomToolbarSubtitleView
                 if (roomSummary == null) {
                     views.includeRoomToolbar.roomToolbarContentView.isClickable = false
