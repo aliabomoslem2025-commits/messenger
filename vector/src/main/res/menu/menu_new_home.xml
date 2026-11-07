@@ -47,4 +47,11 @@
         android:title="@string/home_filter_placeholder_home"
         app:iconTint="@android:color/white"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_home_security_sessions"
+        android:icon="@drawable/ic_settings_root_security_privacy"
+        android:title="@string/telegram_settings_privacy_title"
+        app:iconTint="@android:color/white"
+        app:showAsAction="ifRoom" />
+
 </menu>

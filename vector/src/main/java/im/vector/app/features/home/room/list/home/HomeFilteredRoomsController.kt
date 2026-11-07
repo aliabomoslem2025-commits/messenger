@@ -102,10 +102,10 @@ class HomeFilteredRoomsController @Inject constructor(
                     listener = listener,
                     singleLineLastEvent = shouldUseSingleLine
             ).also { model ->
-                // Keep invitations' accept/reject layout intact; style regular room
-                // rows only in the primary home list.
+                // Keep the Telegram room row two-line: room name and time above,
+                // last-message preview below, matching the reference chat list.
                 if (model is RoomSummaryItem_) {
-                    model.compactTelegramHome(true)
+                    model.compactTelegramHome(false)
                 }
             }
         }

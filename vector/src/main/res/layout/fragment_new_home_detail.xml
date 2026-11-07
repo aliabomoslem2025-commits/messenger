@@ -26,7 +26,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@id/telegramBottomNavigation"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/syncStateView">
 
         <com.google.android.material.appbar.AppBarLayout
@@ -63,6 +63,7 @@
             <!-- Pinned search field, sized to the reference chat-list screenshot. -->
             <LinearLayout
                 android:id="@+id/telegramHomeSearchContainer"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="38dp"
                 android:layout_marginStart="10dp"
@@ -138,6 +139,7 @@
 
             <HorizontalScrollView
                 android:id="@+id/telegramStoriesStrip"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
@@ -190,11 +192,11 @@
         android:id="@+id/telegramBottomNavigation"
         android:layout_width="0dp"
         android:layout_height="54dp"
-        android:layout_marginStart="44dp"
-        android:layout_marginEnd="44dp"
+        android:layout_marginStart="38dp"
+        android:layout_marginEnd="38dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/bg_telegram_bottom_navigation"
-        android:elevation="0dp"
+        android:elevation="12dp"
         android:gravity="center"
         android:orientation="horizontal"
         android:padding="4dp"
@@ -220,7 +222,7 @@
                 android:id="@+id/telegramTabChatsIcon"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:contentDescription="@string/telegram_tab_chats"
                 android:duplicateParentState="true"
                 android:importantForAccessibility="no"
@@ -259,11 +261,11 @@
                 android:id="@+id/telegramTabContactsIcon"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:contentDescription="@string/telegram_tab_chat_folders"
                 android:duplicateParentState="true"
                 android:importantForAccessibility="no"
-                android:src="@drawable/ic_telegram_chat_folder"
+                android:src="@drawable/ic_user_round"
                 android:tint="@color/telegram_bottom_tab_tint" />
 
             <TextView
@@ -274,7 +276,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:includeFontPadding="false"
                 android:maxLines="1"
-                android:text="@string/telegram_tab_chat_folders"
+                android:text="@string/telegram_tab_contacts"
                 android:textColor="@color/telegram_bottom_tab_tint"
                 android:textSize="14sp" />
 
@@ -298,7 +300,7 @@
                 android:id="@+id/telegramTabSettingsIcon"
                 android:layout_width="22dp"
                 android:layout_height="22dp"
-                android:visibility="gone"
+                android:visibility="visible"
                 android:contentDescription="@string/telegram_tab_settings"
                 android:duplicateParentState="true"
                 android:importantForAccessibility="no"

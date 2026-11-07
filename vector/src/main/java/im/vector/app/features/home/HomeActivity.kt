@@ -67,6 +67,7 @@ import im.vector.app.features.rageshake.ReportType
 import im.vector.app.features.rageshake.VectorUncaughtExceptionHandler
 import im.vector.app.features.session.coroutineScope
 import im.vector.app.features.settings.VectorSettingsActivity
+import im.vector.app.features.settings.VectorSettingsActivity.Companion.EXTRA_DIRECT_ACCESS_SECURITY_PRIVACY_MANAGE_SESSIONS
 import im.vector.app.features.spaces.SpaceCreationActivity
 import im.vector.app.features.spaces.SpacePreviewActivity
 import im.vector.app.features.spaces.SpaceSettingsMenuBottomSheet
@@ -650,6 +651,10 @@ class HomeActivity :
                 initialSyncStrategy = InitialSyncStrategy.Optimized()
                 // And clear cache
                 MainActivity.restartApp(this, MainActivityArgs(clearCache = true))
+                true
+            }
+            R.id.menu_home_security_sessions -> {
+                navigator.openSettings(this, EXTRA_DIRECT_ACCESS_SECURITY_PRIVACY_MANAGE_SESSIONS)
                 true
             }
             R.id.menu_home_filter -> {

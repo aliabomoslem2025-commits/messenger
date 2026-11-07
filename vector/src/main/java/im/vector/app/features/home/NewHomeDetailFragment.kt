@@ -47,6 +47,7 @@ import im.vector.app.features.call.SharedKnownCallsViewModel
 import im.vector.app.features.call.VectorCallActivity
 import im.vector.app.features.call.dialpad.PstnDialActivity
 import im.vector.app.features.call.webrtc.WebRtcCallManager
+import im.vector.app.features.contactsbook.ContactsBookFragment
 import im.vector.app.features.crypto.verification.self.SelfVerificationBottomSheet
 import im.vector.app.features.home.room.list.UnreadCounterBadgeView
 import im.vector.app.features.home.room.list.actions.RoomListSharedAction
@@ -310,7 +311,7 @@ class NewHomeDetailFragment :
             setHomeChromeVisible(false)
             views.toolbar.title = when {
                 selected.id == views.telegramTabSettings.id -> ""
-                selected.id == views.telegramTabContacts.id -> getString(R.string.telegram_folder_manage_title)
+                selected.id == views.telegramTabContacts.id -> getString(R.string.telegram_tab_contacts)
                 else -> getString(titleRes)
             }
             if (selected.id == views.telegramTabContacts.id) {
@@ -389,7 +390,7 @@ class NewHomeDetailFragment :
         }
 
         views.telegramTabContacts.debouncedClicks {
-            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is TelegramChatFoldersFragment) {
+            if (childFragmentManager.findFragmentById(R.id.roomListContainer) !is ContactsBookFragment) {
                 if (childFragmentManager.backStackEntryCount > 0) {
                     childFragmentManager.popBackStackImmediate(
                             null,
@@ -398,7 +399,7 @@ class NewHomeDetailFragment :
                 }
                 showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
                 childFragmentManager.commitTransaction {
-                    replace(R.id.roomListContainer, TelegramChatFoldersFragment())
+                    replace(R.id.roomListContainer, ContactsBookFragment())
                     addToBackStack("telegram_chat_folders")
                 }
             } else {
@@ -409,7 +410,7 @@ class NewHomeDetailFragment :
         childFragmentManager.addOnBackStackChangedListener {
             if (!isAdded || view == null) return@addOnBackStackChangedListener
             when (childFragmentManager.findFragmentById(R.id.roomListContainer)) {
-                is TelegramChatFoldersFragment -> {
+                is ContactsBookFragment -> {
                     showSecondaryTab(R.string.telegram_tab_chat_folders, views.telegramTabContacts)
                 }
                 is TelegramSettingsFragment -> {
