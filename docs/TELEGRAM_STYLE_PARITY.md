@@ -159,3 +159,15 @@ Remote source editing cannot substitute for screenshot comparison or hands-on Ma
 - Shifted outgoing message delivery state into the bubble's right footer area, reserved space after the timestamp, and used the outgoing bubble's white text token for the timestamp/check indicator. The Matrix send-state view/model remains authoritative.
 - No screenshot comparison or live-device verification has been performed from this editing session. Verify header overlap, menu target sizes, multi-line message footer layout, media overlays, status/navigation bar icon contrast, and send-state transitions before accepting the visual pass.
 
+
+
+### Group chat media collage and toolbar pass (source changes committed; build/device verification pending, 2026-11-07)
+
+- Group conversation headers now use the same translucent inset capsule treatment as direct conversations and show a localized joined-member subtitle when available.
+- Standard incoming/outgoing message bubbles now receive Telegram-style tails at the end of a sender's run in both direct conversations and groups. Pseudo-bubbles, standalone animated emoji and channel posts remain excluded.
+- The attachment preview supports long-press multi-selection in the thumbnail strip. Tapping additional thumbnails toggles membership in the selection; the existing Remove action deletes the selected set, preserves the current preview when it survives, clamps the new page when it does not, and recalculates the remaining selection without empty slots. Cropping updates the selected URI rather than losing its selection state.
+- Sending multiple images/videos creates a Messenger-namespaced album id and per-item order metadata. The Matrix SDK forwards the metadata through each ordinary media event, preserving Matrix MXC upload, E2EE, download and individual event ids. This is a presentation extension for Messenger clients, not a new Matrix event type.
+- Timeline rows with the same album id are rendered as one media collage. The three-item layout uses a tall left tile and two stacked right tiles like the supplied reference; layouts for two, four, five and larger selections reflow deterministically, with collage height adjusted from source aspect ratios. A single shared caption is rendered once under the collage.
+- The collage uses each tile's own event id for media viewing and authenticated download. Non-album images and videos retain their existing timeline renderer.
+
+Validation still required on the developer workstation/emulator: compile Kotlin + KSP/Epoxy generation, run unit tests/lint, send mixed image/video albums between two Matrix accounts, verify album reconstruction after sync/restart/pagination, test E2EE and downloads, remove/crop selected preview items, and compare light/dark screenshots at multiple sizes. These GitHub source edits have not been compiled or exercised on a device in this editing session; do not claim pixel-perfect parity until those checks pass. Telegram Android source was used as behavioral reference only; no Telegram source files or artwork were copied.
