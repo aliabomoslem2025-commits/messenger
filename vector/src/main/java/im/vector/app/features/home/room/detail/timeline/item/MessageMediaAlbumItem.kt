@@ -14,6 +14,7 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyModelClass
 import im.vector.app.R
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadOverlayBinder
+import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
 import im.vector.app.features.home.room.detail.timeline.view.MediaAlbumGridView
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
@@ -49,6 +50,9 @@ abstract class MessageMediaAlbumItem : AbsMessageItem<MessageMediaAlbumItem.Hold
     lateinit var contentDownloadOverlayBinder: ContentDownloadOverlayBinder
 
     @EpoxyAttribute
+    lateinit var contentUploadStateTrackerBinder: ContentUploadStateTrackerBinder
+
+    @EpoxyAttribute
     var caption: CharSequence? = null
 
     @EpoxyAttribute(EpoxyAttribute.Option.DoNotHash)
@@ -63,6 +67,7 @@ abstract class MessageMediaAlbumItem : AbsMessageItem<MessageMediaAlbumItem.Hold
                 tiles = mediaTiles,
                 imageContentRenderer = imageContentRenderer,
                 downloadOverlayBinder = contentDownloadOverlayBinder,
+                uploadStateTrackerBinder = contentUploadStateTrackerBinder,
                 onTileClick = tileClickListener
         )
         holder.captionView.isVisible = !caption.isNullOrBlank()
