@@ -92,6 +92,7 @@ class MediaAlbumGridView @JvmOverloads constructor(
                 val play = ImageView(context).apply {
                     setImageResource(R.drawable.ic_material_play_circle)
                     scaleType = ImageView.ScaleType.FIT_CENTER
+                    imageTintList = ColorStateList.valueOf(Color.WHITE)
                     contentDescription = tile.imageData.filename
                     layoutParams = FrameLayout.LayoutParams(dp(52), dp(52), Gravity.CENTER)
                     setOnClickListener { onTileClick?.invoke(tile, image) }
@@ -102,6 +103,7 @@ class MediaAlbumGridView @JvmOverloads constructor(
             val download = ImageView(context).apply {
                 setImageResource(R.drawable.ic_telegram_download_arrow)
                 scaleType = ImageView.ScaleType.CENTER
+                imageTintList = ColorStateList.valueOf(Color.WHITE)
                 setPadding(dp(8), dp(8), dp(8), dp(8))
                 background = GradientDrawable().apply {
                     shape = GradientDrawable.OVAL
