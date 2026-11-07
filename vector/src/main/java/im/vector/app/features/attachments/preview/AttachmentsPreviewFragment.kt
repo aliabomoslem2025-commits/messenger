@@ -50,6 +50,7 @@ import kotlinx.parcelize.Parcelize
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 
 @Parcelize
@@ -156,8 +157,16 @@ class AttachmentsPreviewFragment :
         }
     }
 
-    override fun onAttachmentClicked(position: Int, contentAttachmentData: ContentAttachmentData) {
-        viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(position))
+    override fun onAttachmentClicked(position: Int, contentAttachmentData: ContentAttachmentData) = withState(viewModel) { state ->
+        if (state.selectedAttachmentUris.isNotEmpty()) {
+            viewModel.handle(AttachmentsPreviewAction.ToggleAttachmentSelection(contentAttachmentData.queryUri.toString()))
+        } else {
+            viewModel.handle(AttachmentsPreviewAction.SetCurrentAttachment(position))
+        }
+    }
+
+    override fun onAttachmentLongClicked(position: Int, contentAttachmentData: ContentAttachmentData) {
+        viewModel.handle(AttachmentsPreviewAction.ToggleAttachmentSelection(contentAttachmentData.queryUri.toString()))
     }
 
     private fun setResultAndFinish() = withState(viewModel) {
@@ -168,9 +177,14 @@ class AttachmentsPreviewFragment :
         val attachmentsWithCaption = it.attachments.mapIndexed { index, attachment ->
             attachment.copy(caption = if (index == 0) caption else null)
         }
+        val isMediaAlbum = attachmentsWithCaption.size > 1 && attachmentsWithCaption.all {
+            it.type == ContentAttachmentData.Type.IMAGE || it.type == ContentAttachmentData.Type.VIDEO
+        }
+        val mediaAlbumId = if (isMediaAlbum) UUID.randomUUID().toString() else null
         (requireActivity() as? AttachmentsPreviewActivity)?.setResultAndFinish(
                 attachmentsWithCaption,
-                views.attachmentPreviewerSendImageOriginalSize.isChecked
+                views.attachmentPreviewerSendImageOriginalSize.isChecked,
+                mediaAlbumId
         )
     }
 
