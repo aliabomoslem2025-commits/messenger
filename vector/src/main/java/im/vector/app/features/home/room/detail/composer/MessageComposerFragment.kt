@@ -748,7 +748,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
         if (activityResult.resultCode == Activity.RESULT_OK) {
             val sendData = AttachmentsPreviewActivity.getOutput(data)
             val keepOriginalSize = AttachmentsPreviewActivity.getKeepOriginalSize(data)
-            timelineViewModel.handle(RoomDetailAction.SendMedia(sendData, !keepOriginalSize))
+            val mediaAlbumId = AttachmentsPreviewActivity.getMediaAlbumId(data)
+            timelineViewModel.handle(RoomDetailAction.SendMedia(sendData, !keepOriginalSize, mediaAlbumId))
         }
     }
 
