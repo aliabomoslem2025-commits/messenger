@@ -562,6 +562,7 @@ class MessageItemFactory @Inject constructor(
             isTelegramChannel: Boolean
     ): List<MediaAlbumTile> {
         val group = params.eventsGroup ?: return emptyList()
+        if (!group.isMediaAlbum()) return emptyList()
         val currentEvent = params.event
         val orderedEvents = group.events
                 .asSequence()
