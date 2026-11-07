@@ -385,9 +385,11 @@ class TimelineEventController @Inject constructor(
                 .mapIndexed { position, cacheItemData ->
                     val timelineEvent = currentSnapshot.getOrNull(position)
                     val mediaGroup = timelineEvent?.let { timelineEventsGroups.getOrNull(it) }
+                    val albumAnchorEventId = mediaGroup?.mediaAlbumAnchorEventId()
                     val isHiddenAlbumMember = mediaGroup?.isMediaAlbum() == true &&
                             mediaGroup.events.size > 1 &&
-                            timelineEvent?.eventId != mediaGroup.mediaAlbumAnchorEventId()
+                            albumAnchorEventId != null &&
+                            timelineEvent?.eventId != albumAnchorEventId
                     if (isHiddenAlbumMember) {
                         // Keep a date divider at its original (oldest-event) position, but do
                         // not leave an extra empty row, author header or per-event receipt.
