@@ -26,6 +26,7 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         private const val EXTRA_FRAGMENT_ARGS = "EXTRA_FRAGMENT_ARGS"
         private const val ATTACHMENTS_PREVIEW_RESULT = "ATTACHMENTS_PREVIEW_RESULT"
         private const val KEEP_ORIGINAL_IMAGES_SIZE = "KEEP_ORIGINAL_IMAGES_SIZE"
+        private const val MEDIA_ALBUM_ID = "MEDIA_ALBUM_ID"
 
         fun newIntent(context: Context, args: AttachmentsPreviewArgs): Intent {
             return Intent(context, AttachmentsPreviewActivity::class.java).apply {
@@ -40,6 +41,8 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         fun getKeepOriginalSize(intent: Intent): Boolean {
             return intent.getBooleanExtra(KEEP_ORIGINAL_IMAGES_SIZE, false)
         }
+
+        fun getMediaAlbumId(intent: Intent): String? = intent.getStringExtra(MEDIA_ALBUM_ID)
     }
 
     override fun getOtherThemes() = ActivityOtherThemes.AttachmentsPreview
@@ -58,10 +61,11 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         }
     }
 
-    fun setResultAndFinish(data: List<ContentAttachmentData>, keepOriginalImageSize: Boolean) {
+    fun setResultAndFinish(data: List<ContentAttachmentData>, keepOriginalImageSize: Boolean, mediaAlbumId: String?) {
         val resultIntent = Intent().apply {
             putParcelableArrayListExtra(ATTACHMENTS_PREVIEW_RESULT, ArrayList(data))
             putExtra(KEEP_ORIGINAL_IMAGES_SIZE, keepOriginalImageSize)
+            putExtra(MEDIA_ALBUM_ID, mediaAlbumId)
         }
         setResult(RESULT_OK, resultIntent)
         finish()
