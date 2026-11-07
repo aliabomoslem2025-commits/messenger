@@ -21,26 +21,33 @@ class TimelineMediaSizeProvider @Inject constructor(
 ) {
 
     var recyclerView: RecyclerView? = null
-    private var cachedSize: Pair<Int, Int>? = null
+    private var cachedSize: Pair<Boolean, Pair<Int, Int>>? = null
 
-    fun getMaxSize(): Pair<Int, Int> {
-        return cachedSize ?: computeMaxSize().also { cachedSize = it }
+    fun getMaxSize(isTelegramChannel: Boolean = false): Pair<Int, Int> {
+        cachedSize?.takeIf { it.first == isTelegramChannel }?.let { return it.second }
+        return computeMaxSize(isTelegramChannel).also { size ->
+            if (size.first > 0 && size.second > 0) {
+                cachedSize = isTelegramChannel to size
+            }
+        }
     }
 
-    private fun computeMaxSize(): Pair<Int, Int> {
+    private fun computeMaxSize(isTelegramChannel: Boolean): Pair<Int, Int> {
         val width = recyclerView?.width ?: 0
         val height = recyclerView?.height ?: 0
         val maxImageWidth: Int
         val maxImageHeight: Int
-        // landscape / portrait
+        // Broadcast-channel posts are closer to Telegram's full-width cards.
+        // Keep ordinary conversations at the narrower media width.
+        val widthRatio = if (isTelegramChannel) 0.92f else 0.7f
         if (width < height) {
-            maxImageWidth = (width * 0.7f).roundToInt()
+            maxImageWidth = (width * widthRatio).roundToInt()
             maxImageHeight = (height * 0.5f).roundToInt()
         } else {
-            maxImageWidth = (width * 0.7f).roundToInt()
+            maxImageWidth = (width * widthRatio).roundToInt()
             maxImageHeight = (height * 0.7f).roundToInt()
         }
-        return if (vectorPreferences.useMessageBubblesLayout()) {
+        return if (vectorPreferences.useMessageBubblesLayout() && !isTelegramChannel) {
             val bubbleMaxImageWidth = maxImageWidth.coerceAtMost(resources.getDimensionPixelSize(im.vector.lib.ui.styles.R.dimen.chat_bubble_fixed_size))
             Pair(bubbleMaxImageWidth, maxImageHeight)
         } else {

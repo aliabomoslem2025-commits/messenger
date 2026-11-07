@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail.timeline.style
 import android.content.res.Resources
 import im.vector.app.core.utils.isSingleEmoji
 import im.vector.app.core.extensions.getVectorLastMessageContent
+import im.vector.app.features.home.TelegramChannel
 import im.vector.app.core.extensions.localDateTime
 import im.vector.app.features.home.room.detail.timeline.factory.TimelineItemFactoryParams
 import im.vector.app.features.settings.VectorPreferences
@@ -84,6 +85,10 @@ class TimelineMessageLayoutFactory @Inject constructor(
         val nextDisplayableEvent = params.nextDisplayableEvent
         val prevDisplayableEvent = params.prevDisplayableEvent
         val isSentByMe = event.root.senderId == session.myUserId
+        val isTelegramChannel = params.partialState.roomSummary?.roomType == TelegramChannel.ROOM_TYPE
+        // A channel is a broadcast feed: post alignment must not depend on which
+        // administrator account published the Matrix event.
+        val isSentByMeForLayout = isSentByMe && !isTelegramChannel
 
         val date = event.root.localDateTime()
         val nextDate = nextDisplayableEvent?.root?.localDateTime()
@@ -108,21 +113,22 @@ class TimelineMessageLayoutFactory @Inject constructor(
         val useBubbleLayout = layoutSettingsProvider.getLayoutSettings() == TimelineLayoutSettings.BUBBLE
         val isDirectRoom = params.partialState.roomSummary?.isDirect == true
         // Telegram 1:1 chats do not repeat an avatar/name on each incoming message.
-        val showSenderDetails = showInformation && !isSentByMe && !isDirectRoom
+        val showSenderDetails = showInformation && !isSentByMe && !isDirectRoom && !isTelegramChannel
 
         // Standalone emoji messages must use transparent Telegram-style geometry even
         // when the user's regular timeline preference is Element's modern layout.
-        val messageLayout = if (shouldBuildBubble && (useBubbleLayout || isStandaloneEmoji)) {
+        val messageLayout = if (shouldBuildBubble && (useBubbleLayout || isStandaloneEmoji || isTelegramChannel)) {
             buildBubbleLayout(
                     event = event,
                     nextDisplayableEvent = nextDisplayableEvent,
                     prevDisplayableEvent = prevDisplayableEvent,
                     addDaySeparator = addDaySeparator,
                     showInformation = showSenderDetails,
-                    isSentByMe = isSentByMe,
+                    isSentByMe = isSentByMeForLayout,
                     messageContent = messageContent,
                     isStandaloneEmoji = isStandaloneEmoji,
-                    isDirectRoom = isDirectRoom
+                    isDirectRoom = isDirectRoom || isTelegramChannel,
+                    isTelegramChannel = isTelegramChannel
             )
         } else {
             buildModernLayout(showSenderDetails, showInformation)
@@ -139,32 +145,34 @@ class TimelineMessageLayoutFactory @Inject constructor(
             isSentByMe: Boolean,
             messageContent: MessageContent?,
             isStandaloneEmoji: Boolean,
-            isDirectRoom: Boolean
+            isDirectRoom: Boolean,
+            isTelegramChannel: Boolean
     ): TimelineMessageLayout.Bubble {
-        val isFirstFromThisSender = nextDisplayableEvent == null ||
+        val isFirstFromThisSender = isTelegramChannel || nextDisplayableEvent == null ||
                 !nextDisplayableEvent.shouldBuildBubbleLayout() ||
                 nextDisplayableEvent.root.senderId != event.root.senderId ||
                 addDaySeparator
-        val isLastFromThisSender = prevDisplayableEvent == null ||
+        val isLastFromThisSender = isTelegramChannel || prevDisplayableEvent == null ||
                 !prevDisplayableEvent.shouldBuildBubbleLayout() ||
                 prevDisplayableEvent.root.senderId != event.root.senderId ||
                 prevDisplayableEvent.root.localDateTime().toLocalDate() != event.root.localDateTime().toLocalDate()
 
         return TimelineMessageLayout.Bubble(
-                showAvatar = showInformation && !isSentByMe,
-                showDisplayName = showInformation && !isSentByMe,
+                showAvatar = showInformation && !isSentByMe && !isTelegramChannel,
+                showDisplayName = showInformation && !isSentByMe && !isTelegramChannel,
                 addTopMargin = isFirstFromThisSender,
-                isIncoming = !isSentByMe,
+                isIncoming = isTelegramChannel || !isSentByMe,
                 cornersRadius = buildCornersRadius(
                         isIncoming = !isSentByMe,
                         isFirstFromThisSender = isFirstFromThisSender,
                         isLastFromThisSender = isLastFromThisSender
                 ),
-                isPseudoBubble = messageContent.isPseudoBubble() || isStandaloneEmoji,
+                isPseudoBubble = if (isTelegramChannel) false else messageContent.isPseudoBubble() || isStandaloneEmoji,
                 timestampInsideMessage = messageContent.timestampInsideMessage() || isStandaloneEmoji,
-                // Do not draw the translucent media overlay behind a standalone emoji.
-                addMessageOverlay = if (isStandaloneEmoji) false else messageContent.shouldAddMessageOverlay(),
-                isDirect = isDirectRoom
+                // Channel post time sits on the post surface, not over the video thumbnail.
+                addMessageOverlay = if (isStandaloneEmoji || isTelegramChannel) false else messageContent.shouldAddMessageOverlay(),
+                isDirect = isDirectRoom,
+                isTelegramChannel = isTelegramChannel
         )
     }
 

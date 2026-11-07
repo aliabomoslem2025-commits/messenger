@@ -25,6 +25,7 @@ import im.vector.app.core.resources.ColorProvider
 import im.vector.app.core.resources.StringProvider
 import im.vector.app.core.utils.DimensionConverter
 import im.vector.app.core.utils.containsOnlyEmojis
+import im.vector.app.features.home.TelegramChannel
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import im.vector.app.features.home.room.detail.timeline.helper.AudioMessagePlaybackTracker
 import im.vector.app.features.home.room.detail.timeline.helper.AvatarSizeProvider
@@ -173,6 +174,7 @@ class MessageItemFactory @Inject constructor(
         }
 
         val messageContent = event.getVectorLastMessageContent()
+        val isTelegramChannel = params.partialState.roomSummary?.roomType == TelegramChannel.ROOM_TYPE
         if (messageContent == null) {
             val malformedText = stringProvider.getString(CommonStrings.malformed_message)
             return defaultItemFactory.create(malformedText, informationData, highlight, callback)
@@ -197,9 +199,9 @@ class MessageItemFactory @Inject constructor(
         val messageItem = when (messageContent) {
             is MessageEmoteContent -> buildEmoteMessageItem(messageContent, informationData, highlight, callback, attributes)
             is MessageTextContent -> buildItemForTextContent(messageContent, informationData, highlight, callback, attributes)
-            is MessageImageInfoContent -> buildImageMessageItem(messageContent, informationData, highlight, callback, attributes)
+            is MessageImageInfoContent -> buildImageMessageItem(messageContent, informationData, highlight, callback, attributes, isTelegramChannel)
             is MessageNoticeContent -> buildNoticeMessageItem(messageContent, informationData, highlight, callback, attributes)
-            is MessageVideoContent -> buildVideoMessageItem(messageContent, informationData, highlight, callback, attributes)
+            is MessageVideoContent -> buildVideoMessageItem(messageContent, informationData, highlight, callback, attributes, isTelegramChannel)
             is MessageFileContent -> buildFileMessageItem(messageContent, highlight, attributes)
             is MessageAudioContent -> buildAudioContent(params, messageContent, informationData, highlight, attributes)
             is MessageVerificationRequestContent -> buildVerificationRequestMessageItem(messageContent, informationData, highlight, callback, attributes)
@@ -525,8 +527,9 @@ class MessageItemFactory @Inject constructor(
             highlight: Boolean,
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
+            isTelegramChannel: Boolean,
     ): MessageImageVideoItem? {
-        val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
+        val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize(isTelegramChannel)
         val data = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
                 filename = messageContent.filename ?: messageContent.body,
@@ -588,8 +591,9 @@ class MessageItemFactory @Inject constructor(
             highlight: Boolean,
             callback: TimelineEventController.Callback?,
             attributes: AbsMessageItem.Attributes,
+            isTelegramChannel: Boolean,
     ): MessageImageVideoItem? {
-        val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize()
+        val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize(isTelegramChannel)
         val thumbnailData = ImageContentRenderer.Data(
                 eventId = informationData.eventId,
                 filename = messageContent.filename ?: messageContent.body,

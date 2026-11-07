@@ -27,6 +27,7 @@ import im.vector.app.core.epoxy.onClick
 import im.vector.app.core.ui.views.SendStateImageView
 import im.vector.app.features.home.AvatarRenderer
 import im.vector.app.features.home.room.detail.timeline.MessageColorProvider
+import im.vector.app.features.home.room.detail.timeline.style.TimelineMessageLayout
 import im.vector.app.features.home.room.detail.timeline.TimelineEventController
 import org.matrix.android.sdk.api.session.threads.ThreadDetails
 import org.matrix.android.sdk.api.util.MatrixItem
@@ -100,7 +101,14 @@ abstract class AbsMessageItem<H : AbsMessageItem.Holder>(
 
         // Render send state indicator
         holder.sendStateImageView.render(attributes.informationData.sendStateDecoration)
-        holder.eventSendingIndicator.isVisible = attributes.informationData.sendStateDecoration == SendStateDecoration.SENDING_MEDIA
+        val isTelegramChannelPost = (attributes.informationData.messageLayout as? TimelineMessageLayout.Bubble)
+                ?.isTelegramChannel == true
+        if (isTelegramChannelPost) {
+            holder.sendStateImageView.isVisible = false
+            holder.eventSendingIndicator.isVisible = false
+        } else {
+            holder.eventSendingIndicator.isVisible = attributes.informationData.sendStateDecoration == SendStateDecoration.SENDING_MEDIA
+        }
 
         // Threads
         if (attributes.areThreadMessagesEnabled) {
