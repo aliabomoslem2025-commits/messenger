@@ -1519,13 +1519,26 @@ class TimelineFragment :
 
     private fun applyDirectChatHeaderSurface(isDirect: Boolean) {
         val header = views.includeRoomToolbar.roomToolbarContentView
+        val density = resources.displayMetrics.density
+        val surface = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound)
+        // The Telegram header capsule stays translucent over the wallpaper for groups too.
         if (!isDirect) {
-            header.setBackgroundResource(R.drawable.bg_telegram_chat_header_inset)
+            val translucentSurface = (surface and 0x00FFFFFF) or (0xC4 shl 24)
+            val groupBackground = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                setColor(translucentSurface)
+                cornerRadius = 28f * density
+            }
+            header.background = android.graphics.drawable.InsetDrawable(
+                    groupBackground,
+                    (15f * density).toInt(),
+                    (3f * density).toInt(),
+                    (15f * density).toInt(),
+                    (3f * density).toInt()
+            )
             return
         }
 
-        val density = resources.displayMetrics.density
-        val surface = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound)
         val translucentSurface = (surface and 0x00FFFFFF) or (0xC4 shl 24)
         val background = android.graphics.drawable.GradientDrawable().apply {
             shape = android.graphics.drawable.GradientDrawable.RECTANGLE
@@ -1606,6 +1619,14 @@ class TimelineFragment :
                                 R.plurals.telegram_channel_subscriber_count,
                                 subscribers,
                                 subscribers
+                        )
+                        presenceSubtitle.isVisible = true
+                    } else if (!showPresence && (roomSummary.joinedMembersCount ?: 0) > 0) {
+                        val members = roomSummary.joinedMembersCount ?: 0
+                        presenceSubtitle.text = resources.getQuantityString(
+                                R.plurals.telegram_group_member_count,
+                                members,
+                                members
                         )
                         presenceSubtitle.isVisible = true
                     } else {
