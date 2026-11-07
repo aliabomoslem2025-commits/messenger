@@ -172,7 +172,8 @@ class TimelineMessageLayoutFactory @Inject constructor(
                 // Channel post time sits on the post surface, not over the video thumbnail.
                 addMessageOverlay = if (isStandaloneEmoji || isTelegramChannel) false else messageContent.shouldAddMessageOverlay(),
                 isDirect = isDirectRoom || isTelegramChannel,
-                hasDirectTail = isDirectRoom && !isTelegramChannel && isLastFromThisSender &&
+                // Telegram draws a sender-tail on the last standard bubble in both DMs and groups.
+                hasDirectTail = !isTelegramChannel && isLastFromThisSender &&
                         !messageContent.isPseudoBubble() && !isStandaloneEmoji,
                 isTelegramChannel = isTelegramChannel
         )
