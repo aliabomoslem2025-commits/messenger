@@ -278,12 +278,22 @@ internal class DefaultSendService @AssistedInject constructor(
             rootThreadEventId: String?,
             additionalContent: Content?,
     ): Cancelable {
-        return attachments.mapTo(CancelableBag()) {
+        return attachments.mapIndexedTo(CancelableBag()) { index, attachment ->
+            // This namespaced extension groups the otherwise standard Matrix media events
+            // in Messenger clients. Each event remains independently downloadable/decryptable.
+            val itemAdditionalContent = additionalContent?.let { content ->
+                if (content["org.aliabomoslem.messenger.media_album_id"] is String) {
+                    content + ("org.aliabomoslem.messenger.media_album_index" to index)
+                } else {
+                    content
+                }
+            }
             sendMedia(
-                    attachment = it,
+                    attachment = attachment,
                     compressBeforeSending = compressBeforeSending,
                     roomIds = roomIds,
-                    rootThreadEventId = rootThreadEventId
+                    rootThreadEventId = rootThreadEventId,
+                    additionalContent = itemAdditionalContent
             )
         }
     }
