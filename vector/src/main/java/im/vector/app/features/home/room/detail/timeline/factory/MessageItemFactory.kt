@@ -43,6 +43,8 @@ import im.vector.app.features.home.room.detail.timeline.item.MessageAudioItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem
 import im.vector.app.features.home.room.detail.timeline.item.MessageFileItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem
+import im.vector.app.features.home.room.detail.timeline.item.MediaAlbumTile
+import im.vector.app.features.home.room.detail.timeline.item.MessageMediaAlbumItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageImageVideoItem_
 import im.vector.app.features.home.room.detail.timeline.item.MessageInformationData
 import im.vector.app.features.home.room.detail.timeline.item.MessageLocationItem
@@ -193,6 +195,40 @@ class MessageItemFactory @Inject constructor(
 
         // always hide summary when we are on thread timeline
         val attributes = messageItemAttributesFactory.create(messageContent, informationData, callback, params.reactionsSummaryEvents, threadDetails)
+
+        // Keep each attachment as a standard Matrix event; collapse only members that carry
+        // the same namespaced media-album id into one Telegram-like timeline row.
+        val albumTiles = buildMediaAlbumTiles(params, isTelegramChannel)
+        if (albumTiles.size > 1) {
+            // Timeline snapshots are newest first. Render the composite on the newest member.
+            if (event.eventId != albumTiles.last().eventId) return null
+            val albumCaption = buildMediaCaption(albumTiles.first().messageContent, callback)
+            return MessageMediaAlbumItem_()
+                    .attributes(attributes)
+                    .leftGuideline(avatarSizeProvider.leftGuideline)
+                    .mediaTiles(albumTiles)
+                    .imageContentRenderer(imageContentRenderer)
+                    .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
+                    .caption(albumCaption)
+                    .captionMovementMethod(createLinkMovementMethod(callback))
+                    .tileClickListener { tile, clickedView ->
+                        when {
+                            tile.imageContent != null -> callback?.onImageMessageClicked(
+                                    tile.imageContent,
+                                    tile.imageData,
+                                    clickedView,
+                                    emptyList()
+                            )
+                            tile.videoContent != null && tile.videoData != null -> callback?.onVideoMessageClicked(
+                                    tile.videoContent,
+                                    tile.videoData,
+                                    clickedView
+                            )
+                        }
+                    }
+                    .highlighted(highlight)
+                    .apply { layout(informationData.messageLayout.layoutRes) }
+        }
 
         //        val all = event.root.toContent()
         //        val ev = all.toModel<Event>()
@@ -518,6 +554,103 @@ class MessageItemFactory @Inject constructor(
                 callback,
                 attributes,
         )
+    }
+
+    private fun buildMediaAlbumTiles(
+            params: TimelineItemFactoryParams,
+            isTelegramChannel: Boolean
+    ): List<MediaAlbumTile> {
+        val group = params.eventsGroup ?: return emptyList()
+        val currentEvent = params.event
+        val orderedEvents = group.events
+                .asSequence()
+                .filter { candidate ->
+                    candidate.roomId == currentEvent.roomId &&
+                            candidate.root.senderId == currentEvent.root.senderId &&
+                            !candidate.root.isRedacted()
+                }
+                .sortedWith(
+                        compareBy<org.matrix.android.sdk.api.session.room.timeline.TimelineEvent> {
+                            (it.root.getClearContent()?.get("org.aliabomoslem.messenger.media_album_index") as? Number)?.toInt()
+                                    ?: Int.MAX_VALUE
+                        }.thenBy { it.root.originServerTs ?: Long.MIN_VALUE }
+                                .thenBy { it.eventId }
+                )
+                .toList()
+
+        return orderedEvents.mapNotNull { candidate ->
+            val eventId = candidate.eventId
+            when (val content = candidate.getVectorLastMessageContent()) {
+                is MessageImageInfoContent -> {
+                    val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize(isTelegramChannel)
+                    val url = content.getFileUrl()
+                    val data = ImageContentRenderer.Data(
+                            eventId = eventId,
+                            filename = content.filename ?: content.body,
+                            mimeType = content.mimeType,
+                            url = url,
+                            elementToDecrypt = content.encryptedFileInfo?.toElementToDecrypt(),
+                            height = content.info?.height,
+                            maxHeight = maxHeight,
+                            width = content.info?.width,
+                            maxWidth = maxWidth,
+                            allowNonMxcUrls = candidate.root.senderId == session.myUserId
+                    )
+                    val downloaded = localFilesHelper.isLocalFile(url) || runCatching {
+                        val fileState = session.fileService().fileState(content)
+                        fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                                fileState.decryptedFileInCache
+                    }.getOrDefault(false)
+                    MediaAlbumTile(
+                            eventId = eventId,
+                            imageData = data,
+                            messageContent = content,
+                            imageContent = content,
+                            downloadUrl = url?.takeIf { it.startsWith("mxc://") && !downloaded },
+                            isDownloaded = downloaded
+                    )
+                }
+                is MessageVideoContent -> {
+                    val (maxWidth, maxHeight) = timelineMediaSizeProvider.getMaxSize(isTelegramChannel)
+                    val videoUrl = content.getFileUrl()
+                    val thumbnailData = ImageContentRenderer.Data(
+                            eventId = eventId,
+                            filename = content.filename ?: content.body,
+                            mimeType = content.mimeType,
+                            url = content.videoInfo?.getThumbnailUrl(),
+                            elementToDecrypt = content.videoInfo?.thumbnailFile?.toElementToDecrypt(),
+                            height = content.videoInfo?.height,
+                            maxHeight = maxHeight,
+                            width = content.videoInfo?.width,
+                            maxWidth = maxWidth,
+                            allowNonMxcUrls = candidate.root.senderId == session.myUserId
+                    )
+                    val videoData = VideoContentRenderer.Data(
+                            eventId = eventId,
+                            filename = content.filename ?: content.body,
+                            mimeType = content.mimeType,
+                            url = videoUrl,
+                            elementToDecrypt = content.encryptedFileInfo?.toElementToDecrypt(),
+                            thumbnailMediaData = thumbnailData
+                    )
+                    val downloaded = localFilesHelper.isLocalFile(videoUrl) || runCatching {
+                        val fileState = session.fileService().fileState(content)
+                        fileState is org.matrix.android.sdk.api.session.file.FileService.FileState.InCache &&
+                                fileState.decryptedFileInCache
+                    }.getOrDefault(false)
+                    MediaAlbumTile(
+                            eventId = eventId,
+                            imageData = thumbnailData,
+                            messageContent = content,
+                            videoContent = content,
+                            videoData = videoData,
+                            downloadUrl = videoUrl?.takeIf { it.startsWith("mxc://") && !downloaded },
+                            isDownloaded = downloaded
+                    )
+                }
+                else -> null
+            }
+        }
     }
 
     private fun buildImageMessageItem(
