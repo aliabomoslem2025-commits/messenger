@@ -290,9 +290,11 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
 
     private fun applyTelegramDirectComposerSurface(isDirectRoom: Boolean) {
         val context = requireContext()
+        val plainTextBorder = views.composerLayout.findViewById<View>(R.id.composerEditTextOuterBorder)
+        val richTextBorder = views.richTextComposerLayout.findViewById<View>(R.id.composerEditTextOuterBorder)
         if (!isDirectRoom) {
-            views.composerLayout.composerEditTextOuterBorder.setBackgroundResource(R.drawable.bg_composer_edit_text)
-            views.richTextComposerLayout.composerEditTextOuterBorder.setBackgroundResource(R.drawable.bg_composer_edit_text)
+            plainTextBorder?.setBackgroundResource(R.drawable.bg_composer_edit_text)
+            richTextBorder?.setBackgroundResource(R.drawable.bg_composer_edit_text)
             composer.emojiButton?.isVisible = vectorPreferences.showEmojiKeyboard()
             return
         }
@@ -311,8 +313,8 @@ class MessageComposerFragment : VectorBaseFragment<FragmentComposerBinding>(), A
             cornerRadius = 28f * density
         }
 
-        views.composerLayout.composerEditTextOuterBorder.background = createComposerPill()
-        views.richTextComposerLayout.composerEditTextOuterBorder.background = createComposerPill()
+        plainTextBorder?.background = createComposerPill()
+        richTextBorder?.background = createComposerPill()
         composer.emojiButton?.isVisible = true
     }
 
