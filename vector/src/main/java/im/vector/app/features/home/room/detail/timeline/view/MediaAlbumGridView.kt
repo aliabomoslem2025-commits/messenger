@@ -22,6 +22,8 @@ import androidx.core.view.isVisible
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import im.vector.app.R
 import im.vector.app.features.home.room.detail.timeline.helper.ContentDownloadOverlayBinder
+import im.vector.app.features.home.room.detail.timeline.helper.ContentUploadStateTrackerBinder
+import im.vector.app.core.files.LocalFilesHelper
 import im.vector.app.features.home.room.detail.timeline.item.MediaAlbumTile
 import im.vector.app.features.media.ImageContentRenderer
 import kotlin.math.ceil
@@ -48,6 +50,7 @@ class MediaAlbumGridView @JvmOverloads constructor(
     private var measuredTileBounds: List<Rect> = emptyList()
     private var boundImageRenderer: ImageContentRenderer? = null
     private var boundDownloadBinder: ContentDownloadOverlayBinder? = null
+    private var boundUploadBinder: ContentUploadStateTrackerBinder? = null
 
     init {
         clipChildren = true
@@ -58,11 +61,13 @@ class MediaAlbumGridView @JvmOverloads constructor(
             tiles: List<MediaAlbumTile>,
             imageContentRenderer: ImageContentRenderer,
             downloadOverlayBinder: ContentDownloadOverlayBinder,
+            uploadStateTrackerBinder: ContentUploadStateTrackerBinder,
             onTileClick: ((MediaAlbumTile, android.view.View) -> Unit)?
     ) {
         clear()
         boundImageRenderer = imageContentRenderer
         boundDownloadBinder = downloadOverlayBinder
+        boundUploadBinder = uploadStateTrackerBinder
 
         tiles.forEach { tile ->
             val frame = FrameLayout(context).apply {
@@ -121,6 +126,42 @@ class MediaAlbumGridView @JvmOverloads constructor(
             }
             frame.addView(progress)
 
+            val uploadProgressLayout = android.widget.LinearLayout(context).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setPadding(dp(9), dp(4), dp(9), dp(5))
+                background = GradientDrawable().apply {
+                    shape = GradientDrawable.RECTANGLE
+                    setColor(0xCC202124.toInt())
+                    cornerRadius = dp(7).toFloat()
+                }
+                visibility = ViewGroup.GONE
+                layoutParams = FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM).apply {
+                    leftMargin = dp(7)
+                    rightMargin = dp(7)
+                    bottomMargin = dp(7)
+                }
+                addView(android.widget.TextView(context).apply {
+                    id = R.id.mediaProgressTextView
+                    textSize = 10f
+                    maxLines = 1
+                    setTextColor(Color.WHITE)
+                }, android.widget.LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
+                addView(ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal).apply {
+                    id = R.id.mediaProgressBar
+                    max = 100
+                    progress = 0
+                    isIndeterminate = true
+                    progressTintList = ColorStateList.valueOf(Color.WHITE)
+                    indeterminateTintList = ColorStateList.valueOf(Color.WHITE)
+                }, android.widget.LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, dp(3)))
+            }
+            frame.addView(uploadProgressLayout)
+            uploadStateTrackerBinder.bind(
+                    eventId = tile.eventId,
+                    isLocalFile = LocalFilesHelper(context).isLocalFile(tile.imageData.url),
+                    progressLayout = uploadProgressLayout
+            )
+
             imageContentRenderer.render(
                     tile.imageData,
                     ImageContentRenderer.Mode.THUMBNAIL,
@@ -154,6 +195,7 @@ class MediaAlbumGridView @JvmOverloads constructor(
         tileViews.forEach { tile ->
             boundImageRenderer?.clear(tile.image)
             boundDownloadBinder?.unbind(tile.tile.eventId)
+            boundUploadBinder?.unbind(tile.tile.eventId)
             tile.image.setOnClickListener(null)
         }
         removeAllViews()
@@ -161,6 +203,7 @@ class MediaAlbumGridView @JvmOverloads constructor(
         measuredTileBounds = emptyList()
         boundImageRenderer = null
         boundDownloadBinder = null
+        boundUploadBinder = null
         requestLayout()
     }
 
