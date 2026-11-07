@@ -1521,23 +1521,7 @@ class TimelineFragment :
         val header = views.includeRoomToolbar.roomToolbarContentView
         val density = resources.displayMetrics.density
         val surface = ThemeUtils.getColor(requireContext(), im.vector.lib.ui.styles.R.attr.vctr_message_bubble_inbound)
-        // The Telegram header capsule stays translucent over the wallpaper for groups too.
-        if (!isDirect) {
-            val translucentSurface = (surface and 0x00FFFFFF) or (0xC4 shl 24)
-            val groupBackground = android.graphics.drawable.GradientDrawable().apply {
-                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-                setColor(translucentSurface)
-                cornerRadius = 28f * density
-            }
-            header.background = android.graphics.drawable.InsetDrawable(
-                    groupBackground,
-                    (15f * density).toInt(),
-                    (3f * density).toInt(),
-                    (15f * density).toInt(),
-                    (3f * density).toInt()
-            )
-            return
-        }
+        // Apply the same translucent capsule and circular toolbar controls to both room types.
 
         val translucentSurface = (surface and 0x00FFFFFF) or (0xC4 shl 24)
         val background = android.graphics.drawable.GradientDrawable().apply {
