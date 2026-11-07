@@ -37,6 +37,14 @@ class TimelineEventsGroup(val groupId: String) {
     }
 
     fun isMediaAlbum(): Boolean = groupId.startsWith("media_album:")
+
+    fun mediaAlbumAnchorEventId(): String? {
+        if (!isMediaAlbum()) return null
+        return _events.maxByOrNull { event ->
+            (event.root.getClearContent()?.get("org.aliabomoslem.messenger.media_album_index") as? Number)?.toInt()
+                    ?: Int.MIN_VALUE
+        }?.eventId
+    }
 }
 
 class TimelineEventsGroups {
