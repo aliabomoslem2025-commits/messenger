@@ -55,11 +55,15 @@ abstract class AttachmentMiniaturePreviewItem : AttachmentPreviewItem<Attachment
     @EpoxyAttribute
     var checked: Boolean = false
 
+    @EpoxyAttribute
+    var longClickListener: View.OnLongClickListener? = null
+
     override fun bind(holder: Holder) {
         super.bind(holder)
         holder.imageView.isChecked = checked
         holder.miniatureVideoIndicator.isVisible = attachment.type == ContentAttachmentData.Type.VIDEO
         holder.view.setOnClickListener(clickListener)
+        holder.view.setOnLongClickListener(longClickListener)
     }
 
     class Holder : AttachmentPreviewItem.Holder() {
