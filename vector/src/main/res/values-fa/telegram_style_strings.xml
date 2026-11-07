@@ -4,4 +4,8 @@
         <item quantity="one">%d عضو</item>
         <item quantity="other">%d عضو</item>
     </plurals>
+    <plurals name="telegram_media_remove_selected">
+        <item quantity="one">حذف %d مورد انتخاب‌شده</item>
+        <item quantity="other">حذف %d مورد انتخاب‌شده</item>
+    </plurals>
 </resources>
