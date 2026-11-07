@@ -27,6 +27,7 @@ class AttachmentMiniaturePreviewController @Inject constructor() : TypedEpoxyCon
 
     interface Callback {
         fun onAttachmentClicked(position: Int, contentAttachmentData: ContentAttachmentData)
+        fun onAttachmentLongClicked(position: Int, contentAttachmentData: ContentAttachmentData)
     }
 
     var callback: Callback? = null
@@ -37,9 +38,13 @@ class AttachmentMiniaturePreviewController @Inject constructor() : TypedEpoxyCon
             attachmentMiniaturePreviewItem {
                 id(contentAttachmentData.queryUri.toString())
                 attachment(contentAttachmentData)
-                checked(data.currentAttachmentIndex == index)
-                clickListener { _ ->
-                    host.callback?.onAttachmentClicked(index, contentAttachmentData)
+                checked(if (data.selectedAttachmentUris.isNotEmpty()) {
+                    contentAttachmentData.queryUri.toString() in data.selectedAttachmentUris
+                } else data.currentAttachmentIndex == index)
+                clickListener { _ -> host.callback?.onAttachmentClicked(index, contentAttachmentData) }
+                longClickListener {
+                    host.callback?.onAttachmentLongClicked(index, contentAttachmentData)
+                    true
                 }
             }
         }
