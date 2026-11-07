@@ -9,6 +9,8 @@ package im.vector.app.features.home.room.detail.timeline.item
 
 import android.content.res.ColorStateList
 import android.graphics.Outline
+import android.text.format.DateUtils
+import android.text.format.Formatter
 import android.text.method.MovementMethod
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +37,7 @@ import im.vector.app.features.home.room.detail.timeline.style.granularRoundedCor
 import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.themes.ThemeUtils
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import kotlin.math.abs
 import kotlin.math.max
@@ -94,6 +97,8 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
                 mediaWidth != null && mediaHeight != null &&
                 abs(mediaWidth - mediaHeight) <= max(4, max(mediaWidth, mediaHeight) / 20)
         val isCircularVideoNote = isTaggedVideoNote || isSquareVideoNote
+        val isVideoMessage = attributes.informationData.messageType == MessageType.MSGTYPE_VIDEO
+        val videoInfo = (messageContent as? MessageVideoContent)?.videoInfo
         holder.setCircularVideoNote(isCircularVideoNote, dimensionConverter.dpToPx(208))
         val imageCornerTransformation = when {
             isCircularVideoNote -> CircleCrop()
@@ -106,6 +111,18 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         holder.captionView.text = caption
         holder.captionView.movementMethod = captionMovementMethod
         holder.captionView.setOnLongClickListener(attributes.itemLongClickListener)
+        holder.durationView.text = videoInfo?.duration
+                ?.takeIf { it > 0 }
+                ?.let { DateUtils.formatElapsedTime(it / 1000L) }
+        holder.durationView.isVisible = isVideoMessage && !holder.durationView.text.isNullOrBlank()
+        holder.sizeView.text = videoInfo?.size
+                ?.takeIf { it > 0L }
+                ?.let { Formatter.formatFileSize(holder.view.context, it) }
+        holder.sizeView.isVisible = isVideoMessage && !holder.sizeView.text.isNullOrBlank()
+        holder.moreView.isVisible = isVideoMessage
+        holder.moreView.setOnClickListener {
+            holder.mediaContentView.performLongClick()
+        }
         holder.imageView.scaleType = if (isCircularVideoNote) {
             ImageView.ScaleType.CENTER_CROP
         } else {
@@ -151,25 +168,28 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         val downloadUrl = mxcDownloadUrl
         val isDownloadingCandidate = !isMediaDownloaded && !downloadUrl.isNullOrBlank()
         val showAnimatedPlayControl = playable && !(isImageMessage && autoplayAnimatedImages)
-        holder.playContentView.visibility = if (isDownloadingCandidate || showAnimatedPlayControl) View.VISIBLE else View.GONE
-        if (isDownloadingCandidate) {
-            holder.playContentView.setImageResource(R.drawable.ic_telegram_download_arrow)
-        } else {
-            holder.playContentView.setImageResource(R.drawable.ic_material_play_circle)
-        }
+        val showCenterPlayControl = isVideoMessage || showAnimatedPlayControl
+
+        // Keep duration/size visible for videos, even after the transfer has been cached.
+        // The download affordance is independent from the centered playback button.
+        holder.topStartControls.isVisible = isVideoMessage || isDownloadingCandidate
+        holder.downloadView.isVisible = isDownloadingCandidate
+        holder.playContentView.visibility = if (showCenterPlayControl) View.VISIBLE else View.GONE
+        holder.playContentView.setImageResource(R.drawable.ic_material_play_circle)
 
         if (!downloadUrl.isNullOrBlank()) {
             contentDownloadOverlayBinder.bind(
                     eventId = attributes.informationData.eventId,
                     mxcUrl = downloadUrl,
                     progress = holder.downloadProgress,
-                    downloadIcon = holder.playContentView,
-                    showPlayIconOnSuccess = showAnimatedPlayControl,
+                    downloadIcon = holder.downloadView,
+                    showPlayIconOnSuccess = false,
                     messageContent = messageContent,
                     onMediaClick = { clickListener?.invoke(holder.imageView) }
             )
         } else {
             holder.downloadProgress.isVisible = false
+            holder.downloadView.isVisible = false
             holder.playContentView.setOnClickListener {
                 clickListener?.invoke(holder.imageView)
             }
@@ -187,6 +207,10 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
         holder.captionView.movementMethod = null
         holder.captionView.setOnLongClickListener(null)
         holder.playContentView.setOnClickListener(null)
+        holder.downloadView.setOnClickListener(null)
+        holder.moreView.setOnClickListener(null)
+        holder.durationView.text = null
+        holder.sizeView.text = null
         super.unbind(holder)
     }
 
@@ -195,8 +219,13 @@ abstract class MessageImageVideoItem : AbsMessageItem<MessageImageVideoItem.Hold
     class Holder : AbsMessageItem.Holder(STUB_ID) {
         val progressLayout by bind<ViewGroup>(R.id.messageMediaUploadProgressLayout)
         val imageView by bind<ImageView>(R.id.messageThumbnailView)
-        val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
+        val topStartControls by bind<ViewGroup>(R.id.messageMediaTopStartControls)
+        val downloadView by bind<ImageView>(R.id.messageMediaDownloadView)
+        val durationView by bind<TextView>(R.id.messageMediaDurationView)
+        val sizeView by bind<TextView>(R.id.messageMediaSizeView)
         val downloadProgress by bind<android.widget.ProgressBar>(R.id.messageMediaDownloadProgress)
+        val moreView by bind<ImageView>(R.id.messageMediaMoreView)
+        val playContentView by bind<ImageView>(R.id.messageMediaPlayView)
         val mediaContentView by bind<ViewGroup>(R.id.messageContentMedia)
         val captionView by bind<TextView>(R.id.messageMediaCaptionView)
 
