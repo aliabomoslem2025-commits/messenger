@@ -386,7 +386,8 @@ class TimelineEventController @Inject constructor(
                     val timelineEvent = currentSnapshot.getOrNull(position)
                     val mediaGroup = timelineEvent?.let { timelineEventsGroups.getOrNull(it) }
                     val albumAnchorEventId = mediaGroup?.mediaAlbumAnchorEventId()
-                    val isHiddenAlbumMember = mediaGroup?.isMediaAlbum() == true &&
+                    val isHiddenAlbumMember = mediaGroup != null &&
+                            mediaGroup.isMediaAlbum() &&
                             mediaGroup.events.size > 1 &&
                             albumAnchorEventId != null &&
                             timelineEvent?.eventId != albumAnchorEventId
@@ -453,7 +454,9 @@ class TimelineEventController @Inject constructor(
             }
             val cachedItem = modelCache[position]
             val currentEventsGroup = timelineEventsGroups.getOrNull(event)
-            val isMediaAlbumMember = currentEventsGroup?.isMediaAlbum() == true && currentEventsGroup.events.size > 1
+            val isMediaAlbumMember = currentEventsGroup != null &&
+                    currentEventsGroup.isMediaAlbum() &&
+                    currentEventsGroup.events.size > 1
             // Read receipts arrive independently of timeline events. Rebuild a message
             // when its read state changes so the single/double check cannot become stale.
             if (cachedItem == null ||
