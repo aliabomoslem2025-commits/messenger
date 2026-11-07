@@ -14,7 +14,9 @@ data class AttachmentsPreviewViewState(
         val attachments: List<ContentAttachmentData>,
         val currentAttachmentIndex: Int = 0,
         val sendImagesWithOriginalSize: Boolean = false,
-        val caption: String = ""
+        val caption: String = "",
+        /** URI strings selected for bulk removal in the thumbnail strip. */
+        val selectedAttachmentUris: Set<String> = emptySet()
 ) : MavericksState {
 
     constructor(args: AttachmentsPreviewArgs) : this(attachments = args.attachments)
