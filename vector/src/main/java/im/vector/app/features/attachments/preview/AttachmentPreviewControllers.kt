@@ -27,7 +27,7 @@ class AttachmentMiniaturePreviewController @Inject constructor() : TypedEpoxyCon
 
     interface Callback {
         fun onAttachmentClicked(position: Int, contentAttachmentData: ContentAttachmentData)
-        fun onAttachmentLongClicked(position: Int, contentAttachmentData: ContentAttachmentData)
+        fun onAttachmentLongClicked(position: Int, contentAttachmentData: ContentAttachmentData) = Unit
     }
 
     var callback: Callback? = null
