@@ -121,6 +121,7 @@ import im.vector.app.features.call.webrtc.WebRtcCallManager
 import im.vector.app.features.crypto.keysbackup.restore.KeysBackupRestoreActivity
 import im.vector.app.features.crypto.verification.user.UserVerificationBottomSheet
 import im.vector.app.features.home.AvatarRenderer
+import im.vector.app.features.home.TelegramChannel
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.home.room.detail.composer.CanSendStatus
 import im.vector.app.features.home.room.detail.composer.MessageComposerAction
@@ -287,6 +288,7 @@ class TimelineFragment :
     private lateinit var jumpToBottomViewVisibilityManager: JumpToBottomViewVisibilityManager
     private var modelBuildListener: OnModelBuildFinishedListener? = null
     private var dustParticleOverlay: DustParticleOverlay? = null
+    private var telegramChannelMuted = false
 
     private lateinit var keyboardStateUtils: KeyboardStateUtils
     private lateinit var callActionsHandler: StartCallActionsHandler
@@ -436,6 +438,7 @@ class TimelineFragment :
         setupToolbar(views.roomToolbar)
                 .allowBack()
         applyTelegramToolbarActionSurfaces(views.roomToolbar)
+        setupTelegramChannelFooter()
         setupRecyclerView()
         applyChatWallpaperPreference()
         setupNotificationView()
@@ -877,6 +880,52 @@ class TimelineFragment :
 //                }
 //            }
 //        }
+    }
+
+
+    /**
+     * Search, comments and notification controls for Matrix-backed broadcast channels.
+     */
+    private fun setupTelegramChannelFooter() {
+        val room = session.getRoom(timelineArgs.roomId) ?: return
+
+        room.roomPushRuleService().getLiveRoomNotificationState().observe(viewLifecycleOwner) { notificationState ->
+            telegramChannelMuted = notificationState == RoomNotificationState.MUTE
+            views.telegramChannelMuteButton.setText(
+                    if (telegramChannelMuted) R.string.telegram_channel_unmute else R.string.telegram_channel_mute
+            )
+        }
+
+        views.telegramChannelSearchButton.setOnClickListener {
+            handleSearchAction()
+        }
+
+        views.telegramChannelCommentsButton.setOnClickListener {
+            if (vectorPreferences.areThreadMessagesEnabled()) {
+                navigateToThreadList()
+            } else {
+                displayThreadsBetaOptInDialog()
+            }
+        }
+
+        views.telegramChannelMuteButton.setOnClickListener {
+            if (!isAdded) return@setOnClickListener
+            views.telegramChannelMuteButton.isEnabled = false
+            lifecycleScope.launch {
+                try {
+                    val targetState = if (telegramChannelMuted) {
+                        RoomNotificationState.ALL_MESSAGES
+                    } else {
+                        RoomNotificationState.MUTE
+                    }
+                    room.roomPushRuleService().setRoomNotificationState(targetState)
+                } catch (failure: Throwable) {
+                    if (isAdded) showSnackWithMessage(errorFormatter.toHumanReadable(failure))
+                } finally {
+                    if (isAdded && view != null) views.telegramChannelMuteButton.isEnabled = true
+                }
+            }
+        }
     }
 
     private fun setupNotificationView() {
@@ -1370,6 +1419,11 @@ class TimelineFragment :
             return@withState
         }
         val summary = mainState.asyncRoomSummary()
+        val showTelegramChannelFooter = mainState.isTelegramChannel() &&
+                summary?.membership == Membership.JOIN &&
+                mainState.tombstoneEvent == null &&
+                messageComposerState.canSendMessage == CanSendStatus.NoPermission
+        views.telegramChannelFooter.isVisible = showTelegramChannelFooter
         renderToolbar(summary)
         views.removeJitsiWidgetView.render(mainState)
         if (mainState.hasFailedSending) {
@@ -1385,20 +1439,25 @@ class TimelineFragment :
             lazyLoadedViews.inviteView(false)?.isVisible = false
 
             if (mainState.tombstoneEvent == null) {
-                views.composerContainer.isInvisible = !messageComposerState.isComposerVisible
-                views.voiceMessageRecorderContainer.isVisible = messageComposerState.isVoiceMessageRecorderVisible
-                when (messageComposerState.canSendMessage) {
-                    CanSendStatus.Allowed -> {
-                        NotificationAreaView.State.Hidden
+                if (showTelegramChannelFooter) {
+                    views.hideComposerViews()
+                    views.notificationAreaView.isVisible = false
+                } else {
+                    views.composerContainer.isInvisible = !messageComposerState.isComposerVisible
+                    views.voiceMessageRecorderContainer.isVisible = messageComposerState.isVoiceMessageRecorderVisible
+                    when (messageComposerState.canSendMessage) {
+                        CanSendStatus.Allowed -> {
+                            NotificationAreaView.State.Hidden
+                        }
+                        CanSendStatus.NoPermission -> {
+                            NotificationAreaView.State.NoPermissionToPost
+                        }
+                        is CanSendStatus.UnSupportedE2eAlgorithm -> {
+                            NotificationAreaView.State.UnsupportedAlgorithm(mainState.isAllowedToSetupEncryption)
+                        }
+                    }.let {
+                        views.notificationAreaView.render(it)
                     }
-                    CanSendStatus.NoPermission -> {
-                        NotificationAreaView.State.NoPermissionToPost
-                    }
-                    is CanSendStatus.UnSupportedE2eAlgorithm -> {
-                        NotificationAreaView.State.UnsupportedAlgorithm(mainState.isAllowedToSetupEncryption)
-                    }
-                }.let {
-                    views.notificationAreaView.render(it)
                 }
             } else {
                 views.hideComposerViews()
@@ -1483,27 +1542,39 @@ class TimelineFragment :
                     avatarRenderer.render(roomSummary.toMatrixItem(), views.includeRoomToolbar.roomToolbarAvatarImageView)
                     val showPresence = roomSummary.isDirect
                     val directPresence = roomSummary.directUserPresence
+                    val isTelegramChannel = roomSummary.roomType == TelegramChannel.ROOM_TYPE
                     views.includeRoomToolbar.roomToolbarPresenceImageView.render(showPresence, directPresence)
-                    val presenceLabel = if (showPresence) {
-                        when (directPresence?.presence) {
-                            PresenceEnum.ONLINE -> CommonStrings.a11y_presence_online
-                            PresenceEnum.OFFLINE -> CommonStrings.a11y_presence_offline
-                            PresenceEnum.BUSY -> CommonStrings.a11y_presence_busy
-                            PresenceEnum.UNAVAILABLE -> CommonStrings.a11y_presence_unavailable
-                            null -> null
+                    if (isTelegramChannel) {
+                        val subscribers = (roomSummary.joinedMembersCount ?: 0).coerceAtLeast(1)
+                        presenceSubtitle.text = resources.getQuantityString(
+                                R.plurals.telegram_channel_subscriber_count,
+                                subscribers,
+                                subscribers
+                        )
+                        presenceSubtitle.isVisible = true
+                    } else {
+                        val presenceLabel = if (showPresence) {
+                            when (directPresence?.presence) {
+                                PresenceEnum.ONLINE -> CommonStrings.a11y_presence_online
+                                PresenceEnum.OFFLINE -> CommonStrings.a11y_presence_offline
+                                PresenceEnum.BUSY -> CommonStrings.a11y_presence_busy
+                                PresenceEnum.UNAVAILABLE -> CommonStrings.a11y_presence_unavailable
+                                null -> null
+                            }
+                        } else {
+                            null
                         }
-                    } else {
-                        null
-                    }
-                    presenceSubtitle.isVisible = presenceLabel != null
-                    if (presenceLabel != null) {
-                        presenceSubtitle.setText(presenceLabel)
-                    } else {
-                        presenceSubtitle.text = null
+                        presenceSubtitle.isVisible = presenceLabel != null
+                        if (presenceLabel != null) {
+                            presenceSubtitle.setText(presenceLabel)
+                        } else {
+                            presenceSubtitle.text = null
+                        }
                     }
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
-                    views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
+                    views.includeRoomToolbar.roomToolbarPublicImageView.isVisible =
+                            roomSummary.isPublic && !roomSummary.isDirect && !isTelegramChannel
                 }
             }
         }

@@ -10,6 +10,7 @@ package im.vector.app.features.home.room.detail
 import com.airbnb.mvrx.Async
 import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
+import im.vector.app.features.home.TelegramChannel
 import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.share.SharedData
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -101,6 +102,8 @@ data class RoomDetailViewState(
     fun hasActiveElementCallWidget() = activeRoomWidgets()?.any { it.type == WidgetType.ElementCall && it.isActive }.orFalse()
 
     fun isDm() = asyncRoomSummary()?.isDirect == true
+
+    fun isTelegramChannel() = asyncRoomSummary()?.roomType == TelegramChannel.ROOM_TYPE
 
     fun isThreadTimeline() = rootThreadEventId != null
 
