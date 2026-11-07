@@ -194,13 +194,48 @@ class MediaAlbumGridView @JvmOverloads constructor(
 
     private fun calculateHeight(width: Int, count: Int): Int {
         if (count <= 1) return width
+
+        // Telegram's group layout considers source proportions, not only item count.
+        // Missing/broken dimensions fall back to a square so they cannot collapse the album.
+        val averageAspectRatio = tileViews
+                .map { tile ->
+                    val sourceWidth = tile.tile.imageData.width?.takeIf { it > 0 } ?: 1
+                    val sourceHeight = tile.tile.imageData.height?.takeIf { it > 0 } ?: 1
+                    sourceWidth.toFloat() / sourceHeight.toFloat()
+                }
+                .average()
+                .toFloat()
+                .takeIf { it.isFinite() && it > 0f }
+                ?: 1f
+
+        val portraitFactor = when {
+            averageAspectRatio < 0.72f -> 1.34f
+            averageAspectRatio < 0.95f -> 1.18f
+            averageAspectRatio < 1.25f -> 1.02f
+            averageAspectRatio < 1.65f -> 0.84f
+            else -> 0.66f
+        }
         val cellWidth = (width - gap * 2) / 3f
         val raw = when (count) {
-            2 -> width * 0.62f
-            3 -> width * 0.78f
-            4 -> width * 0.72f
-            5 -> width * 0.84f
-            else -> cellWidth * ceil(count / 3f) * 0.82f
+            2 -> width * when {
+                averageAspectRatio > 1.65f -> 0.52f
+                averageAspectRatio < 0.82f -> 0.92f
+                else -> 0.70f
+            }
+            // Three-media Telegram albums commonly use a tall left tile and two stacked
+            // tiles on the right, matching the supplied reference screenshot.
+            3 -> width * portraitFactor
+            4 -> width * when {
+                averageAspectRatio > 1.55f -> 0.60f
+                averageAspectRatio < 0.80f -> 0.92f
+                else -> 0.76f
+            }
+            5 -> width * when {
+                averageAspectRatio > 1.55f -> 0.70f
+                averageAspectRatio < 0.80f -> 1.08f
+                else -> 0.88f
+            }
+            else -> cellWidth * ceil(count / 3f) * portraitFactor.coerceIn(0.72f, 1.08f)
         }
         return raw.toInt().coerceIn(dp(116), dp(420))
     }
