@@ -48,6 +48,16 @@ class TimelineEventsGroup(val groupId: String) {
                             ?: Int.MIN_VALUE
                 }?.eventId
     }
+
+    fun mediaAlbumOldestEventId(): String? {
+        if (!isMediaAlbum()) return null
+        return _events.asSequence()
+                .filterNot { it.root.isRedacted() }
+                .minByOrNull { event ->
+                    (event.root.getClearContent()?.get("org.aliabomoslem.messenger.media_album_index") as? Number)?.toInt()
+                            ?: Int.MAX_VALUE
+                }?.eventId
+    }
 }
 
 class TimelineEventsGroups {
