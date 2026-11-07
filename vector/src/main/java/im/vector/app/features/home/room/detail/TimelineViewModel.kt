@@ -898,11 +898,15 @@ class TimelineViewModel @AssistedInject constructor(
 
     private fun handleSendMedia(action: RoomDetailAction.SendMedia) {
         if (room == null) return
+        val additionalContent = action.mediaAlbumId?.takeIf { it.isNotBlank() }?.let {
+            mapOf("org.aliabomoslem.messenger.media_album_id" to it)
+        }
         room.sendService().sendMedias(
-                action.attachments,
-                action.compressBeforeSending,
-                emptySet(),
-                initialState.rootThreadEventId
+                attachments = action.attachments,
+                compressBeforeSending = action.compressBeforeSending,
+                roomIds = emptySet(),
+                rootThreadEventId = initialState.rootThreadEventId,
+                additionalContent = additionalContent
         )
     }
 
