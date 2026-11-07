@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="telegram_group_member_count">
+        <item quantity="one">%d عضو</item>
+        <item quantity="other">%d عضو</item>
+    </plurals>
+</resources>
