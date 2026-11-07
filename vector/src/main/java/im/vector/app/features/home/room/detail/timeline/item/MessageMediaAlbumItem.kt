@@ -82,6 +82,8 @@ abstract class MessageMediaAlbumItem : AbsMessageItem<MessageMediaAlbumItem.Hold
     // This row is reconstructed from its live group as timeline pages and local echoes update.
     override fun isCacheable(): Boolean = false
 
+    override fun getEventIds(): List<String> = mediaTiles.map { it.eventId }
+
     override fun getViewStubId() = STUB_ID
 
     class Holder : AbsMessageItem.Holder(STUB_ID) {
