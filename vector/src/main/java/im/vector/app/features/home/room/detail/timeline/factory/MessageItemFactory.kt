@@ -209,6 +209,7 @@ class MessageItemFactory @Inject constructor(
                     .mediaTiles(albumTiles)
                     .imageContentRenderer(imageContentRenderer)
                     .contentDownloadOverlayBinder(contentDownloadOverlayBinder)
+                    .contentUploadStateTrackerBinder(contentUploadStateTrackerBinder)
                     .caption(albumCaption)
                     .captionMovementMethod(createLinkMovementMethod(callback))
                     .tileClickListener { tile, clickedView ->
