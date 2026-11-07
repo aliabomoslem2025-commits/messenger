@@ -61,7 +61,7 @@ class AttachmentsPreviewActivity : VectorBaseActivity<ActivitySimpleBinding>() {
         }
     }
 
-    fun setResultAndFinish(data: List<ContentAttachmentData>, keepOriginalImageSize: Boolean, mediaAlbumId: String?) {
+    fun setResultAndFinish(data: List<ContentAttachmentData>, keepOriginalImageSize: Boolean, mediaAlbumId: String? = null) {
         val resultIntent = Intent().apply {
             putParcelableArrayListExtra(ATTACHMENTS_PREVIEW_RESULT, ArrayList(data))
             putExtra(KEEP_ORIGINAL_IMAGES_SIZE, keepOriginalImageSize)
