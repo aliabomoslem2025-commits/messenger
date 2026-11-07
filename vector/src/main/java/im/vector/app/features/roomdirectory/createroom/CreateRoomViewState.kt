@@ -34,18 +34,20 @@ data class CreateRoomViewState(
         val isSubSpace: Boolean = false,
         val openAfterCreate: Boolean = true,
         val isGroup: Boolean = false,
+        val isChannel: Boolean = false,
         val initialInvitedUserIds: List<String> = emptyList(),
         val initialInvitedThreePids: List<String> = emptyList()
 ) : MavericksState {
 
     constructor(args: CreateRoomArgs) : this(
             roomName = args.initialName,
-            roomJoinRules = args.initialJoinRule ?: RoomJoinRules.INVITE,
-            initialJoinRule = args.initialJoinRule,
+            roomJoinRules = if (args.isChannel) RoomJoinRules.PUBLIC else args.initialJoinRule ?: RoomJoinRules.INVITE,
+            initialJoinRule = if (args.isChannel) RoomJoinRules.PUBLIC else args.initialJoinRule,
             parentSpaceId = args.parentSpaceId,
             isSubSpace = args.isSpace,
             openAfterCreate = args.openAfterCreate,
             isGroup = args.isGroup,
+            isChannel = args.isChannel,
             initialInvitedUserIds = args.initialInvitedUserIds,
             initialInvitedThreePids = args.initialInvitedThreePids
     )

@@ -17,6 +17,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import im.vector.app.SpaceStateHandler
+import im.vector.app.features.home.TelegramChannel
 import im.vector.app.core.di.MavericksAssistedViewModelFactory
 import im.vector.app.core.di.hiltMavericksViewModelFactory
 import im.vector.app.core.platform.VectorViewModel
@@ -31,6 +32,7 @@ import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.identity.ThreePid
 import org.matrix.android.sdk.api.session.getRoomSummary
 import org.matrix.android.sdk.api.session.homeserver.HomeServerCapabilities
@@ -158,9 +160,12 @@ class CreateRoomViewModel @AssistedInject constructor(
             avatarUri?.let { tryOrNull { it.toFile().delete() } }
 
             CreateRoomViewState(
-                    isEncrypted = adminE2EByDefault,
+                    isEncrypted = if (isChannel) false else adminE2EByDefault,
                     hsAdminHasDisabledE2E = !adminE2EByDefault,
-                    parentSpaceId = this.parentSpaceId
+                    parentSpaceId = this.parentSpaceId,
+                    initialJoinRule = if (isChannel) RoomJoinRules.PUBLIC else initialJoinRule,
+                    isChannel = isChannel,
+                    isGroup = isGroup
             )
         }
 
@@ -174,7 +179,13 @@ class CreateRoomViewModel @AssistedInject constructor(
     private fun setTopic(action: CreateRoomAction.SetTopic) = setState { copy(roomTopic = action.topic) }
 
     private fun setVisibility(action: CreateRoomAction.SetVisibility) = setState {
-        when (action.rule) {
+        if (isChannel) {
+            copy(
+                    roomJoinRules = RoomJoinRules.PUBLIC,
+                    asyncCreateRoomRequest = Uninitialized,
+                    isEncrypted = false
+            )
+        } else when (action.rule) {
             RoomJoinRules.PUBLIC -> {
                 copy(
                         roomJoinRules = RoomJoinRules.PUBLIC,
@@ -292,6 +303,15 @@ class CreateRoomViewModel @AssistedInject constructor(
                             preset = CreateRoomPreset.PRESET_PRIVATE_CHAT
                         }
                     }
+                    if (state.isChannel) {
+                        // Default events require admin power; subscriber reactions remain open.
+                        roomType = TelegramChannel.ROOM_TYPE
+                        powerLevelContentOverride = PowerLevelsContent(
+                                eventsDefault = 50,
+                                events = mapOf(EventType.REACTION to 0)
+                        )
+                    }
+
                     // Disabling federation
                     disableFederation = state.disableFederation
 

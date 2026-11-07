@@ -131,7 +131,11 @@ class CreateRoomFragment :
     private fun setupWaitingView() {
         views.waitingView.waitingStatusText.isVisible = true
         views.waitingView.waitingStatusText.setText(
-                if (args.isSpace) CommonStrings.create_space_in_progress else CommonStrings.create_room_in_progress
+                when {
+                    args.isSpace -> CommonStrings.create_space_in_progress
+                    args.isChannel -> R.string.telegram_channel_create_in_progress
+                    else -> CommonStrings.create_room_in_progress
+                }
         )
     }
 
@@ -172,7 +176,9 @@ class CreateRoomFragment :
         viewModel.handle(CreateRoomAction.SetTopic(newTopic))
     }
 
-    override fun selectVisibility() = withState(viewModel) { state ->
+    override fun selectVisibility() {
+        if (args.isChannel) return
+        withState(viewModel) { state ->
         // If restricted is supported and the user is in the context of a parent space
         // then show restricted option.
         val allowed = if (state.supportsRestricted && state.parentSpaceId != null) {
@@ -187,6 +193,7 @@ class CreateRoomFragment :
                 state.parentSpaceSummary?.displayName
         )
                 .show(childFragmentManager, "RoomJoinRuleBottomSheet")
+        }
     }
 //    override fun setIsPublic(isPublic: Boolean) {
 //        viewModel.handle(CreateRoomAction.SetIsPublic(isPublic))

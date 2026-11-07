@@ -100,9 +100,12 @@ class CreateRoomController @Inject constructor(
                 buildProfileAction(
                         id = "joinRule",
                         title = stringProvider.getString(CommonStrings.room_settings_room_access_public_title),
-                        subtitle = stringProvider.getString(CommonStrings.room_settings_room_access_public_description),
+                        subtitle = stringProvider.getString(
+                                if (viewState.isChannel) R.string.telegram_channel_posting_description
+                                else CommonStrings.room_settings_room_access_public_description
+                        ),
                         divider = false,
-                        editable = true,
+                        editable = !viewState.isChannel,
                         action = { host.listener?.selectVisibility() }
                 )
             }
@@ -192,7 +195,7 @@ class CreateRoomController @Inject constructor(
         formSubmitButtonItem {
             id("submit")
             enabled(enableFormElement)
-            buttonTitleId(CommonStrings.create_room_action_create)
+            buttonTitleId(if (viewState.isChannel) R.string.telegram_create_channel_title else CommonStrings.create_room_action_create)
             buttonClickListener { host.listener?.submit() }
         }
     }

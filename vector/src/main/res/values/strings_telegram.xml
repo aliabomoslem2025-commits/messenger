@@ -13,6 +13,17 @@
     <string name="telegram_new_group">New Group</string>
     <string name="telegram_new_channel">New Channel</string>
     <string name="telegram_create_channel_title">Create Channel</string>
+    <string name="telegram_channel_create_in_progress">Creating channel…</string>
+    <string name="telegram_channel_posting_description">Anyone can find and subscribe to this channel. Only administrators can publish posts; subscribers can react.</string>
+    <string name="telegram_channel_mute">Mute</string>
+    <string name="telegram_channel_unmute">Unmute</string>
+    <string name="telegram_channel_comments">Comments</string>
+    <string name="telegram_channel_search">Search channel</string>
+    <string name="telegram_media_more_options">More media options</string>
+    <plurals name="telegram_channel_subscriber_count">
+        <item quantity="one">%1$d subscriber</item>
+        <item quantity="other">%1$d subscribers</item>
+    </plurals>
     <string name="telegram_tab_chats">Chats</string>
     <string name="telegram_tab_contacts">Contacts</string>
     <string name="telegram_tab_chat_folders">Folders</string>
