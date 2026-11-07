@@ -100,7 +100,7 @@ class MediaAlbumGridView @JvmOverloads constructor(
                     shape = GradientDrawable.OVAL
                     setColor(0x99000000.toInt())
                 }
-                contentDescription = context.getString(R.string.action_download)
+                contentDescription = tile.imageData.filename
                 isVisible = !tile.downloadUrl.isNullOrBlank()
                 layoutParams = FrameLayout.LayoutParams(dp(36), dp(36), Gravity.BOTTOM or Gravity.END).apply {
                     rightMargin = dp(8)
