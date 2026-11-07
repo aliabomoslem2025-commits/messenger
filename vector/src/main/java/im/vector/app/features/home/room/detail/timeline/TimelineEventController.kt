@@ -436,9 +436,12 @@ class TimelineEventController @Inject constructor(
                 null
             }
             val cachedItem = modelCache[position]
+            val currentEventsGroup = timelineEventsGroups.getOrNull(event)
+            val isMediaAlbumMember = currentEventsGroup?.isMediaAlbum() == true && currentEventsGroup.events.size > 1
             // Read receipts arrive independently of timeline events. Rebuild a message
             // when its read state changes so the single/double check cannot become stale.
             if (cachedItem == null ||
+                    isMediaAlbumMember ||
                     !cachedItem.isCacheable(partialState) ||
                     cachedItem.readStatusForEvent != readStatusForEvent ||
                     reactionListFactory.needsRebuild(event)
@@ -460,7 +463,7 @@ class TimelineEventController @Inject constructor(
                             rootThreadEventId = partialState.rootThreadEventId
                     )
                 }
-                val timelineEventsGroup = timelineEventsGroups.getOrNull(event)
+                val timelineEventsGroup = currentEventsGroup
                 val params = TimelineItemFactoryParams(
                         event = event,
                         lastEdit = event.annotations?.editSummary?.latestEdit,
