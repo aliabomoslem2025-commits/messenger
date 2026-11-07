@@ -80,7 +80,7 @@ class TimelineEventsGroups {
         val relationContent = root.getRelationContent()
         val mediaAlbumId = content?.get("org.aliabomoslem.messenger.media_album_id") as? String
         return when {
-            type == EventType.MESSAGE && !mediaAlbumId.isNullOrBlank() -> "media_album:$mediaAlbumId"
+            type == EventType.MESSAGE && !mediaAlbumId.isNullOrBlank() -> "media_album:${root.senderId}:$mediaAlbumId"
             EventType.isCallEvent(type) -> (content?.get("call_id") as? String)
             type == VoiceBroadcastConstants.STATE_ROOM_VOICE_BROADCAST_INFO -> root.asVoiceBroadcastEvent()?.reference?.eventId
             type == EventType.STATE_ROOM_WIDGET || type == EventType.STATE_ROOM_WIDGET_LEGACY -> root.stateKey
