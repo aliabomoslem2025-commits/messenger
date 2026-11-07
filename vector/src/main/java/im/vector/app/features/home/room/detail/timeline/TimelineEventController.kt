@@ -442,7 +442,6 @@ class TimelineEventController @Inject constructor(
         }
         (0 until modelCache.size).forEach { position ->
             val event = currentSnapshot[position]
-            val nextEvent = currentSnapshot.nextOrNull(position)
             val readStatusForEvent = if (
                     partialState.roomSummary?.isDirect == true &&
                     event.root.senderId == session.myUserId &&
@@ -457,6 +456,15 @@ class TimelineEventController @Inject constructor(
             val isMediaAlbumMember = currentEventsGroup != null &&
                     currentEventsGroup.isMediaAlbum() &&
                     currentEventsGroup.events.size > 1
+            // Treat the album as one logical timeline row. The row's metadata is
+            // derived from the event outside the album, not from an adjacent tile.
+            val nextEvent = if (isMediaAlbumMember) {
+                currentSnapshot.subList(position + 1, currentSnapshot.size).firstOrNull { candidate ->
+                    timelineEventsGroups.getOrNull(candidate)?.groupId != currentEventsGroup?.groupId
+                }
+            } else {
+                currentSnapshot.nextOrNull(position)
+            }
             // Read receipts arrive independently of timeline events. Rebuild a message
             // when its read state changes so the single/double check cannot become stale.
             if (cachedItem == null ||
@@ -474,9 +482,11 @@ class TimelineEventController @Inject constructor(
                             rootThreadEventId = partialState.rootThreadEventId
                     )
                 }
-                val nextDisplayableEvent = currentSnapshot.subList(position + 1, currentSnapshot.size).firstOrNull {
-                    timelineEventVisibilityHelper.shouldShowEvent(
-                            timelineEvent = it,
+                val nextDisplayableEvent = currentSnapshot.subList(position + 1, currentSnapshot.size).firstOrNull { candidate ->
+                    val isSameAlbum = isMediaAlbumMember &&
+                            timelineEventsGroups.getOrNull(candidate)?.groupId == currentEventsGroup?.groupId
+                    !isSameAlbum && timelineEventVisibilityHelper.shouldShowEvent(
+                            timelineEvent = candidate,
                             highlightedEventId = partialState.highlightedEventId,
                             isFromThreadTimeline = partialState.isFromThreadTimeline(),
                             rootThreadEventId = partialState.rootThreadEventId
@@ -541,6 +551,19 @@ class TimelineEventController @Inject constructor(
             position: Int,
             receiptsByEvents: Map<String, List<ReadReceipt>>
     ): CacheItemData {
+        val albumGroup = timelineEventsGroups.getOrNull(event)
+        if (albumGroup?.isMediaAlbum() == true &&
+                albumGroup.events.size > 1 &&
+                event.eventId != albumGroup.mediaAlbumAnchorEventId()
+        ) {
+            // Non-anchor media events are only tiles in the album collage. They must not
+            // create repeated sender headers, timestamps, receipt markers or day dividers.
+            return copy(
+                    readReceiptsItem = null,
+                    formattedDayModel = null,
+                    mergedHeaderModel = null
+            )
+        }
         val wantsDateSeparator = wantsDateSeparator(event, nextEvent)
         val mergedHeaderModel = mergedHeaderItemFactory.create(
                 event,
